@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -59,11 +58,7 @@
 
     function showLoading(show) {
       const loading = document.getElementById('loading');
-      if (show) {
-        loading.style.display = 'flex';
-      } else {
-        loading.style.display = 'none';
-      }
+      loading.style.display = show ? 'flex' : 'none';
     }
 
     async function login() {
@@ -151,12 +146,12 @@
       document.getElementById('employee-section').classList.add('hidden');
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
+    window.onload = function () {
       showLoading(false);
       document.getElementById('loginBtn').addEventListener('click', login);
       document.getElementById('uploadBtn').addEventListener('click', uploadDocument);
       document.getElementById('addEmpBtn').addEventListener('click', addEmployee);
-    });
+    }
   </script>
 </body>
 </html>
