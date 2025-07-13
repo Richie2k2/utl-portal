@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UTL Document Portal</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 30px; }
@@ -36,7 +36,6 @@
     <div id="admin-section" class="hidden">
       <h4>Welcome, Admin</h4>
 
-      <h5>Upload Document</h5>
       <input type="file" id="uploadFile" />
       <button id="uploadBtn">Upload</button>
       <p id="upload-status"></p>
@@ -45,15 +44,14 @@
       <input type="text" id="newEmpId" placeholder="Employee ID" />
       <input type="password" id="newEmpPass" placeholder="Password" />
       <button id="addEmpBtn">Create Employee</button>
-
       <button onclick="logout()">Logout</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    const SUPABASE_URL = 'https://qaagedlnnbrpjvadpjsh.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYWdlZGxubmJycGp2YWRwanNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNDQ3MjUsImV4cCI6MjA2NzkyMDcyNX0.fjJ4ZS9HYXLEkpr6_SbLo_2wtj9HCTxkgOigbosd2ZA';
+    const SUPABASE_URL = 'https://karthiks-projects-b5255f13.supabase.co';
+    const SUPABASE_KEY = 'cmlZvGZ8rSJ2Y6wq9cdWJ9Y4';
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function showLoading(show) {
