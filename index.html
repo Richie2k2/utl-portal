@@ -48,11 +48,13 @@
     </div>
   </div>
 
+  <!-- Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const SUPABASE_URL = 'https://karthiks-projects-b5255f13.supabase.co';
     const SUPABASE_KEY = 'cmlZvGZ8rSJ2Y6wq9cdWJ9Y4';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     function showLoading(show) {
       const loading = document.getElementById('loading');
@@ -71,7 +73,7 @@
         return;
       }
 
-      const { data, error } = await supabase.from('profiles').select('*').eq('emp_id', empId).single();
+      const { data, error } = await supabaseClient.from('profiles').select('*').eq('emp_id', empId).single();
       if (error || !data) {
         errorDisplay.textContent = 'Employee not found.';
         return;
@@ -98,7 +100,7 @@
       }
 
       showLoading(true);
-      const { error } = await supabase.storage.from('documents').upload(`uploads/${Date.now()}-${file.name}`, file, { upsert: true });
+      const { error } = await supabaseClient.storage.from('documents').upload(`uploads/${Date.now()}-${file.name}`, file, { upsert: true });
       showLoading(false);
 
       if (error) {
@@ -115,19 +117,19 @@
       const password = document.getElementById('newEmpPass').value.trim();
       if (!empId || !password) return alert('Enter both ID and password');
 
-      const { error } = await supabase.from('profiles').insert([{ emp_id: empId, password }]);
+      const { error } = await supabaseClient.from('profiles').insert([{ emp_id: empId, password }]);
       if (error) return alert('Failed to add employee');
       alert('Employee added successfully');
     }
 
     async function loadFiles() {
-      const { data, error } = await supabase.storage.from('documents').list('uploads');
+      const { data, error } = await supabaseClient.storage.from('documents').list('uploads');
       if (error) return alert('Could not load files');
 
       const listDiv = document.getElementById('file-list');
       listDiv.innerHTML = '';
       for (const file of data) {
-        const { data: urlData } = await supabase.storage.from('documents').createSignedUrl(`uploads/${file.name}`, 60 * 60);
+        const { data: urlData } = await supabaseClient.storage.from('documents').createSignedUrl(`uploads/${file.name}`, 60 * 60);
         const link = document.createElement('a');
         link.href = urlData.signedUrl;
         link.textContent = file.name;
