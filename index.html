@@ -46,12 +46,11 @@
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script>
     const SUPABASE_URL = 'https://qaagedlnnbrpjvadpjsh.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYWdlZGxubmJycGp2YWRwanNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNDQ3MjUsImV4cCI6MjA2NzkyMDcyNX0.fjJ4ZS9HYXLEkpr6_SbLo_2wtj9HCTxkgOigbosd2ZA';
-    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function login() {
       const empId = document.getElementById('empId').value.trim();
