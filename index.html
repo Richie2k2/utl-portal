@@ -25,131 +25,142 @@
       width: 100%; 
       box-sizing: border-box; 
     }
-    .hidden { 
-      display: none; 
-    }
+    .hidden { display: none; }
     #loading { 
       position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6); 
+      top: 0; left: 0; 
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7); 
       color: white; 
       display: flex;
       justify-content: center; 
       align-items: center; 
       font-size: 24px; 
-      z-index: 999; 
+      z-index: 1000;
     }
-    #login-error {
-      color: red;
-    }
-    #upload-status {
-      color: green;
-    }
+    .error { color: red; }
+    .success { color: green; }
   </style>
 </head>
 <body>
   <div id="loading" class="hidden">Uploading...</div>
+  
   <div class="container">
     <h2>United Telecom Limited</h2>
     <h3>Document Portal</h3>
 
-    <!-- Login Section (shown by default) -->
+    <!-- Login Section (shown first) -->
     <div id="login-section">
-      <input type="text" id="empId" placeholder="Employee ID or 'admin'" />
-      <input type="password" id="password" placeholder="Password" />
+      <input type="text" id="empId" placeholder="Employee ID or 'admin'" value="admin">
+      <input type="password" id="password" placeholder="Password" value="admin123">
       <button id="loginBtn">Login</button>
-      <p id="login-error"></p>
+      <p id="login-error" class="error"></p>
     </div>
 
-    <!-- Upload Section (hidden until login) -->
+    <!-- Upload Section (shown after login) -->
     <div id="upload-section" class="hidden">
-      <h4>Upload Documents</h4>
-      <input type="file" id="uploadFile" />
-      <button id="uploadBtn">Upload</button>
+      <h4>Welcome, <span id="welcome-user"></span></h4>
+      <input type="file" id="uploadFile">
+      <button id="uploadBtn">Upload Document</button>
       <p id="upload-status"></p>
       <button onclick="logout()">Logout</button>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    // Supabase configuration (REPLACE WITH YOUR OWN CREDENTIALS)
     const supabaseUrl = 'https://qaagedlnnbrpjvadpjsh.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYWdlZGxubmJycGp2YWRwanNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNDQ3MjUsImV4cCI6MjA2NzkyMDcyNX0.fjJ4ZS9HYXLEkpr6_SbLo_2wtj9HCTxkgOigbosd2ZA';
     const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Show loading spinner
-    function showLoading(show) {
-      document.getElementById('loading').classList.toggle('hidden', !show);
-    }
+    // DOM elements
+    const loadingEl = document.getElementById('loading');
+    const loginSection = document.getElementById('login-section');
+    const uploadSection = document.getElementById('upload-section');
+    const welcomeUser = document.getElementById('welcome-user');
+    const loginError = document.getElementById('login-error');
+    const uploadStatus = document.getElementById('upload-status');
 
-    // Handle login
+    // Test credentials (for demo only)
+    const validUsers = {
+      'admin': 'admin123',
+      'employee': 'employee123'
+    };
+
+    // Login function
     async function login() {
       const empId = document.getElementById('empId').value.trim();
       const password = document.getElementById('password').value.trim();
-      const errorDisplay = document.getElementById('login-error');
       
-      // Simple hardcoded auth (replace with real auth in production)
-      if ((empId === 'admin' && password === 'admin123') || 
-          (empId === 'employee' && password === 'employee123')) {
-        
-        // Hide login, show upload section
-        document.getElementById('login-section').classList.add('hidden');
-        document.getElementById('upload-section').classList.remove('hidden');
-      } else {
-        errorDisplay.textContent = 'Invalid credentials';
-      }
-    }
-
-    // Handle file upload
-    async function uploadFile() {
-      const fileInput = document.getElementById('uploadFile');
-      const statusText = document.getElementById('upload-status');
+      loginError.textContent = '';
       
-      if (!fileInput.files[0]) {
-        statusText.textContent = 'Please select a file first';
-        statusText.style.color = 'red';
+      if (!empId || !password) {
+        loginError.textContent = 'Please enter both ID and password';
         return;
       }
 
-      showLoading(true);
+      // Simple authentication (replace with real auth in production)
+      if (validUsers[empId] && validUsers[empId] === password) {
+        loginSection.classList.add('hidden');
+        uploadSection.classList.remove('hidden');
+        welcomeUser.textContent = empId;
+      } else {
+        loginError.textContent = 'Invalid credentials';
+      }
+    }
+
+    // Upload function
+    async function uploadFile() {
+      const fileInput = document.getElementById('uploadFile');
+      const file = fileInput.files[0];
+      
+      if (!file) {
+        uploadStatus.textContent = 'Please select a file first';
+        uploadStatus.className = 'error';
+        return;
+      }
+
+      loadingEl.classList.remove('hidden');
+      uploadStatus.textContent = '';
+      
       try {
-        const file = fileInput.files[0];
-        const fileName = `uploads/${Date.now()}-${file.name}`;
+        // Generate unique filename
+        const fileName = `documents/${Date.now()}_${file.name}`;
         
-        const { error } = await supabase.storage
-          .from('documents')
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('documents')  // Your bucket name
           .upload(fileName, file);
         
         if (error) throw error;
         
-        statusText.textContent = 'Upload successful!';
-        statusText.style.color = 'green';
+        uploadStatus.textContent = 'Upload successful!';
+        uploadStatus.className = 'success';
+        fileInput.value = ''; // Clear file input
+        
       } catch (error) {
-        statusText.textContent = 'Upload failed: ' + error.message;
-        statusText.style.color = 'red';
+        console.error('Upload error:', error);
+        uploadStatus.textContent = `Upload failed: ${error.message}`;
+        uploadStatus.className = 'error';
       } finally {
-        showLoading(false);
+        loadingEl.classList.add('hidden');
       }
     }
 
-    // Logout handler
+    // Logout function
     function logout() {
-      document.getElementById('login-section').classList.remove('hidden');
-      document.getElementById('upload-section').classList.add('hidden');
+      loginSection.classList.remove('hidden');
+      uploadSection.classList.add('hidden');
       document.getElementById('empId').value = '';
       document.getElementById('password').value = '';
       document.getElementById('uploadFile').value = '';
-      document.getElementById('upload-status').textContent = '';
+      uploadStatus.textContent = '';
     }
 
     // Event listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('loginBtn').addEventListener('click', login);
-      document.getElementById('uploadBtn').addEventListener('click', uploadFile);
-    });
+    document.getElementById('loginBtn').addEventListener('click', login);
+    document.getElementById('uploadBtn').addEventListener('click', uploadFile);
   </script>
 </body>
 </html>
