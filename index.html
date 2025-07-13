@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTL Document Portal</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9f9f9; text-align: center; padding: 30px; }
+    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    input, button { padding: 10px; margin: 10px 0; width: 100%; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>United Telecom Limited</h2>
+    <h3>Document Portal</h3>
+
+    <div id="login-section">
+      <input type="text" id="empId" placeholder="Employee ID or 'admin'" />
+      <input type="password" id="password" placeholder="Password" />
+      <button onclick="login()">Login</button>
+      <p id="login-error" style="color: red;"></p>
+    </div>
+
+    <div id="employee-section" class="hidden">
+      <h4>Welcome, Employee</h4>
+      <div id="file-list"></div>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div id="admin-section" class="hidden">
+      <h4>Welcome, Admin</h4>
+
+      <h5>Upload Document</h5>
+      <input type="file" id="uploadFile" />
+      <button onclick="uploadDocument()">Upload</button>
+
+      <h5>Add New Employee</h5>
+      <input type="text" id="newEmpId" placeholder="Employee ID" />
+      <input type="password" id="newEmpPass" placeholder="Password" />
+      <button onclick="addEmployee()">Create Employee</button>
+
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const SUPABASE_URL = 'https://qaagedlnnbrpjvadpjsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhYWdlZGxubmJycGp2YWRwanNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzNDQ3MjUsImV4cCI6MjA2NzkyMDcyNX0.fjJ4ZS9HYXLEkpr6_SbLo_2wtj9HCTxkgOigbosd2ZA';
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function login() {
+      const empId = document.getElementById('empId').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorDisplay = document.getElementById('login-error');
+      errorDisplay.textContent = '';
+
+      if (empId === 'admin' && password === 'karthik') {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('admin-section').classList.remove('hidden');
+        return;
+      }
+
+      const { data, error } = await supabase.from('profiles').select('*').eq('emp_id', empId).single();
+      if (error || !data) {
+        errorDisplay.textContent = 'Employee ID not found or error occurred.';
+        return;
+      }
+
+      if (data.password !== password) {
+        errorDisplay.textContent = 'Incorrect password.';
+        return;
+      }
+
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('employee-section').classList.remove('hidden');
+      loadFiles();
+    }
+
+    async function uploadDocument() {
+      const fileInput = document.getElementById('uploadFile');
+      const file = fileInput.files[0];
+      if (!file) return alert('Please select a file');
+
+      const { error } = await supabase.storage.from('documents').upload(`uploads/${Date.now()}-${file.name}`, file);
+      if (error) return alert('Upload failed');
+      alert('Upload successful');
+    }
+
+    async function addEmployee() {
+      const empId = document.getElementById('newEmpId').value.trim();
+      const password = document.getElementById('newEmpPass').value.trim();
+      if (!empId || !password) return alert('Fill both fields');
+
+      const { error } = await supabase.from('profiles').insert([{ emp_id: empId, password }]);
+      if (error) return alert('Failed to add employee');
+      alert('Employee added');
+    }
+
+    async function loadFiles() {
+      const { data, error } = await supabase.storage.from('documents').list('uploads');
+      if (error) return alert('Failed to load files');
+
+      const listDiv = document.getElementById('file-list');
+      listDiv.innerHTML = '';
+      for (const file of data) {
+        const { data: urlData } = await supabase.storage.from('documents').createSignedUrl(`uploads/${file.name}`, 60 * 60);
+        const link = document.createElement('a');
+        link.href = urlData.signedUrl;
+        link.textContent = file.name;
+        link.download = file.name;
+        link.target = '_blank';
+        listDiv.appendChild(link);
+        listDiv.appendChild(document.createElement('br'));
+      }
+    }
+
+    function logout() {
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('employee-section').classList.add('hidden');
+      document.getElementById('admin-section').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
