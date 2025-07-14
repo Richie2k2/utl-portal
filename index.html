@@ -5,18 +5,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UTL Document Portal</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; text-align: center; padding: 30px; }
-    .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, button { padding: 10px; margin: 10px 0; width: 100%; box-sizing: border-box; }
-    .hidden { display: none !important; }
-    #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #333;
+    }
+    .container {
+      max-width: 400px;
+      width: 100%;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      margin-bottom: 10px;
+    }
+    h2, h3 {
+      margin: 5px 0;
+    }
+    input, button {
+      padding: 12px;
+      margin: 10px 0;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4e54c8;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #3b40a0;
+    }
+    .hidden {
+      display: none !important;
+    }
+    #loading {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.6); color: white; display: none;
-      justify-content: center; align-items: center; font-size: 24px; z-index: 999; }
+      justify-content: center; align-items: center; font-size: 24px; z-index: 999;
+    }
+    a {
+      display: block;
+      margin: 5px 0;
+      color: #4e54c8;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div id="loading">Uploading...</div>
   <div class="container">
+    <img src="logo.png" alt="Company Logo" class="logo">
     <h2>United Telecom Limited</h2>
     <h3>Document Portal</h3>
 
@@ -28,7 +79,7 @@
     </div>
 
     <div id="employee-section" class="hidden">
-      <h4>Welcome, Employee</h4>
+      <h4 id="welcome-emp">Welcome, Employee</h4>
       <div id="file-list"></div>
       <button onclick="logout()">Logout</button>
     </div>
@@ -52,7 +103,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const SUPABASE_URL = 'https://mjdgoqnvkmmutenruqxc.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qZGdvcW52a21tdXRlbnJ1cXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzOTgxNzUsImV4cCI6MjA2Nzk3NDE3NX0.3xkYYJU_9-eI3WJdnTsJc_ZyJCLTNPme0g3Xwdi4JtQ';
+    const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -86,6 +137,7 @@
 
       document.getElementById('login-section').classList.add('hidden');
       document.getElementById('employee-section').classList.remove('hidden');
+      document.getElementById('welcome-emp').textContent = `Welcome, ${data.emp_id}`;
       loadFiles();
     }
 
@@ -136,7 +188,6 @@
         link.download = file.name;
         link.target = '_blank';
         listDiv.appendChild(link);
-        listDiv.appendChild(document.createElement('br'));
       }
     }
 
