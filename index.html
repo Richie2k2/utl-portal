@@ -7,7 +7,7 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -19,12 +19,17 @@
       max-width: 500px;
       background: #fff;
       border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
       padding: 40px;
       text-align: center;
     }
+    .logo {
+      max-width: 120px;
+      margin-bottom: 10px;
+    }
     h2 {
-      margin-bottom: 20px;
+      margin: 10px 0 20px;
+      color: #0077b6;
     }
     input, select, button {
       width: 100%;
@@ -33,24 +38,25 @@
       box-sizing: border-box;
       border-radius: 6px;
       border: 1px solid #ccc;
+      font-size: 16px;
     }
     button {
-      background: #4e54c8;
+      background: #0077b6;
       color: #fff;
       border: none;
       cursor: pointer;
     }
     button:hover {
-      background: #3b40a0;
+      background: #023e8a;
     }
-    #scan-section, #admin-section {
+    #scan-section, #admin-section, #history-section {
       display: none;
       text-align: left;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 10px;
     }
     th, td {
       padding: 8px;
@@ -64,10 +70,19 @@
     #scan-message {
       font-weight: bold;
     }
+    #searchInput {
+      margin: 10px 0;
+      padding: 8px;
+      width: 100%;
+      border: 1px solid #ccc;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- ✅ EMBEDDED LOGO BASE64 -->
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAABlBMVEUAAAD///+l2Z/dAAAASElEQVR4nO3BMQEAAADCoPVPbQ0PoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMD+AjYAAUYUJBkAAAAASUVORK5CYII=" alt="Logo" class="logo" />
+
     <h2>UTL-SFCS Scanning System</h2>
 
     <!-- Login Section -->
@@ -96,20 +111,25 @@
       <input type="text" id="serialNumber" placeholder="Scan PCB Serial Number">
       <button id="passBtn">PASS</button>
       <button id="failBtn">FAIL</button>
+      <button id="historyBtn">View Scan History</button>
       <p id="scan-message"></p>
-      <h4>Scan History</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Serial Number</th>
-            <th>Status</th>
-            <th>Employee</th>
-            <th>Stage</th>
-            <th>Date & Time</th>
-          </tr>
-        </thead>
-        <tbody id="history"></tbody>
-      </table>
+
+      <!-- ✅ History Toggle -->
+      <div id="history-section">
+        <input type="text" id="searchInput" placeholder="Search Serial Number...">
+        <table>
+          <thead>
+            <tr>
+              <th>Serial Number</th>
+              <th>Status</th>
+              <th>Employee</th>
+              <th>Stage</th>
+              <th>Date & Time</th>
+            </tr>
+          </thead>
+          <tbody id="history"></tbody>
+        </table>
+      </div>
       <button onclick="logout()">Logout</button>
     </div>
 
@@ -121,12 +141,11 @@
     </div>
   </div>
 
-  <!-- ✅ Load Supabase SDK FIRST -->
+  <!-- ✅ Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const SUPABASE_URL = 'https://mjdgoqnvkmmutenruqxc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qZGdvcW52a21tdXRlbnJ1cXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzOTgxNzUsImV4cCI6MjA2Nzk3NDE3NX0.3xkYYJU_9-eI3WJdnTsJc_ZyJCLTNPme0g3Xwdi4JtQ';
-
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const loginBtn = document.getElementById('loginBtn');
@@ -142,6 +161,9 @@
     const history = document.getElementById('history');
     const serialInput = document.getElementById('serialNumber');
     const scanMessage = document.getElementById('scan-message');
+    const historyBtn = document.getElementById('historyBtn');
+    const historySection = document.getElementById('history-section');
+    const searchInput = document.getElementById('searchInput');
 
     let currentUser = {};
 
@@ -189,7 +211,6 @@
       scanMessage.style.color = 'red';
       if (!serial) return;
 
-      // ✅ Chain logic: define required previous stage for each stage
       const stageFlow = {
         'AOI-BOT': 'SERIAL NUMBER SCANNING',
         'AOI-TOP': 'AOI-BOT',
@@ -200,7 +221,6 @@
         'PACKING': 'TESTING'
       };
 
-      // ✅ If PASS, check that previous stage has PASS too
       if (status === 'PASS') {
         const prevStage = stageFlow[currentUser.stage];
         if (prevStage) {
@@ -219,7 +239,6 @@
         }
       }
 
-      // ✅ Prevent duplicate for same stage
       const { data: exists } = await supabaseClient
         .from('scans')
         .select('*')
@@ -232,7 +251,6 @@
         return;
       }
 
-      // ✅ If FAIL ➜ stage is REWORK
       const finalStage = status === 'FAIL' ? 'REWORK' : currentUser.stage;
 
       const { error } = await supabaseClient
@@ -258,6 +276,10 @@
     document.getElementById('passBtn').onclick = () => scan('PASS');
     document.getElementById('failBtn').onclick = () => scan('FAIL');
 
+    historyBtn.onclick = () => {
+      historySection.style.display = historySection.style.display === 'block' ? 'none' : 'block';
+    };
+
     async function loadHistory() {
       const { data, error } = await supabaseClient
         .from('scans')
@@ -282,6 +304,15 @@
       });
     }
 
+    searchInput.addEventListener('input', function() {
+      const filter = searchInput.value.toUpperCase();
+      const rows = history.getElementsByTagName('tr');
+      Array.from(rows).forEach(row => {
+        const serial = row.cells[0].textContent.toUpperCase();
+        row.style.display = serial.indexOf(filter) > -1 ? '' : 'none';
+      });
+    });
+
     function logout() {
       scanSection.style.display = 'none';
       adminSection.style.display = 'none';
@@ -291,6 +322,7 @@
       serialInput.value = '';
       message.textContent = '';
       scanMessage.textContent = '';
+      historySection.style.display = 'none';
     }
   </script>
 </body>
