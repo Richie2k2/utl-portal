@@ -127,7 +127,6 @@
     const SUPABASE_URL = 'https://mjdgoqnvkmmutenruqxc.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qZGdvcW52a21tdXRlbnJ1cXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIzOTgxNzUsImV4cCI6MjA2Nzk3NDE3NX0.3xkYYJU_9-eI3WJdnTsJc_ZyJCLTNPme0g3Xwdi4JtQ';
 
-    // ✅ Correct: create a separate client variable
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const loginBtn = document.getElementById('loginBtn');
@@ -190,6 +189,37 @@
       scanMessage.style.color = 'red';
       if (!serial) return;
 
+      // ✅ Chain logic: define required previous stage for each stage
+      const stageFlow = {
+        'AOI-BOT': 'SERIAL NUMBER SCANNING',
+        'AOI-TOP': 'AOI-BOT',
+        'SMT-FQC': 'AOI-TOP',
+        'MANUAL SOLDERING': 'SMT-FQC',
+        'TH-FQC': 'MANUAL SOLDERING',
+        'TESTING': 'TH-FQC',
+        'PACKING': 'TESTING'
+      };
+
+      // ✅ If PASS, check that previous stage has PASS too
+      if (status === 'PASS') {
+        const prevStage = stageFlow[currentUser.stage];
+        if (prevStage) {
+          const { data: prevPass } = await supabaseClient
+            .from('scans')
+            .select('*')
+            .eq('serial_number', serial)
+            .eq('stage', prevStage)
+            .eq('status', 'PASS')
+            .maybeSingle();
+
+          if (!prevPass) {
+            scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+            return;
+          }
+        }
+      }
+
+      // ✅ Prevent duplicate for same stage
       const { data: exists } = await supabaseClient
         .from('scans')
         .select('*')
@@ -198,9 +228,12 @@
         .maybeSingle();
 
       if (exists) {
-        scanMessage.textContent = 'Serial Number Already Scanned';
+        scanMessage.textContent = 'Serial Number Already Scanned at this stage.';
         return;
       }
+
+      // ✅ If FAIL ➜ stage is REWORK
+      const finalStage = status === 'FAIL' ? 'REWORK' : currentUser.stage;
 
       const { error } = await supabaseClient
         .from('scans')
@@ -208,7 +241,7 @@
           serial_number: serial,
           status,
           emp_id: currentUser.empId,
-          stage: currentUser.stage,
+          stage: finalStage,
           timestamp: new Date().toISOString()
         }]);
 
@@ -216,7 +249,7 @@
         scanMessage.textContent = 'Error saving scan';
       } else {
         scanMessage.style.color = 'green';
-        scanMessage.textContent = 'Saved';
+        scanMessage.textContent = `Saved to ${finalStage}`;
         serialInput.value = '';
         loadHistory();
       }
