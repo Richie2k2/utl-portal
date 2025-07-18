@@ -16,7 +16,7 @@
     }
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 800px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.2);
@@ -76,7 +76,6 @@
       width: 100%;
       border: 1px solid #ccc;
     }
-    /* Modal styles */
     .modal {
       display: none;
       position: fixed;
@@ -87,9 +86,9 @@
     }
     .modal-content {
       background: #fff;
-      margin: 10% auto;
+      margin: 5% auto;
       padding: 20px;
-      max-width: 500px;
+      max-width: 600px;
       border-radius: 8px;
     }
     .close {
@@ -102,9 +101,7 @@
 </head>
 <body>
   <div class="container">
-    <!-- ✅ Embedded Logo -->
     <img src="data:image/png;base64,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" alt="Company Logo" class="logo">
-
     <h2>Shop Floor Control System</h2>
 
     <!-- Login Section -->
@@ -136,11 +133,14 @@
       <button id="historyBtn">View Scan History</button>
       <p id="scan-message"></p>
       <div id="history-section">
-        <input type="text" id="searchInput" placeholder="Search Serial Number...">
+        <input type="text" id="searchInput" placeholder="Search by Serial, PO, or Product">
+        <button onclick="exportCSV()">Export CSV</button>
         <table>
           <thead>
             <tr>
-              <th>Serial Number</th>
+              <th>Serial</th>
+              <th>PO Number</th>
+              <th>Product</th>
               <th>Last Stage</th>
               <th>Last Status</th>
               <th>Details</th>
@@ -155,7 +155,18 @@
     <!-- Admin Section -->
     <div id="admin-section">
       <h3>Admin Dashboard</h3>
-      <p>Create New Employee</p>
+      <p>Add Serial Number</p>
+      <input type="text" id="serialInputAdmin" placeholder="Serial Number">
+      <input type="text" id="poInputAdmin" placeholder="PO Number">
+      <input type="text" id="productInputAdmin" placeholder="Product">
+      <input type="text" id="stagesInputAdmin" placeholder='Stages JSON e.g. ["SERIAL NUMBER SCANNING","AOI-BOT"]'>
+      <button onclick="addSerial()">Add Serial</button>
+
+      <p>Or Upload CSV:</p>
+      <input type="file" id="csvFile">
+      <button onclick="uploadCSV()">Upload CSV</button>
+
+      <h4>Create New Employee</h4>
       <input type="text" id="newEmpId" placeholder="Employee ID">
       <input type="password" id="newPassword" placeholder="Password">
       <select id="newStages" multiple>
@@ -175,7 +186,7 @@
     </div>
   </div>
 
-  <!-- Modal for details -->
+  <!-- Modal -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
@@ -212,10 +223,17 @@
     const newStagesSelect = document.getElementById('newStages');
     const adminMessage = document.getElementById('admin-message');
 
+    const serialInputAdmin = document.getElementById('serialInputAdmin');
+    const poInputAdmin = document.getElementById('poInputAdmin');
+    const productInputAdmin = document.getElementById('productInputAdmin');
+    const stagesInputAdmin = document.getElementById('stagesInputAdmin');
+    const csvFile = document.getElementById('csvFile');
+
     const modal = document.getElementById('modal');
     const modalBody = document.getElementById('modal-body');
 
     let currentUser = {};
+    let allHistory = [];
 
     loginBtn.addEventListener('click', async () => {
       const empId = empIdInput.value.trim();
@@ -260,98 +278,88 @@
       loadHistory();
     });
 
+    async function addSerial() {
+      const serial = serialInputAdmin.value.trim();
+      const po = poInputAdmin.value.trim();
+      const product = productInputAdmin.value.trim();
+      const stages = JSON.parse(stagesInputAdmin.value.trim());
+      if (!serial || !po || !product || !Array.isArray(stages)) {
+        alert('Invalid input');
+        return;
+      }
+      await supabaseClient.from('serial_master').insert([{ serial_number: serial, po_number: po, product, stages }]);
+      alert('Serial added');
+      serialInputAdmin.value = '';
+      poInputAdmin.value = '';
+      productInputAdmin.value = '';
+      stagesInputAdmin.value = '';
+    }
+
+    async function uploadCSV() {
+      const file = csvFile.files[0];
+      if (!file) return;
+      const text = await file.text();
+      const rows = text.split('\n').slice(1);
+      for (const row of rows) {
+        if (!row.trim()) continue;
+        const [serial, po, product, stages] = row.split(',');
+        await supabaseClient.from('serial_master').insert([{ serial_number: serial.trim(), po_number: po.trim(), product: product.trim(), stages: JSON.parse(stages.trim()) }]);
+      }
+      alert('CSV Imported');
+    }
+
     async function createEmployee() {
       const newEmpId = newEmpIdInput.value.trim();
       const newPassword = newPasswordInput.value.trim();
       const selectedStages = Array.from(newStagesSelect.selectedOptions).map(opt => opt.value);
-
       if (!newEmpId || !newPassword) {
         adminMessage.textContent = 'Fill all fields';
         return;
       }
-
-      const { error } = await supabaseClient.from('profiles').insert([{
-        emp_id: newEmpId,
-        password: newPassword,
-        stages: selectedStages.length > 0 ? selectedStages : null
-      }]);
-
-      if (error) {
-        adminMessage.textContent = 'Error creating employee';
-      } else {
-        adminMessage.style.color = 'green';
-        adminMessage.textContent = 'Employee created successfully!';
-        newEmpIdInput.value = '';
-        newPasswordInput.value = '';
-        newStagesSelect.selectedIndex = -1;
-      }
+      await supabaseClient.from('profiles').insert([{ emp_id: newEmpId, password: newPassword, stages: selectedStages }]);
+      adminMessage.style.color = 'green';
+      adminMessage.textContent = 'Employee created';
     }
 
     async function scan(status) {
       const serial = serialInput.value.trim();
       scanMessage.textContent = '';
-      scanMessage.style.color = 'red';
       if (!serial) return;
 
-      const stageFlow = {
-        'AOI-BOT': 'SERIAL NUMBER SCANNING',
-        'AOI-TOP': 'AOI-BOT',
-        'SMT-FQC': 'AOI-TOP',
-        'MANUAL SOLDERING': 'SMT-FQC',
-        'TH-FQC': 'MANUAL SOLDERING',
-        'TESTING': 'TH-FQC',
-        'PACKING': 'TESTING'
-      };
-
-      if (status === 'PASS') {
-        const prevStage = stageFlow[currentUser.stage];
-        if (prevStage) {
-          const { data: row } = await supabaseClient
-            .from('scans')
-            .select('*')
-            .eq('serial_number', serial)
-            .single();
-
-          if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
-            scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
-            return;
-          }
-        }
-      }
-
-      const { data: exists } = await supabaseClient
-        .from('scans')
-        .select('*')
-        .eq('serial_number', serial)
-        .single();
-
-      if (exists && exists.stages.find(s => s.stage === currentUser.stage)) {
-        scanMessage.textContent = 'Serial Number already scanned at this stage.';
+      const { data: master } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
+      if (!master || !master.active) {
+        scanMessage.textContent = 'Serial not assigned or inactive';
         return;
       }
 
-      const newStage = {
-        stage: currentUser.stage,
-        status,
-        emp_id: currentUser.empId,
-        timestamp: new Date().toISOString()
-      };
+      const { data: row } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
+      const index = master.stages.indexOf(currentUser.stage);
+      if (index === -1) {
+        scanMessage.textContent = 'Stage not allowed for this serial.';
+        return;
+      }
+      if (row && row.stages.find(s => s.stage === currentUser.stage)) {
+        scanMessage.textContent = 'Already scanned at this stage.';
+        return;
+      }
+      if (status === 'PASS' && index > 0) {
+        const prevStage = master.stages[index - 1];
+        if (!row || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
+          scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+          return;
+        }
+      }
 
-      if (exists) {
-        const updatedStages = exists.stages;
-        updatedStages.push(newStage);
-        await supabaseClient
-          .from('scans')
-          .update({ stages: updatedStages })
-          .eq('serial_number', serial);
+      const newStage = { stage: currentUser.stage, status, emp_id: currentUser.empId, timestamp: new Date().toISOString() };
+      if (row) {
+        row.stages.push(newStage);
+        await supabaseClient.from('scans').update({ stages: row.stages }).eq('serial_number', serial);
       } else {
-        await supabaseClient
-          .from('scans')
-          .insert([{ serial_number: serial, stages: [newStage] }]);
+        await supabaseClient.from('scans').insert([{ serial_number: serial, stages: [newStage] }]);
       }
 
       scanMessage.style.color = 'green';
-      scanMessage.textContent = `Scanning completed for ${serial} (${status})`;
+      scanMessage.textContent = 'Scan saved';
       serialInput.value = '';
       loadHistory();
     }
@@ -364,57 +372,66 @@
     };
 
     async function loadHistory() {
-      const { data } = await supabaseClient.from('scans').select('*');
+      const { data: scans } = await supabaseClient.from('scans').select('*');
+      const { data: masterData } = await supabaseClient.from('serial_master').select('*');
+      allHistory = scans.map(s => {
+        const master = masterData.find(m => m.serial_number === s.serial_number) || {};
+        const last = s.stages[s.stages.length - 1];
+        return { serial: s.serial_number, po: master.po_number, product: master.product, lastStage: last.stage, lastStatus: last.status, stages: s.stages };
+      });
+      renderHistory(allHistory);
+    }
 
+    function renderHistory(data) {
       history.innerHTML = '';
       data.forEach(row => {
-        const lastStage = row.stages[row.stages.length - 1];
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${row.serial_number}</td>
-          <td>${lastStage.stage}</td>
-          <td>${lastStage.status}</td>
-          <td><button onclick="viewDetails('${row.serial_number}')">View</button></td>
-        `;
+        tr.innerHTML = `<td>${row.serial}</td><td>${row.po || ''}</td><td>${row.product || ''}</td><td>${row.lastStage}</td><td>${row.lastStatus}</td><td><button onclick="viewDetails('${row.serial}')">View</button></td>`;
         history.appendChild(tr);
       });
     }
 
+    function exportCSV() {
+      let csv = "Serial,PO Number,Product,Last Stage,Last Status\n";
+      const rows = history.getElementsByTagName('tr');
+      Array.from(rows).forEach(r => {
+        const cells = Array.from(r.cells).slice(0, 5).map(c => c.textContent);
+        csv += cells.join(',') + "\n";
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'scan_history.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     async function viewDetails(serial) {
-      const { data } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
-      if (!data) return;
-
-      modalBody.innerHTML = `<strong>Serial: ${serial}</strong><br><table style="width:100%; border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Employee</th><th>Time</th></tr>` +
-        data.stages.map(s =>
-          `<tr><td>${s.stage}</td><td>${s.status}</td><td>${s.emp_id}</td><td>${new Date(s.timestamp).toLocaleString()}</td></tr>`
-        ).join('') + `</table>`;
-
+      const row = allHistory.find(r => r.serial === serial);
+      modalBody.innerHTML = `<strong>${serial}</strong><table style="width:100%;border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Emp</th><th>Time</th></tr>` +
+        row.stages.map(s => `<tr><td>${s.stage}</td><td>${s.status}</td><td>${s.emp_id}</td><td>${new Date(s.timestamp).toLocaleString()}</td></tr>`).join('') +
+        `</table>`;
       modal.style.display = 'block';
     }
 
-    function closeModal() {
-      modal.style.display = 'none';
-    }
+    function closeModal() { modal.style.display = 'none'; }
 
-    searchInput.addEventListener('input', function() {
-      const filter = searchInput.value.toUpperCase();
-      const rows = history.getElementsByTagName('tr');
-      Array.from(rows).forEach(row => {
-        const serial = row.cells[0].textContent.toUpperCase();
-        row.style.display = serial.indexOf(filter) > -1 ? '' : 'none';
-      });
+    searchInput.addEventListener('input', () => {
+      const f = searchInput.value.toUpperCase();
+      const filtered = allHistory.filter(r =>
+        r.serial.toUpperCase().includes(f) ||
+        (r.po || '').toUpperCase().includes(f) ||
+        (r.product || '').toUpperCase().includes(f)
+      );
+      renderHistory(filtered);
     });
 
     function logout() {
-      scanSection.style.display = 'none';
-      adminSection.style.display = 'none';
+      scanSection.style.display = adminSection.style.display = 'none';
       loginSection.style.display = 'block';
-      empIdInput.value = '';
-      passwordInput.value = '';
-      serialInput.value = '';
-      message.textContent = '';
-      scanMessage.textContent = '';
-      adminMessage.textContent = '';
+      empIdInput.value = passwordInput.value = serialInput.value = '';
+      scanMessage.textContent = adminMessage.textContent = message.textContent = '';
       historySection.style.display = 'none';
     }
   </script>
