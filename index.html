@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>UTL-SFCS Scanning System</title>
+  <title>Shop Floor Control System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
     body {
@@ -159,7 +159,17 @@
       <input type="text" id="serialInputAdmin" placeholder="Serial Number">
       <input type="text" id="poInputAdmin" placeholder="PO Number">
       <input type="text" id="productInputAdmin" placeholder="Product">
-      <input type="text" id="stagesInputAdmin" placeholder='Stages JSON e.g. ["SERIAL NUMBER SCANNING","AOI-BOT"]'>
+      <select id="stagesSelectAdmin" multiple>
+        <option>SERIAL NUMBER SCANNING</option>
+        <option>AOI-BOT</option>
+        <option>AOI-TOP</option>
+        <option>SMT-FQC</option>
+        <option>MANUAL SOLDERING</option>
+        <option>TH-FQC</option>
+        <option>TESTING</option>
+        <option>PACKING</option>
+        <option>REWORK</option>
+      </select>
       <button onclick="addSerial()">Add Serial</button>
 
       <p>Or Upload CSV:</p>
@@ -202,238 +212,301 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const loginBtn = document.getElementById('loginBtn');
-    const empIdInput = document.getElementById('empId');
-    const passwordInput = document.getElementById('password');
-    const stageSelect = document.getElementById('stage');
-    const message = document.getElementById('message');
+const empIdInput = document.getElementById('empId');
+const passwordInput = document.getElementById('password');
+const stageSelect = document.getElementById('stage');
+const message = document.getElementById('message');
 
-    const scanSection = document.getElementById('scan-section');
-    const adminSection = document.getElementById('admin-section');
-    const loginSection = document.getElementById('login-section');
-    const welcome = document.getElementById('welcome');
-    const history = document.getElementById('history');
-    const serialInput = document.getElementById('serialNumber');
-    const scanMessage = document.getElementById('scan-message');
-    const historyBtn = document.getElementById('historyBtn');
-    const historySection = document.getElementById('history-section');
-    const searchInput = document.getElementById('searchInput');
+const scanSection = document.getElementById('scan-section');
+const adminSection = document.getElementById('admin-section');
+const loginSection = document.getElementById('login-section');
+const welcome = document.getElementById('welcome');
+const serialInput = document.getElementById('serialNumber');
+const scanMessage = document.getElementById('scan-message');
+const historyBtn = document.getElementById('historyBtn');
+const historySection = document.getElementById('history-section');
+const searchInput = document.getElementById('searchInput');
+const history = document.getElementById('history');
 
-    const newEmpIdInput = document.getElementById('newEmpId');
-    const newPasswordInput = document.getElementById('newPassword');
-    const newStagesSelect = document.getElementById('newStages');
-    const adminMessage = document.getElementById('admin-message');
+const serialInputAdmin = document.getElementById('serialInputAdmin');
+const poInputAdmin = document.getElementById('poInputAdmin');
+const productInputAdmin = document.getElementById('productInputAdmin');
 
-    const serialInputAdmin = document.getElementById('serialInputAdmin');
-    const poInputAdmin = document.getElementById('poInputAdmin');
-    const productInputAdmin = document.getElementById('productInputAdmin');
-    const stagesInputAdmin = document.getElementById('stagesInputAdmin');
-    const csvFile = document.getElementById('csvFile');
+const newEmpIdInput = document.getElementById('newEmpId');
+const newPasswordInput = document.getElementById('newPassword');
+const newStagesSelect = document.getElementById('newStages');
+const adminMessage = document.getElementById('admin-message');
 
-    const modal = document.getElementById('modal');
-    const modalBody = document.getElementById('modal-body');
+const csvFile = document.getElementById('csvFile');
 
-    let currentUser = {};
-    let allHistory = [];
+const modal = document.getElementById('modal');
+const modalBody = document.getElementById('modal-body');
 
-    loginBtn.addEventListener('click', async () => {
-      const empId = empIdInput.value.trim();
-      const password = passwordInput.value.trim();
-      const stage = stageSelect.value;
+let currentUser = {};
+let allHistory = [];
 
-      if (!empId || !password || !stage) {
-        message.textContent = 'Fill all fields';
-        return;
-      }
+loginBtn.addEventListener('click', async () => {
+  const empId = empIdInput.value.trim();
+  const password = passwordInput.value.trim();
+  const stage = stageSelect.value;
 
-      if (empId === 'admin' && password === 'admin') {
-        loginSection.style.display = 'none';
-        adminSection.style.display = 'block';
-        return;
-      }
+  if (!empId || !password || !stage) {
+    message.textContent = 'Fill all fields';
+    return;
+  }
 
-      const { data, error } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('emp_id', empId)
-        .single();
+  if (empId === 'admin' && password === 'admin') {
+    loginSection.style.display = 'none';
+    adminSection.style.display = 'block';
+    return;
+  }
 
-      if (error || !data) {
-        message.textContent = 'Employee not found';
-        return;
-      }
-      if (data.password !== password) {
-        message.textContent = 'Incorrect password';
-        return;
-      }
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('*')
+    .eq('emp_id', empId)
+    .single();
 
-      if (data.stages && data.stages.length > 0 && !data.stages.includes(stage)) {
-        message.textContent = `You are not allowed to use stage: ${stage}`;
-        return;
-      }
+  if (error || !data) {
+    message.textContent = 'Employee not found';
+    return;
+  }
+  if (data.password !== password) {
+    message.textContent = 'Incorrect password';
+    return;
+  }
+  if (data.stages && data.stages.length > 0 && !data.stages.includes(stage)) {
+    message.textContent = `You are not allowed to use stage: ${stage}`;
+    return;
+  }
 
-      currentUser = { empId, stage };
-      welcome.textContent = `Welcome ${empId} - ${stage}`;
-      loginSection.style.display = 'none';
-      scanSection.style.display = 'block';
-      loadHistory();
-    });
+  currentUser = { empId, stage };
+  welcome.textContent = `Welcome ${empId} - ${stage}`;
+  loginSection.style.display = 'none';
+  scanSection.style.display = 'block';
+  loadHistory();
+});
 
-    async function addSerial() {
-      const serial = serialInputAdmin.value.trim();
-      const po = poInputAdmin.value.trim();
-      const product = productInputAdmin.value.trim();
-      const stages = JSON.parse(stagesInputAdmin.value.trim());
-      if (!serial || !po || !product || !Array.isArray(stages)) {
-        alert('Invalid input');
-        return;
-      }
-      await supabaseClient.from('serial_master').insert([{ serial_number: serial, po_number: po, product, stages }]);
-      alert('Serial added');
-      serialInputAdmin.value = '';
-      poInputAdmin.value = '';
-      productInputAdmin.value = '';
-      stagesInputAdmin.value = '';
+async function addSerial() {
+  const serial = serialInputAdmin.value.trim();
+  const po = poInputAdmin.value.trim();
+  const product = productInputAdmin.value.trim();
+  const selectedStages = Array.from(document.getElementById('stagesSelectAdmin').selectedOptions).map(opt => opt.value);
+
+  if (!serial || !po || !product || selectedStages.length === 0) {
+    alert('Fill all fields and select stages.');
+    return;
+  }
+
+  const { error } = await supabaseClient.from('serial_master').insert([{
+    serial_number: serial,
+    po_number: po,
+    product,
+    stages: selectedStages
+  }]);
+
+  if (error) {
+    alert('Error: ' + error.message);
+  } else {
+    alert('Serial added successfully.');
+    serialInputAdmin.value = '';
+    poInputAdmin.value = '';
+    productInputAdmin.value = '';
+    document.getElementById('stagesSelectAdmin').selectedIndex = -1;
+  }
+}
+
+async function uploadCSV() {
+  const file = csvFile.files[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const rows = text.split('\n').slice(1);
+
+  for (const row of rows) {
+    if (!row.trim()) continue;
+    const [serial, po, product, stages] = row.split(',');
+    try {
+      const parsedStages = JSON.parse(stages.trim());
+      await supabaseClient.from('serial_master').insert([{
+        serial_number: serial.trim(),
+        po_number: po.trim(),
+        product: product.trim(),
+        stages: parsedStages
+      }]);
+    } catch (e) {
+      console.error('Error parsing stages:', e);
+      alert(`Row failed: ${row}`);
     }
+  }
+  alert('CSV upload done.');
+}
 
-    async function uploadCSV() {
-      const file = csvFile.files[0];
-      if (!file) return;
-      const text = await file.text();
-      const rows = text.split('\n').slice(1);
-      for (const row of rows) {
-        if (!row.trim()) continue;
-        const [serial, po, product, stages] = row.split(',');
-        await supabaseClient.from('serial_master').insert([{ serial_number: serial.trim(), po_number: po.trim(), product: product.trim(), stages: JSON.parse(stages.trim()) }]);
-      }
-      alert('CSV Imported');
+async function createEmployee() {
+  const newEmpId = newEmpIdInput.value.trim();
+  const newPassword = newPasswordInput.value.trim();
+  const selectedStages = Array.from(newStagesSelect.selectedOptions).map(opt => opt.value);
+  if (!newEmpId || !newPassword) {
+    adminMessage.textContent = 'Fill all fields';
+    return;
+  }
+  const { error } = await supabaseClient.from('profiles').insert([{
+    emp_id: newEmpId,
+    password: newPassword,
+    stages: selectedStages
+  }]);
+  if (error) {
+    adminMessage.style.color = 'red';
+    adminMessage.textContent = 'Error: ' + error.message;
+  } else {
+    adminMessage.style.color = 'green';
+    adminMessage.textContent = 'Employee created';
+    newEmpIdInput.value = '';
+    newPasswordInput.value = '';
+    newStagesSelect.selectedIndex = -1;
+  }
+}
+
+async function scan(status) {
+  const serial = serialInput.value.trim();
+  scanMessage.textContent = '';
+  scanMessage.style.color = 'red';
+
+  if (!serial) return;
+
+  const { data: master } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
+  if (!master || master.active === false) {
+    scanMessage.textContent = 'Serial not assigned or inactive.';
+    return;
+  }
+
+  const { data: row } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
+  const index = master.stages.indexOf(currentUser.stage);
+
+  if (index === -1) {
+    scanMessage.textContent = 'Stage not allowed for this serial.';
+    return;
+  }
+
+  if (row && row.stages.find(s => s.stage === currentUser.stage)) {
+    scanMessage.textContent = 'Already scanned at this stage.';
+    return;
+  }
+
+  if (status === 'PASS' && index > 0) {
+    const prevStage = master.stages[index - 1];
+    if (!row || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
+      scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+      return;
     }
+  }
 
-    async function createEmployee() {
-      const newEmpId = newEmpIdInput.value.trim();
-      const newPassword = newPasswordInput.value.trim();
-      const selectedStages = Array.from(newStagesSelect.selectedOptions).map(opt => opt.value);
-      if (!newEmpId || !newPassword) {
-        adminMessage.textContent = 'Fill all fields';
-        return;
-      }
-      await supabaseClient.from('profiles').insert([{ emp_id: newEmpId, password: newPassword, stages: selectedStages }]);
-      adminMessage.style.color = 'green';
-      adminMessage.textContent = 'Employee created';
-    }
+  const newStage = {
+    stage: currentUser.stage,
+    status,
+    emp_id: currentUser.empId,
+    timestamp: new Date().toISOString()
+  };
 
-    async function scan(status) {
-      const serial = serialInput.value.trim();
-      scanMessage.textContent = '';
-      if (!serial) return;
+  if (row) {
+    row.stages.push(newStage);
+    await supabaseClient.from('scans').update({ stages: row.stages }).eq('serial_number', serial);
+  } else {
+    await supabaseClient.from('scans').insert([{ serial_number: serial, stages: [newStage] }]);
+  }
 
-      const { data: master } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
-      if (!master || !master.active) {
-        scanMessage.textContent = 'Serial not assigned or inactive';
-        return;
-      }
+  scanMessage.style.color = 'green';
+  scanMessage.textContent = 'Scan saved!';
+  serialInput.value = '';
+  loadHistory();
+}
 
-      const { data: row } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
-      const index = master.stages.indexOf(currentUser.stage);
-      if (index === -1) {
-        scanMessage.textContent = 'Stage not allowed for this serial.';
-        return;
-      }
-      if (row && row.stages.find(s => s.stage === currentUser.stage)) {
-        scanMessage.textContent = 'Already scanned at this stage.';
-        return;
-      }
-      if (status === 'PASS' && index > 0) {
-        const prevStage = master.stages[index - 1];
-        if (!row || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
-          scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
-          return;
-        }
-      }
+document.getElementById('passBtn').onclick = () => scan('PASS');
+document.getElementById('failBtn').onclick = () => scan('FAIL');
 
-      const newStage = { stage: currentUser.stage, status, emp_id: currentUser.empId, timestamp: new Date().toISOString() };
-      if (row) {
-        row.stages.push(newStage);
-        await supabaseClient.from('scans').update({ stages: row.stages }).eq('serial_number', serial);
-      } else {
-        await supabaseClient.from('scans').insert([{ serial_number: serial, stages: [newStage] }]);
-      }
+historyBtn.onclick = () => {
+  historySection.style.display = historySection.style.display === 'block' ? 'none' : 'block';
+};
 
-      scanMessage.style.color = 'green';
-      scanMessage.textContent = 'Scan saved';
-      serialInput.value = '';
-      loadHistory();
-    }
+async function loadHistory() {
+  const { data: scans } = await supabaseClient.from('scans').select('*');
+  const { data: masters } = await supabaseClient.from('serial_master').select('*');
 
-    document.getElementById('passBtn').onclick = () => scan('PASS');
-    document.getElementById('failBtn').onclick = () => scan('FAIL');
-
-    historyBtn.onclick = () => {
-      historySection.style.display = historySection.style.display === 'block' ? 'none' : 'block';
+  allHistory = scans.map(scanRow => {
+    const master = masters.find(m => m.serial_number === scanRow.serial_number) || {};
+    const last = scanRow.stages[scanRow.stages.length - 1];
+    return {
+      serial: scanRow.serial_number,
+      po: master.po_number,
+      product: master.product,
+      lastStage: last.stage,
+      lastStatus: last.status,
+      stages: scanRow.stages
     };
+  });
+  renderHistory(allHistory);
+}
 
-    async function loadHistory() {
-      const { data: scans } = await supabaseClient.from('scans').select('*');
-      const { data: masterData } = await supabaseClient.from('serial_master').select('*');
-      allHistory = scans.map(s => {
-        const master = masterData.find(m => m.serial_number === s.serial_number) || {};
-        const last = s.stages[s.stages.length - 1];
-        return { serial: s.serial_number, po: master.po_number, product: master.product, lastStage: last.stage, lastStatus: last.status, stages: s.stages };
-      });
-      renderHistory(allHistory);
-    }
+function renderHistory(data) {
+  history.innerHTML = '';
+  data.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${row.serial}</td>
+      <td>${row.po || ''}</td>
+      <td>${row.product || ''}</td>
+      <td>${row.lastStage}</td>
+      <td>${row.lastStatus}</td>
+      <td><button onclick="viewDetails('${row.serial}')">View</button></td>
+    `;
+    history.appendChild(tr);
+  });
+}
 
-    function renderHistory(data) {
-      history.innerHTML = '';
-      data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${row.serial}</td><td>${row.po || ''}</td><td>${row.product || ''}</td><td>${row.lastStage}</td><td>${row.lastStatus}</td><td><button onclick="viewDetails('${row.serial}')">View</button></td>`;
-        history.appendChild(tr);
-      });
-    }
+function exportCSV() {
+  let csv = "Serial,PO Number,Product,Last Stage,Last Status\n";
+  allHistory.forEach(r => {
+    csv += `${r.serial},${r.po || ''},${r.product || ''},${r.lastStage},${r.lastStatus}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'scan_history.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
-    function exportCSV() {
-      let csv = "Serial,PO Number,Product,Last Stage,Last Status\n";
-      const rows = history.getElementsByTagName('tr');
-      Array.from(rows).forEach(r => {
-        const cells = Array.from(r.cells).slice(0, 5).map(c => c.textContent);
-        csv += cells.join(',') + "\n";
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'scan_history.csv';
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+function viewDetails(serial) {
+  const row = allHistory.find(r => r.serial === serial);
+  modalBody.innerHTML = `<strong>${serial}</strong><table style="width:100%;border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Emp</th><th>Time</th></tr>` +
+    row.stages.map(s => `<tr><td>${s.stage}</td><td>${s.status}</td><td>${s.emp_id}</td><td>${new Date(s.timestamp).toLocaleString()}</td></tr>`).join('') +
+    `</table>`;
+  modal.style.display = 'block';
+}
 
-    async function viewDetails(serial) {
-      const row = allHistory.find(r => r.serial === serial);
-      modalBody.innerHTML = `<strong>${serial}</strong><table style="width:100%;border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Emp</th><th>Time</th></tr>` +
-        row.stages.map(s => `<tr><td>${s.stage}</td><td>${s.status}</td><td>${s.emp_id}</td><td>${new Date(s.timestamp).toLocaleString()}</td></tr>`).join('') +
-        `</table>`;
-      modal.style.display = 'block';
-    }
+function closeModal() {
+  modal.style.display = 'none';
+}
 
-    function closeModal() { modal.style.display = 'none'; }
+searchInput.addEventListener('input', () => {
+  const f = searchInput.value.toUpperCase();
+  const filtered = allHistory.filter(r =>
+    r.serial.toUpperCase().includes(f) ||
+    (r.po || '').toUpperCase().includes(f) ||
+    (r.product || '').toUpperCase().includes(f)
+  );
+  renderHistory(filtered);
+});
 
-    searchInput.addEventListener('input', () => {
-      const f = searchInput.value.toUpperCase();
-      const filtered = allHistory.filter(r =>
-        r.serial.toUpperCase().includes(f) ||
-        (r.po || '').toUpperCase().includes(f) ||
-        (r.product || '').toUpperCase().includes(f)
-      );
-      renderHistory(filtered);
-    });
+function logout() {
+  scanSection.style.display = adminSection.style.display = 'none';
+  loginSection.style.display = 'block';
+  empIdInput.value = passwordInput.value = serialInput.value = '';
+  scanMessage.textContent = adminMessage.textContent = message.textContent = '';
+  historySection.style.display = 'none';
+}
 
-    function logout() {
-      scanSection.style.display = adminSection.style.display = 'none';
-      loginSection.style.display = 'block';
-      empIdInput.value = passwordInput.value = serialInput.value = '';
-      scanMessage.textContent = adminMessage.textContent = message.textContent = '';
-      historySection.style.display = 'none';
-    }
   </script>
 </body>
 </html>
