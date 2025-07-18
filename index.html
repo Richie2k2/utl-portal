@@ -176,6 +176,23 @@
       <input type="file" id="csvFile">
       <button onclick="uploadCSV()">Upload CSV</button>
 
+<p>After CSV Upload, fill once:</p>
+<input type="text" id="bulkPO" placeholder="PO Number">
+<input type="text" id="bulkProduct" placeholder="Product">
+<select id="bulkStages" multiple>
+  <option>SERIAL NUMBER SCANNING</option>
+  <option>AOI-BOT</option>
+  <option>AOI-TOP</option>
+  <option>SMT-FQC</option>
+  <option>MANUAL SOLDERING</option>
+  <option>TH-FQC</option>
+  <option>TESTING</option>
+  <option>PACKING</option>
+  <option>REWORK</option>
+</select>
+<button onclick="saveBulkSerials()">Save All</button>
+
+
       <h4>Create New Employee</h4>
       <input type="text" id="newEmpId" placeholder="Employee ID">
       <input type="password" id="newPassword" placeholder="Password">
@@ -316,31 +333,45 @@ async function addSerial() {
   }
 }
 
+let bulkSerials = [];
+
 async function uploadCSV() {
   const file = csvFile.files[0];
   if (!file) return;
 
   const text = await file.text();
-  const rows = text.split('\n').slice(1);
+  bulkSerials = text.split('\n').slice(1).map(row => row.trim()).filter(r => r);
 
-  for (const row of rows) {
-    if (!row.trim()) continue;
-    const [serial, po, product, stages] = row.split(',');
-    try {
-      const parsedStages = JSON.parse(stages.trim());
-      await supabaseClient.from('serial_master').insert([{
-        serial_number: serial.trim(),
-        po_number: po.trim(),
-        product: product.trim(),
-        stages: parsedStages
-      }]);
-    } catch (e) {
-      console.error('Error parsing stages:', e);
-      alert(`Row failed: ${row}`);
-    }
+  alert(`Uploaded ${bulkSerials.length} serial numbers! Now type PO, Product & select Stages, then click SAVE ALL.`);
+ } // ✅ clean close — the comment is optional
+
+async function saveBulkSerials() {
+  const po = document.getElementById('bulkPO').value.trim();
+  const product = document.getElementById('bulkProduct').value.trim();
+  const stages = Array.from(document.getElementById('bulkStages').selectedOptions).map(o => o.value);
+
+  if (!po || !product || stages.length === 0 || bulkSerials.length === 0) {
+    alert('Upload CSV & fill PO, Product, Stages first.');
+    return;
   }
-  alert('CSV upload done.');
+
+  const inserts = bulkSerials.map(serial => ({
+    serial_number: serial,
+    po_number: po,
+    product: product,
+    stages: stages
+  }));
+
+  const { error } = await supabaseClient.from('serial_master').insert(inserts);
+
+  if (error) {
+    alert('Error: ' + error.message);
+  } else {
+    alert('All serials saved!');
+    bulkSerials = [];
+  }
 }
+
 
 async function createEmployee() {
   const newEmpId = newEmpIdInput.value.trim();
