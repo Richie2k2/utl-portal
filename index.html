@@ -16,7 +16,7 @@
     }
     .container {
       width: 100%;
-      max-width: 500px;
+      max-width: 600px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.2);
@@ -75,6 +75,28 @@
       padding: 8px;
       width: 100%;
       border: 1px solid #ccc;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+    }
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      max-width: 500px;
+      border-radius: 8px;
+    }
+    .close {
+      float: right;
+      cursor: pointer;
+      font-weight: bold;
+      color: #333;
     }
   </style>
 </head>
@@ -153,6 +175,15 @@
     </div>
   </div>
 
+  <!-- Modal for details -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h3>Serial History</h3>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
     const SUPABASE_URL = 'https://mjdgoqnvkmmutenruqxc.supabase.co';
@@ -180,6 +211,9 @@
     const newPasswordInput = document.getElementById('newPassword');
     const newStagesSelect = document.getElementById('newStages');
     const adminMessage = document.getElementById('admin-message');
+
+    const modal = document.getElementById('modal');
+    const modalBody = document.getElementById('modal-body');
 
     let currentUser = {};
 
@@ -259,6 +293,43 @@
       scanMessage.style.color = 'red';
       if (!serial) return;
 
+      const stageFlow = {
+        'AOI-BOT': 'SERIAL NUMBER SCANNING',
+        'AOI-TOP': 'AOI-BOT',
+        'SMT-FQC': 'AOI-TOP',
+        'MANUAL SOLDERING': 'SMT-FQC',
+        'TH-FQC': 'MANUAL SOLDERING',
+        'TESTING': 'TH-FQC',
+        'PACKING': 'TESTING'
+      };
+
+      if (status === 'PASS') {
+        const prevStage = stageFlow[currentUser.stage];
+        if (prevStage) {
+          const { data: row } = await supabaseClient
+            .from('scans')
+            .select('*')
+            .eq('serial_number', serial)
+            .single();
+
+          if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
+            scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+            return;
+          }
+        }
+      }
+
+      const { data: exists } = await supabaseClient
+        .from('scans')
+        .select('*')
+        .eq('serial_number', serial)
+        .single();
+
+      if (exists && exists.stages.find(s => s.stage === currentUser.stage)) {
+        scanMessage.textContent = 'Serial Number already scanned at this stage.';
+        return;
+      }
+
       const newStage = {
         stage: currentUser.stage,
         status,
@@ -266,19 +337,8 @@
         timestamp: new Date().toISOString()
       };
 
-      const { data, error } = await supabaseClient
-        .from('scans')
-        .select('*')
-        .eq('serial_number', serial)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        scanMessage.textContent = 'Error checking serial';
-        return;
-      }
-
-      if (data) {
-        const updatedStages = data.stages || [];
+      if (exists) {
+        const updatedStages = exists.stages;
         updatedStages.push(newStage);
         await supabaseClient
           .from('scans')
@@ -291,7 +351,7 @@
       }
 
       scanMessage.style.color = 'green';
-      scanMessage.textContent = `Scan saved for ${serial}`;
+      scanMessage.textContent = `Scan saved for ${serial} (${status})`;
       serialInput.value = '';
       loadHistory();
     }
@@ -304,11 +364,7 @@
     };
 
     async function loadHistory() {
-      const { data, error } = await supabaseClient
-        .from('scans')
-        .select('*');
-
-      if (error) return;
+      const { data } = await supabaseClient.from('scans').select('*');
 
       history.innerHTML = '';
       data.forEach(row => {
@@ -325,20 +381,19 @@
     }
 
     async function viewDetails(serial) {
-      const { data, error } = await supabaseClient
-        .from('scans')
-        .select('*')
-        .eq('serial_number', serial)
-        .single();
+      const { data } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
+      if (!data) return;
 
-      if (error) return;
+      modalBody.innerHTML = `<strong>Serial: ${serial}</strong><br><table style="width:100%; border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Employee</th><th>Time</th></tr>` +
+        data.stages.map(s =>
+          `<tr><td>${s.stage}</td><td>${s.status}</td><td>${s.emp_id}</td><td>${new Date(s.timestamp).toLocaleString()}</td></tr>`
+        ).join('') + `</table>`;
 
-      let report = `Serial: ${serial}\n\n`;
-      data.stages.forEach(stage => {
-        report += `Stage: ${stage.stage}, Status: ${stage.status}, By: ${stage.emp_id}, At: ${new Date(stage.timestamp).toLocaleString()}\n`;
-      });
+      modal.style.display = 'block';
+    }
 
-      alert(report);
+    function closeModal() {
+      modal.style.display = 'none';
     }
 
     searchInput.addEventListener('input', function() {
