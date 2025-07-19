@@ -651,22 +651,55 @@
       }
 
       // Check for failed stages requiring REWORK
-      if (row && row.stages && currentUser.stage !== 'REWORK') {
-        const failedStage = row.stages.find(s => s.status === 'FAIL' && !row.stages.some(r => r.stage === 'REWORK' && r.status === 'PASS' && new Date(r.timestamp) > new Date(s.timestamp)));
-        if (failedStage) {
-          console.log('Checking rework requirement:', failedStage);
-          scanMessage.textContent = `Serial failed at ${failedStage.stage}. Must pass REWORK first.`;
-          return;
-        }
-      }
+if (row && row.stages && currentUser.stage !== 'REWORK') {
+  const failedStage = row.stages.find(s =>
+    s.status === 'FAIL' &&
+    !row.stages.some(r =>
+      r.stage === 'REWORK' &&
+      r.status === 'PASS' &&
+      new Date(r.timestamp) > new Date(s.timestamp)
+    )
+  );
+  if (failedStage) {
+    console.log('Checking rework requirement:', failedStage);
+    scanMessage.textContent = `Serial failed at ${failedStage.stage}. Must pass REWORK first.`;
+    return;
+  }
+}
 
-      if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
-        const prevStage = master.stages[index - 1];
-        if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
-          scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
-          return;
-        }
-      }
+// Handle REWORK pass logic
+if (row && row.stages && currentUser.stage === 'REWORK' && status === 'PASS') {
+  // Find most recent failed stage
+  const lastFailed = row.stages
+    .filter(s => s.status === 'FAIL')
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+
+  if (lastFailed) {
+    // Resume flow from failed stage
+    master.currentStage = lastFailed.stage;
+    scanMessage.textContent = `Rework passed. Resume from stage ${lastFailed.stage}.`;
+
+    // Optional: Log rework_for relationship
+    row.stages.push({
+      stage: 'REWORK',
+      status: 'PASS',
+      timestamp: new Date().toISOString(),
+      rework_for: lastFailed.stage
+    });
+
+    return; // stop further processing to avoid fallthrough
+  }
+}
+
+// Enforce sequential flow: check previous stage pass
+if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
+  const prevStage = master.stages[index - 1];
+  if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
+    scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+    return;
+  }
+}
+
 
       const newStage = {
         stage: currentUser.stage,
