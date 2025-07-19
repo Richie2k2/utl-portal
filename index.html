@@ -314,6 +314,21 @@
         <button id="failBtn">FAIL</button>
         <button id="historyBtn">View Scan History</button>
         <p id="scan-message"></p>
+        <!-- Optional Rework Inputs -->
+<div id="reworkFields" style="display: none; margin-top: 10px;">
+  <label for="reworkReason">Rework Reason:</label>
+  <select id="reworkReason">
+    <option value="">-- Select reason --</option>
+    <option value="Solder issue">Solder issue</option>
+    <option value="Component misalignment">Component misalignment</option>
+    <option value="Missing part">Missing part</option>
+    <option value="Other">Other</option>
+  </select>
+
+  <label for="reworkNotes" style="display:block; margin-top: 5px;">Rework Notes:</label>
+  <input type="text" id="reworkNotes" placeholder="Enter notes (optional)">
+</div>
+        
         <div id="history-section">
           <input type="text" id="searchInput" placeholder="Search by Serial, PO, or Product" aria-label="Search History">
           <button id="exportCSV" onclick="exportCSV()">Export CSV</button>
@@ -641,22 +656,14 @@
       const index = master.stages ? master.stages.indexOf(currentUser.stage) : -1;
 
       if (index === -1) {
-        scanMessage.textContent = 'Stage not allowed for this serial.';
-        return;
-      }
-
-      if (row && row.stages && row.stages.find(s => s.stage === currentUser.stage)) {
-        scanMessage.textContent = 'Already scanned at this stage.';
-        return;
-      }
-
-      // Check for failed stages requiring REWORK
+        scanMessage.textContent = // ✅ BLOCK if there's a failed stage that hasn't been reworked yet
 if (row && row.stages && currentUser.stage !== 'REWORK') {
   const failedStage = row.stages.find(s =>
     s.status === 'FAIL' &&
     !row.stages.some(r =>
       r.stage === 'REWORK' &&
       r.status === 'PASS' &&
+      r.rework_for === s.stage &&
       new Date(r.timestamp) > new Date(s.timestamp)
     )
   );
@@ -667,31 +674,36 @@ if (row && row.stages && currentUser.stage !== 'REWORK') {
   }
 }
 
-// Handle REWORK pass logic
+// ✅ HANDLE REWORK PASS: return serial to failed stage
 if (row && row.stages && currentUser.stage === 'REWORK' && status === 'PASS') {
-  // Find most recent failed stage
   const lastFailed = row.stages
     .filter(s => s.status === 'FAIL')
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
 
   if (lastFailed) {
-    // Resume flow from failed stage
     master.currentStage = lastFailed.stage;
     scanMessage.textContent = `Rework passed. Resume from stage ${lastFailed.stage}.`;
 
-    // Optional: Log rework_for relationship
+    // Optional: collect reason and notes (if UI fields exist)
+    const selectedReworkReason = document.getElementById('reworkReason')?.value || 'N/A';
+    const reworkNotes = document.getElementById('reworkNotes')?.value || '';
+
+    // ✅ Log rework entry with trace info
     row.stages.push({
       stage: 'REWORK',
       status: 'PASS',
       timestamp: new Date().toISOString(),
-      rework_for: lastFailed.stage
+      rework_for: lastFailed.stage,
+      operator: currentUser.username || currentUser.id || 'unknown',
+      reason: selectedReworkReason,
+      notes: reworkNotes
     });
 
-    return; // stop further processing to avoid fallthrough
+    return;
   }
 }
 
-// Enforce sequential flow: check previous stage pass
+// ✅ ENFORCE sequential stage flow
 if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
   const prevStage = master.stages[index - 1];
   if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
@@ -699,6 +711,22 @@ if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
     return;
   }
 }
+
+// ✅ BLOCK if user tries to scan at wrong stage after rework
+if (row && row.stages && status === 'PASS' && currentUser.stage !== master.currentStage) {
+  scanMessage.textContent = `Serial must be processed at ${master.currentStage} after rework. You are at ${currentUser.stage}.`;
+  return;
+}
+'Stage not allowed for this serial.';
+        return;
+      }
+
+      if (row && row.stages && row.stages.find(s => s.stage === currentUser.stage)) {
+        scanMessage.textContent = 'Already scanned at this stage.';
+        return;
+      }
+
+      
 
 
       const newStage = {
@@ -853,7 +881,15 @@ if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
       );
       renderHistory(filtered);
     });
-
+// Function to show/hide rework fields based on user stage
+function showOrHideReworkFields() {
+  const isRework = currentUser.stage === 'REWORK';
+  const reworkFields = document.getElementById('reworkFields');
+  if (reworkFields) {
+    reworkFields.style.display = isRework ? 'block' : 'none';
+  }
+}
+    
     function logout() {
       console.log('Logging out...');
       scanSection.classList.remove('active');
