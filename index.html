@@ -553,6 +553,7 @@
       }
 
       currentUser = { empId, stage };
+      showOrHideReworkFields();
       welcome.textContent = `Welcome ${empId}`;
       stageDisplay.textContent = `Stage: ${stage}`;
       loginSection.style.display = 'none';
