@@ -651,29 +651,35 @@
       }
 
 if (row?.stages && currentUser.stage !== 'REWORK') {
-  const failedStagesNeedingRetry = row.stages.filter(stage => {
-    if (stage.status !== 'FAIL') return false;
+  // 1. Get all failed stages
+  const failedStages = row.stages.filter(s => s.status === 'FAIL');
 
-    const reworkPassed = row.stages.some(r =>
+  for (const failed of failedStages) {
+    // 2. Check if REWORK passed after the fail
+    const reworkDone = row.stages.some(r =>
       r.stage === 'REWORK' &&
       r.status === 'PASS' &&
-      new Date(r.timestamp) > new Date(stage.timestamp)
+      new Date(r.timestamp) > new Date(failed.timestamp)
     );
 
-    const retryPassed = row.stages.some(r =>
-      r.stage === stage.stage &&
+    // 3. Check if the failed stage was later retried and passed
+    const retriedAndPassed = row.stages.some(r =>
+      r.stage === failed.stage &&
       r.status === 'PASS' &&
-      new Date(r.timestamp) > new Date(stage.timestamp)
+      new Date(r.timestamp) > new Date(failed.timestamp)
     );
 
-    // Must retry failed stage after REWORK
-    return reworkPassed && !retryPassed;
-  });
+    // 4. If REWORK passed, but failed stage not retried => BLOCK
+    if (reworkDone && !retriedAndPassed) {
+      scanMessage.textContent = `You must pass failed stage '${failed.stage}' again after REWORK before continuing to ${currentUser.stage}.`;
+      return;
+    }
 
-  if (failedStagesNeedingRetry.length > 0) {
-    const stageNames = failedStagesNeedingRetry.map(s => s.stage).join(', ');
-    scanMessage.textContent = `After REWORK, must pass failed stage(s): ${stageNames}`;
-    return;
+    // 5. If REWORK not yet done => BLOCK
+    if (!reworkDone) {
+      scanMessage.textContent = `Stage '${failed.stage}' failed. Must go to REWORK before continuing.`;
+      return;
+    }
   }
 }
       
