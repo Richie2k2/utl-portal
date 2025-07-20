@@ -650,24 +650,33 @@
         return;
       }
 
-      // Check for failed stages requiring REWORK
-      if (row && row.stages && currentUser.stage !== 'REWORK') {
-        const failedStage = row.stages.find(s => s.status === 'FAIL' && !row.stages.some(r => r.stage === 'REWORK' && r.status === 'PASS' && new Date(r.timestamp) > new Date(s.timestamp)));
-        if (failedStage) {
-          console.log('Checking rework requirement:', failedStage);
-          scanMessage.textContent = `Serial failed at ${failedStage.stage}. Must pass REWORK first.`;
-          return;
-        }
-      }
+if (row?.stages && currentUser.stage !== 'REWORK') {
+  const failedStagesNeedingRetry = row.stages.filter(stage => {
+    if (stage.status !== 'FAIL') return false;
 
-      if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
-        const prevStage = master.stages[index - 1];
-        if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
-          scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
-          return;
-        }
-      }
+    const reworkPassed = row.stages.some(r =>
+      r.stage === 'REWORK' &&
+      r.status === 'PASS' &&
+      new Date(r.timestamp) > new Date(stage.timestamp)
+    );
 
+    const retryPassed = row.stages.some(r =>
+      r.stage === stage.stage &&
+      r.status === 'PASS' &&
+      new Date(r.timestamp) > new Date(stage.timestamp)
+    );
+
+    // Must retry failed stage after REWORK
+    return reworkPassed && !retryPassed;
+  });
+
+  if (failedStagesNeedingRetry.length > 0) {
+    const stageNames = failedStagesNeedingRetry.map(s => s.stage).join(', ');
+    scanMessage.textContent = `After REWORK, must pass failed stage(s): ${stageNames}`;
+    return;
+  }
+}
+      
       const newStage = {
         stage: currentUser.stage,
         status,
