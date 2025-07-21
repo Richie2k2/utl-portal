@@ -265,6 +265,27 @@
       font-weight: bold;
       color: #333;
     }
+    #remarks-modal .modal-content {
+      max-width: 400px;
+    }
+    #remarks-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #submit-remarks {
+      background: #dc3545;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #submit-remarks:hover {
+      filter: brightness(90%);
+    }
   </style>
 </head>
 <body>
@@ -374,12 +395,28 @@
         <p id="admin-message"></p>
       </div>
     </div>
-    <!-- Modal -->
+    <!-- History Modal -->
     <div id="modal" class="modal">
       <div class="modal-content">
         <span class="close" onclick="closeModal()">×</span>
         <h3>Serial History</h3>
         <div id="modal-body"></div>
+      </div>
+    </div>
+    <!-- Remarks Modal -->
+    <div id="remarks-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeRemarksModal()">×</span>
+        <h3>Enter Failure Remarks</h3>
+        <select id="remarks-input" aria-label="Failure Remarks">
+          <option value="">Select Reason</option>
+          <option>Tombstone Missing</option>
+          <option>Solder Issue</option>
+          <option>Component Misalignment</option>
+          <option>Other</option>
+        </select>
+        <input type="text" id="other-remarks" placeholder="Specify if Other" style="display:none;" aria-label="Other Remarks">
+        <button id="submit-remarks" onclick="submitRemarks()">Submit</button>
       </div>
     </div>
   </div>
@@ -424,10 +461,15 @@
 
     const modal = document.getElementById('modal');
     const modalBody = document.getElementById('modal-body');
+    const remarksModal = document.getElementById('remarks-modal');
+    const remarksInput = document.getElementById('remarks-input');
+    const otherRemarksInput = document.getElementById('other-remarks');
+    const submitRemarksBtn = document.getElementById('submit-remarks');
 
     let currentUser = {};
     let allHistory = [];
     let slideshowInterval;
+    let pendingSerial = null;
 
     // Slideshow functionality
     const slides = document.querySelectorAll('.slide');
@@ -450,7 +492,6 @@
       showSlide(currentSlide);
     }
 
-    // Start slideshow on page load
     slideshowInterval = setInterval(nextSlide, 3000);
 
     function toggleSidebarOptions() {
@@ -621,8 +662,41 @@
       }
     }
 
-    async function scan(status) {
-      const serial = serialInput.value.trim();
+    function showRemarksModal(serial) {
+      pendingSerial = serial;
+      remarksInput.value = '';
+      otherRemarksInput.value = '';
+      otherRemarksInput.style.display = 'none';
+      remarksModal.style.display = 'block';
+    }
+
+    function closeRemarksModal() {
+      remarksModal.style.display = 'none';
+      pendingSerial = null;
+      remarksInput.value = '';
+      otherRemarksInput.value = '';
+      otherRemarksInput.style.display = 'none';
+    }
+
+    remarksInput.addEventListener('change', () => {
+      otherRemarksInput.style.display = remarksInput.value === 'Other' ? 'block' : 'none';
+    });
+
+    async function submitRemarks() {
+      let remarks = remarksInput.value;
+      if (remarks === 'Other') {
+        remarks = otherRemarksInput.value.trim();
+      }
+      if (!remarks) {
+        scanMessage.textContent = 'Please select or enter a remark for the failure';
+        return;
+      }
+      await scan('FAIL', remarks);
+      closeRemarksModal();
+    }
+
+    async function scan(status, remarks = '') {
+      const serial = pendingSerial || serialInput.value.trim();
       scanMessage.textContent = '';
       scanMessage.style.color = 'red';
 
@@ -631,68 +705,83 @@
         return;
       }
 
-      const { data: master, error: masterError } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
-      if (masterError || !master || master.active === false) {
-        scanMessage.textContent = 'Serial not assigned or inactive.';
-        return;
-      }
-
-      const { data: row, error: rowError } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
-      const index = master.stages ? master.stages.indexOf(currentUser.stage) : -1;
-
-      if (index === -1) {
-        scanMessage.textContent = 'Stage not allowed for this serial.';
-        return;
-      }
-
-      if (row && row.stages && row.stages.find(s => s.stage === currentUser.stage)) {
-        scanMessage.textContent = 'Already scanned at this stage.';
-        return;
-      }
-
-      // Check for failed stages requiring REWORK
-      if (row && row.stages && currentUser.stage !== 'REWORK') {
-        const failedStage = row.stages.find(s => s.status === 'FAIL' && !row.stages.some(r => r.stage === 'REWORK' && r.status === 'PASS' && new Date(r.timestamp) > new Date(s.timestamp)));
-        if (failedStage) {
-          console.log('Checking rework requirement:', failedStage);
-          scanMessage.textContent = `Serial failed at ${failedStage.stage}. Must pass REWORK first.`;
+      try {
+        const { data: master, error: masterError } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
+        if (masterError || !master || master.active === false) {
+          scanMessage.textContent = 'Serial not assigned or inactive.';
           return;
         }
-      }
 
-      if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
-        const prevStage = master.stages[index - 1];
-        if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
-          scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+        const { data: row, error: rowError } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
+        const index = master.stages ? master.stages.indexOf(currentUser.stage) : -1;
+
+        if (index === -1) {
+          scanMessage.textContent = 'Stage not allowed for this serial.';
           return;
         }
-      }
 
-      const newStage = {
-        stage: currentUser.stage,
-        status,
-        emp_id: currentUser.empId,
-        timestamp: new Date().toISOString()
-      };
+        const existingScan = row && row.stages ? row.stages.find(s => s.stage === currentUser.stage) : null;
+        const hasFailedAtStage = existingScan && existingScan.status === 'FAIL';
+        const hasReworkPass = row && row.stages ? row.stages.some(r => r.stage === 'REWORK' && r.status === 'PASS' && (!existingScan || new Date(r.timestamp) > new Date(existingScan.timestamp))) : false;
 
-      if (row) {
-        row.stages = row.stages || [];
-        row.stages.push(newStage);
-        await supabaseClient.from('scans').update({ stages: row.stages }).eq('serial_number', serial);
-      } else {
-        await supabaseClient.from('scans').insert([{ serial_number: serial, stages: [newStage] }]);
-      }
+        if (existingScan && !hasFailedAtStage) {
+          scanMessage.textContent = 'Already scanned at this stage.';
+          return;
+        } else if (hasFailedAtStage && !hasReworkPass && currentUser.stage !== 'REWORK') {
+          scanMessage.textContent = `Serial failed at ${currentUser.stage}. Must pass REWORK first.`;
+          return;
+        }
 
-      scanMessage.style.color = 'green';
-      scanMessage.textContent = 'Scan saved!';
-      serialInput.value = '';
-      if (historySection.style.display === 'block') {
-        loadHistory();
+        if (row && row.stages && currentUser.stage !== 'REWORK') {
+          const failedStage = row.stages.find(s => s.status === 'FAIL' && s.stage !== currentUser.stage && !row.stages.some(r => r.stage === 'REWORK' && r.status === 'PASS' && new Date(r.timestamp) > new Date(s.timestamp)));
+          if (failedStage) {
+            scanMessage.textContent = `Serial failed at ${failedStage.stage}. Must pass REWORK first.`;
+            return;
+          }
+        }
+
+        if (status === 'PASS' && index > 0 && currentUser.stage !== 'REWORK') {
+          const prevStage = master.stages[index - 1];
+          if (!row || !row.stages || !row.stages.find(s => s.stage === prevStage && s.status === 'PASS')) {
+            scanMessage.textContent = `Previous stage ${prevStage} not passed.`;
+            return;
+          }
+        }
+
+        const newStage = {
+          stage: currentUser.stage,
+          status,
+          emp_id: currentUser.empId,
+          timestamp: new Date().toISOString(),
+          remarks: status === 'FAIL' ? remarks : ''
+        };
+
+        console.log('Saving scan:', { serial, status, remarks, timestamp: newStage.timestamp });
+
+        if (row) {
+          row.stages = row.stages || [];
+          row.stages.push(newStage);
+          const { error } = await supabaseClient.from('scans').update({ stages: row.stages }).eq('serial_number', serial);
+          if (error) throw new Error(`Update error: ${error.message}`);
+        } else {
+          const { error } = await supabaseClient.from('scans').insert([{ serial_number: serial, stages: [newStage] }]);
+          if (error) throw new Error(`Insert error: ${error.message}`);
+        }
+
+        scanMessage.style.color = 'green';
+        scanMessage.textContent = 'Scan saved!';
+        serialInput.value = '';
+        if (historySection.style.display === 'block') {
+          loadHistory();
+        }
+      } catch (error) {
+        console.error('Scan error:', error);
+        scanMessage.textContent = `Error saving scan: ${error.message}`;
       }
     }
 
     document.getElementById('passBtn').onclick = () => scan('PASS');
-    document.getElementById('failBtn').onclick = () => scan('FAIL');
+    document.getElementById('failBtn').onclick = () => showRemarksModal(serialInput.value.trim());
     historyBtn.onclick = () => {
       console.log('Toggling history section');
       historySection.style.display = historySection.style.display === 'block' ? 'none' : 'block';
@@ -753,7 +842,7 @@
           <td>${row.po || ''}</td>
           <td>${row.product || ''}</td>
           <td>${row.lastStage || 'N/A'}</td>
-          <td>${row.lastStatus || 'N/A'}</td>
+          <td style="color:${row.lastStatus === 'PASS' ? 'green' : 'red'}">${row.lastStatus || 'N/A'}</td>
           <td><button onclick="viewDetails('${row.serial}')">View</button></td>
         `;
         history.appendChild(tr);
@@ -772,9 +861,10 @@
           alert('No history data to export');
           return;
         }
-        let csv = "Serial,PO Number,Product,Last Stage,Last Status\n";
+        let csv = "Serial,PO Number,Product,Last Stage,Last Status,Last Remarks\n";
         allHistory.forEach(r => {
-          csv += `${escapeCSV(r.serial)},${escapeCSV(r.po)},${escapeCSV(r.product)},${escapeCSV(r.lastStage)},${escapeCSV(r.lastStatus)}\n`;
+          const last = r.stages && r.stages.length > 0 ? r.stages[r.stages.length - 1] : {};
+          csv += `${escapeCSV(r.serial)},${escapeCSV(r.po)},${escapeCSV(r.product)},${escapeCSV(r.lastStage)},${escapeCSV(r.lastStatus)},${escapeCSV(last.remarks || '')}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
@@ -800,8 +890,9 @@
         modal.style.display = 'block';
         return;
       }
-      modalBody.innerHTML = `<strong>${serial}</strong><table style="width:100%;border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Emp</th><th>Time</th></tr>` +
-        row.stages.map(s => `<tr><td>${s.stage || 'N/A'}</td><td>${s.status || 'N/A'}</td><td>${s.emp_id || 'N/A'}</td><td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : 'N/A'}</td></tr>`).join('') +
+      const sortedStages = row.stages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      modalBody.innerHTML = `<strong>${serial}</strong><table style="width:100%;border-collapse:collapse;"><tr><th>Stage</th><th>Status</th><th>Emp</th><th>Time</th><th>Remarks</th></tr>` +
+        sortedStages.map(s => `<tr><td>${s.stage || 'N/A'}</td><td style="color:${s.status === 'PASS' ? 'green' : 'red'}">${s.status || 'N/A'}</td><td>${s.emp_id || 'N/A'}</td><td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : 'N/A'}</td><td>${s.remarks || ''}</td></tr>`).join('') +
         `</table>`;
       modal.style.display = 'block';
     }
