@@ -665,18 +665,34 @@
   searchInput.addEventListener('input', () => renderHistory(allHistory));
   filterType.addEventListener('change', () => renderHistory(allHistory));
   exportHistoryBtn.addEventListener('click', () => {
-    const csv = [
-      'Serial,PO Number,Product,Last Stage,Last Status',
-      ...allHistory.map(row => `${row.serial},${row.po || ''},${row.product || ''},${row.lastStage || ''},${row.lastStatus || ''}`).join('\n')
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'scan_history.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  });
+  if (!allHistory.length) return alert('No history to export.');
+
+  const headers = ['Serial', 'PO Number', 'Product', 'Last Stage', 'Last Status', 'Remarks', 'Time Stamp'];
+  const rows = allHistory.map(row => [
+    row.serial,
+    row.po || '',
+    row.product || '',
+    row.lastStage || '',
+    row.lastStatus || '',
+    row.remarks || '',
+    row.timeStamp || ''      // <-- include Time Stamp here
+  ].map(field => `"${field}"`).join(','));
+
+  const csvContent = [headers.join(','), ...rows].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'scan_history.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+
+
 
   // Dashboard Initialization & Realtime
   function initializeDashboard() {
