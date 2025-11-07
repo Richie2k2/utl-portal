@@ -5,6 +5,7 @@
     <title>Shop Floor Control System - Mission Control</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --glow-green: #39ff14;
@@ -1084,7 +1085,6 @@
                     </table>
                 </div>
             </div>
-
             <div id="downtime-view-section" class="main-section content-card">
                 <h4>Downtime History</h4>
                 <div class="table-wrapper">
@@ -1110,7 +1110,29 @@
                     <button id="downtime-next" class="btn btn-light">Next</button>
                 </div>
             </div>
-
+            <div id="car-management-section" class="main-section content-card">
+                <h4>Quality Corrective Action Reports (CARs)</h4>
+                <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">
+                    Review open non-conformances, perform root cause analysis, and close reports.
+                </p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>NCR ID</th>
+                                <th>Status</th>
+                                <th>Serial</th>
+                                <th>Failed At</th>
+                                <th>Reason</th>
+                                <th>Raised By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="car-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <div id="modal" class="modal">
                 <div class="modal-content">
                     <span class="close" onclick="closeModal()">×</span>
@@ -1122,6 +1144,28 @@
                 <div class="modal-content">
                     <span class="close" onclick="closeRemarksModal()">×</span>
                     <h3>Enter Failure Remarks</h3>
+
+                    <label for="remarks-classification"
+                           style="display:block; margin-top: 5px; color: var(--text-secondary);">
+                        Classification
+                    </label>
+                    <select id="remarks-classification">
+                        <option value="">Select Classification</option>
+                        <option>Workmanship</option>
+                        <option>Manufacturing</option>
+                        <option>Design</option>
+                        <option>Material</option>
+                        <option>Damage</option>
+                        <option>Quality</option>
+                        <option>Contractual</option>
+                        <option>Construction</option>
+                        <option>Other</option>
+                    </select>
+
+                    <label for="remarks-input"
+                           style="display:block; margin-top: 10px; color: var(--text-secondary);">
+                        Failure Reason
+                    </label>
                     <select id="remarks-input">
                         <option value="">Select Reason</option>
                         <option>Tombstoning</option>
@@ -1132,6 +1176,7 @@
                         <option>Component Misalignment</option>
                         <option>Other</option>
                     </select>
+
                     <input type="text" id="other-remarks" placeholder="Specify if Other" style="display:none;">
                     <button id="submit-remarks" class="btn btn-danger">Submit</button>
                 </div>
@@ -1240,6 +1285,50 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <div id="ncr-edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="close-ncr-edit-modal">×</span>
+            <h3>Review NCR #<span id="ncr-edit-title-id"></span></h3>
+            <input type="hidden" id="ncr-edit-id">
+
+            <div classs="form-grid">
+                <div>
+                    <label for="ncr-edit-status">Report Status</label>
+                    <select id="ncr-edit-status">
+                        <option value="Open (Awaiting Correction)">Open (Awaiting Correction)</option>
+                        <option value="Pending Review (Correction Complete)">Pending Review (Correction Complete)</option>
+                        <option value="Monitoring">Monitoring</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">
+                1. Correction (Short-term Fix)
+            </h4>
+            <label for="ncr-edit-correction-notes">Correction Notes (What was done to fix this *one* part?)</label>
+            <textarea id="ncr-edit-correction-notes" placeholder="e.g., Re-soldered joint J12"></textarea>
+
+            <label for="ncr-edit-correction-by">Action By (Emp ID)</label>
+            <input type="text" id="ncr-edit-correction-by" placeholder="e.g., emp-105 (Rework)">
+
+            <label for="ncr-edit-correction-date">Correction Date</label>
+            <input type="datetime-local" id="ncr-edit-correction-date">
+
+            <h4 style="margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px;">
+                2. Corrective Action (Long-term Fix)
+            </h4>
+            <label for="ncr-edit-root-cause">Root Cause Analysis (Why did this happen?)</label>
+            <textarea id="ncr-edit-root-cause" placeholder="e.g., SMT Pick-and-Place nozzle #3 was clogged."></textarea>
+
+            <label for="ncr-edit-corrective-plan">Corrective Action Plan (How do we prevent it from happening again?)</label>
+            <textarea id="ncr-edit-corrective-plan" placeholder="e.g., 1. Clean nozzle #3. 2. Add nozzle check to daily startup." style="min-height: 80px;"></textarea>
+
+            <button id="submit-ncr-update" class="btn btn-primary">Save Changes</button>
+            <p id="ncr-edit-message" class="message-box"></p>
         </div>
     </div>
 
@@ -1489,8 +1578,9 @@
             }
             // --- Sidebar & Section Management ---
             // Make functions available globally IF they are called by inline HTML onclick
+            // REPLACE your old window.showSection function with this one
             window.showSection = function (id) {
-                console.log(`showSection called for: ${id}`); // <-- Logging
+                console.log(`showSection called for: ${id}`);
                 document.querySelectorAll('.main-section').forEach(section => section.classList.remove('active'));
                 const section = document.getElementById(id);
                 if (section) {
@@ -1500,7 +1590,6 @@
                     return;
                 }
 
-                // Refresh data when section is shown, loading page 0
                 try {
                     if (id === 'dashboard-section') initializeDashboard();
                     else if (id === 'history-section') loadHistory(0);
@@ -1509,6 +1598,10 @@
                     else if (id === 'employee-management-section') loadEmployees();
                     else if (id === 'rework-section') loadReworkQueue();
                     else if (id === 'wo-management-section') loadWorkOrders(0);
+
+                    // VVV THIS IS THE NEW LINE VVV
+                    else if (id === 'car-management-section') loadCarReports();
+
                     else if (id === 'admin-section') loadActiveWOsForAdmin();
                 } catch (err) {
                     console.error(`Error loading data for section ${id}:`, err);
@@ -1545,6 +1638,7 @@
             }
 
             // --- Setup Sidebar needs to be defined before login ---
+            // REPLACE your old setupSidebar function with this one
             function setupSidebar(isAdmin) {
                 console.log("Setting up sidebar, isAdmin:", isAdmin); // <-- Logging
                 if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
@@ -1552,21 +1646,24 @@
                     dashboard: '📊', scan: '📠', downtime: '⏱️',
                     downtimeView: '📜', employee: '👥',
                     admin: '⚙️', history: '📚', rework: '🛠️',
-                    wo: '📦', logout: '🚪'
+                    wo: '📦', logout: '🚪', car: '📈' // Added CAR icon
                 };
-                // Use onclick attributes carefully, ensure functions are globally accessible (use window.)
+
                 sidebarOptions.innerHTML = `
-                                                            <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-                                                            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
-                                                            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-                                                            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-                                                            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
-                                                            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
-                                                            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-                                                            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
-                                                            <button onclick="window.showSection('history-section')">${icons.history} History</button>
-                                                            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
-                                                          `;
+            <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
+            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
+            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
+            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+
+            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+
+            <button onclick="window.showSection('history-section')">${icons.history} History</button>
+            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+        `;
             }
 
             async function loadActiveWOsForAdmin() {
@@ -1841,16 +1938,16 @@
 
                         // Use data-wo-id attribute instead of inline onclick for better practice
                         return `
-                                                                  <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
-                                                                    <td>${wo.wo_number}</td>
-                                                                    <td>${wo.customer_name || '---'}</td>
-                                                                    <td>${wo.product_name}</td>
-                                                                    <td>${progressText}</td>
-                                                                    <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
-                                                                    <td>${new Date(wo.created_at).toLocaleDateString()}</td>
-                                                                    <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
-                                                                  </tr>
-                                                                `;
+                                                                          <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
+                                                                            <td>${wo.wo_number}</td>
+                                                                            <td>${wo.customer_name || '---'}</td>
+                                                                            <td>${wo.product_name}</td>
+                                                                            <td>${progressText}</td>
+                                                                            <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
+                                                                            <td>${new Date(wo.created_at).toLocaleDateString()}</td>
+                                                                            <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
+                                                                          </tr>
+                                                                        `;
                     }).join('');
 
                     // Add event listener to the table body for delegation
@@ -1975,10 +2072,10 @@
                 const { data: serials, error, count } = await supabaseClient
                     .from('serial_master')
                     .select(`
-                    serial_number,
-                    stages,
-                    scans(stages)
-                `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
+                            serial_number,
+                            stages,
+                            scans(stages)
+                        `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
                     .eq('work_order_id', woDetailsCurrentWOId)
                     .order('serial_number', { ascending: true }) // Sort them consistently
                     .range(from, to);
@@ -2012,14 +2109,14 @@
                         const statusColor = lastStatus === 'PASS' ? 'var(--success-color)' : (lastStatus === 'FAIL' ? 'var(--danger-color)' : 'var(--text-secondary)');
 
                         return `
-                        <tr>
-                            <td>${serial.serial_number}</td>
-                            <td>${lastStage}</td>
-                            <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
-                            <td>${lastTimestamp}</td>
-                            <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
-                        </tr>
-                    `;
+                                <tr>
+                                    <td>${serial.serial_number}</td>
+                                    <td>${lastStage}</td>
+                                    <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
+                                    <td>${lastTimestamp}</td>
+                                    <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
+                                </tr>
+                            `;
                     }).join('');
                 }
 
@@ -2034,7 +2131,7 @@
             // Find a good place for this, maybe after the historyPrevBtn/historyNextBtn listeners (around line 2040)
             if (woDetailsPrevBtn) woDetailsPrevBtn.onclick = () => { if (woDetailsCurrentPage > 0) loadWoDetailsPage(woDetailsCurrentPage - 1); };
             if (woDetailsNextBtn) woDetailsNextBtn.onclick = () => { if ((woDetailsCurrentPage + 1) * WO_DETAILS_PAGE_SIZE < woDetailsTotalRows) loadWoDetailsPage(woDetailsCurrentPage + 1); };
-            if (woDetailsCloseBtn) {woDetailsCloseBtn.addEventListener('click', closeWoDetailsModal);}
+            if (woDetailsCloseBtn) { woDetailsCloseBtn.addEventListener('click', closeWoDetailsModal); }
 
             // --- Employee Management ---
             // ... Paste loadEmployees, renderEmployeeTable, createEmployeeBtn.onclick, editEmployee, closeEmployeeModal, submitEmployeeUpdate, deleteEmployee here ...
@@ -2059,16 +2156,16 @@
                     return;
                 }
                 employeeTableBody.innerHTML = allEmployees.map(emp => `
-                                                               <tr>
-                                                                 <td>${emp.emp_id}</td>
-                                                                 <td>${emp.role || 'operator'}</td>
-                                                                 <td>${(emp.stages || []).join(', ')}</td>
-                                                                 <td class="employee-actions">
-                                                                   <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
-                                                                   <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
-                                                                 </td>
-                                                               </tr>
-                                                             `).join('');
+                                                                       <tr>
+                                                                         <td>${emp.emp_id}</td>
+                                                                         <td>${emp.role || 'operator'}</td>
+                                                                         <td>${(emp.stages || []).join(', ')}</td>
+                                                                         <td class="employee-actions">
+                                                                           <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
+                                                                           <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
+                                                                         </td>
+                                                                       </tr>
+                                                                     `).join('');
             }
 
             if (createEmployeeBtn) {
@@ -2188,18 +2285,30 @@
                 });
             } else { console.warn("Serial input not found."); }
 
-            async function scan(status, remarks = '') {
-                console.log(`scan called with status: ${status}`);
+            // REPLACE your old scan function with this one
+            // REPLACE your old scan function with this one
+            async function scan(status, remarks = '', classification = '') {
+                console.log(`scan called with status: ${status}, classification: ${classification}`);
                 const serial = pendingSerial || (serialInput ? serialInput.value.trim() : '');
                 if (!serial) return showMessage('Please enter a serial number.');
 
                 try {
-                    // 1. Get Master Serial Data
-                    const { data: master, error: masterError } = await supabaseClient.from('serial_master').select('*').eq('serial_number', serial).single();
-                    if (masterError || !master) return showMessage(masterError?.code === 'PGRST116' ? 'Serial not assigned or inactive.' : `Error: ${masterError?.message}`);
+                    // 1. Get Master Serial Data (and the work_order_id)
+                    const { data: master, error: masterError } = await supabaseClient
+                        .from('serial_master')
+                        .select('*, work_order_id') // Fetch work_order_id
+                        .eq('serial_number', serial)
+                        .single();
+
+                    if (masterError || !master) {
+                        return showMessage(masterError?.code === 'PGRST116' ? 'Serial not assigned or inactive.' : `Error: ${masterError.message}`);
+                    }
 
                     // 2. Get Scan History Data
-                    const { data: row, error: scanRowError } = await supabaseClient.from('scans').select('*').eq('serial_number', serial).single();
+                    const { data: row, error: scanRowError } = await supabaseClient.from('scans')
+                        .select('*')
+                        .eq('serial_number', serial)
+                        .single();
                     if (scanRowError && scanRowError.code !== 'PGRST116') return showMessage(`Error fetching scan data: ${scanRowError.message}`);
 
                     const allStages = row?.stages || [];
@@ -2224,22 +2333,21 @@
                         }
                     }
 
+                    // 5. Check stage sequence logic
                     const index = master.stages ? master.stages.indexOf(currentUser.stage) : -1;
-                    if (index === -1) {
+                    if (index === -1 && currentUser.stage !== 'REWORK') { // Allow REWORK at any time
                         return showMessage('Stage not allowed for this serial.');
                     }
 
-                    if (hasActiveFailure) {
-                        if (latestFail.stage !== currentUser.stage) {
-                            return showMessage(`Serial failed at ${latestFail.stage}. Must pass REWORK first.`);
-                        }
+                    if (hasActiveFailure && currentUser.stage !== 'REWORK') {
+                        return showMessage(`Serial has active failure. Must pass REWORK first.`);
                     }
 
                     const lastScanAtThisStage = allStages
                         .filter(s => s.stage === currentUser.stage)
                         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
 
-                    if (lastScanAtThisStage && lastScanAtThisStage.status === 'PASS' && !hasActiveFailure) {
+                    if (lastScanAtThisStage && lastScanAtThisStage.status === 'PASS' && !hasActiveFailure && currentUser.stage !== 'REWORK') {
                         return showMessage('Already scanned and passed at this stage.');
                     }
 
@@ -2274,7 +2382,9 @@
                         console.error('Database save error:', dbError);
                         showMessage(`Error saving scan: ${dbError.message}`, 'error');
                     } else {
+                        // 7. YOUR ORIGINAL WORKFLOW IS PRESERVED HERE:
 
+                        // 7a. Update the 'is_complete' flag
                         const { data: currentScans, error: scanFetchError } = await supabaseClient
                             .from('scans')
                             .select('stages')
@@ -2282,11 +2392,7 @@
                             .single();
 
                         if (!scanFetchError && currentScans) {
-                            const serialMasterWithScans = {
-                                ...master,
-                                scans: currentScans
-                            };
-
+                            const serialMasterWithScans = { ...master, scans: currentScans };
                             const isNowComplete = isSerialFullyCompleted(serialMasterWithScans);
 
                             const { error: updateCompleteError } = await supabaseClient
@@ -2297,14 +2403,33 @@
                             if (updateCompleteError) {
                                 console.error('Failed to update is_complete flag:', updateCompleteError);
                             }
-
-                            console.log(`Updated serial ${serial} is_complete status to: ${isNowComplete}`);
                         }
 
+                        // 7b. Show the operator the success message immediately.
                         showMessage(`Serial '${serial}' marked as ${status}!`, 'success');
-                        if (serialInput) {
-                            serialInput.focus();
+
+                        // --- 8. NEW BACKGROUND TASK ---
+                        if (status === 'FAIL') {
+                            console.log("Submitting NCR in background...");
+                            const { error: ncrError } = await supabaseClient
+                                .from('non_conformance_reports')
+                                .insert({
+                                    serial_number: serial,
+                                    work_order_id: master.work_order_id, // Use the ID we fetched
+                                    failure_stage: currentUser.stage,
+                                    failure_remark: remarks,
+                                    raised_by_emp_id: currentUser.empId,
+                                    classification: classification, // The new field
+                                    status: 'Open (Awaiting Correction)'
+                                });
+
+                            if (ncrError) {
+                                console.error("Background NCR creation failed:", ncrError);
+                            } else {
+                                console.log("Background NCR created successfully.");
+                            }
                         }
+                        // --- END OF NEW BACKGROUND TASK ---
                     }
 
                 } catch (error) {
@@ -2312,8 +2437,6 @@
                     showMessage(`Error saving scan: ${error.message}`);
                 } finally {
                     pendingSerial = null;
-
-                    // VVV PASTE THE LINES HERE VVV
                     if (serialInput) {
                         serialInput.value = '';
                         serialInput.focus();
@@ -2357,15 +2480,30 @@
                     if (otherRemarksInput) otherRemarksInput.style.display = remarksInput.value === 'Other' ? 'block' : 'none';
                 });
             }
+            // REPLACE your old submitRemarksBtn.onclick with this one
             if (submitRemarksBtn) {
                 submitRemarksBtn.onclick = async () => {
                     let remarks = remarksInput ? remarksInput.value : '';
                     if (remarks === 'Other') remarks = otherRemarksInput ? otherRemarksInput.value.trim() : '';
+
+                    // --- This is the new part ---
+                    const classificationSelect = document.getElementById('remarks-classification');
+                    let classification = classificationSelect ? classificationSelect.value : '';
+
+                    if (!classification) {
+                        showMessage('Please select a classification');
+                        return;
+                    }
+                    // --- End of new part ---
+
                     if (!remarks) {
                         showMessage('Please select or enter a remark');
                         return;
                     }
-                    await scan('FAIL', remarks);
+
+                    // Pass the new classification to the scan function
+                    await scan('FAIL', remarks, classification);
+
                     closeRemarksModal();
                 };
             } else { console.warn("Submit remarks button not found."); }
@@ -2460,16 +2598,16 @@
                             ? `<button onclick="window.clearDowntime(${row.id})" class="btn btn-success" style="width:auto;padding:8px 12px;">Clear</button>`
                             : (row.action_taken || 'Resolved');
                         return `
-                                                                    <tr>
-                                                                        <td>${row.reason}</td>
-                                                                        <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
-                                                                        <td>${startTime.toLocaleString()}</td>
-                                                                        <td>${endTime ? endTime.toLocaleString() : '---'}</td>
-                                                                        <td>${duration}</td>
-                                                                        <td>${row.attending_person}</td>
-                                                                        <td>${actionCellContent}</td>
-                                                                    </tr>
-                                                                `;
+                                                                            <tr>
+                                                                                <td>${row.reason}</td>
+                                                                                <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
+                                                                                <td>${startTime.toLocaleString()}</td>
+                                                                                <td>${endTime ? endTime.toLocaleString() : '---'}</td>
+                                                                                <td>${duration}</td>
+                                                                                <td>${row.attending_person}</td>
+                                                                                <td>${actionCellContent}</td>
+                                                                            </tr>
+                                                                        `;
                     }).join('');
                 }
 
@@ -2720,17 +2858,17 @@
                         const remarks = row.lastRemarks || '';
                         const truncatedRemarks = remarks.length > 20 ? remarks.substring(0, 20) + '...' : remarks;
                         return `
-                                                               <tr>
-                                                                 <td>${row.serial}</td>
-                                                                 <td>${row.po}</td>
-                                                                 <td>${row.customer}</td>
-                                                                 <td>${row.product}</td>
-                                                                 <td>${row.lastStage || ''}</td>
-                                                                 <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
-                                                                 <td>${row.lastEmpId || ''}</td>
-                                                                 <td title="${remarks}">${truncatedRemarks || '---'}</td>
-                                                                 <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
-                                                               </tr>`
+                                                                       <tr>
+                                                                         <td>${row.serial}</td>
+                                                                         <td>${row.po}</td>
+                                                                         <td>${row.customer}</td>
+                                                                         <td>${row.product}</td>
+                                                                         <td>${row.lastStage || ''}</td>
+                                                                         <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
+                                                                         <td>${row.lastEmpId || ''}</td>
+                                                                         <td title="${remarks}">${truncatedRemarks || '---'}</td>
+                                                                         <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
+                                                                       </tr>`
                     }).join('');
                 }
 
@@ -2774,22 +2912,22 @@
 
                 if (modalBody) {
                     modalBody.innerHTML = `
-                                                                   <div class="table-wrapper">
-                                                                     <table>
-                                                                       <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
-                                                                       <tbody>
-                                                                         ${sortedStages.map(s => `
-                                                                           <tr>
-                                                                             <td>${s.stage || ''}</td>
-                                                                             <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
-                                                                             <td>${s.emp_id || ''}</td>
-                                                                             <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
-                                                                             <td>${s.remarks || ''}</td>
-                                                                           </tr>`).join('')}
-                                                                          ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
-                                                                       </tbody>
-                                                                     </table>
-                                                                   </div>`;
+                                                                           <div class="table-wrapper">
+                                                                             <table>
+                                                                               <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
+                                                                               <tbody>
+                                                                                 ${sortedStages.map(s => `
+                                                                                   <tr>
+                                                                                     <td>${s.stage || ''}</td>
+                                                                                     <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
+                                                                                     <td>${s.emp_id || ''}</td>
+                                                                                     <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
+                                                                                     <td>${s.remarks || ''}</td>
+                                                                                   </tr>`).join('')}
+                                                                                  ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
+                                                                               </tbody>
+                                                                             </table>
+                                                                           </div>`;
                     if (modal) modal.classList.add('active');
                 } else {
                     console.error("Modal body not found!");
@@ -2849,73 +2987,113 @@
 
             // --- Rework Queue Functions ---
             // ... Paste loadReworkQueue, renderReworkQueue here ...
+            // --- Rework Queue Functions ---
+            // NEW, EFFICIENT VERSION
             async function loadReworkQueue() {
-                if (!reworkTableBody) { console.error("Rework table body not found!"); return; }
+                if (!reworkTableBody) {
+                    console.error("Rework table body not found!");
+                    return;
+                }
                 reworkTableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">Loading rework queue...</td></tr>`;
 
-                const [{ data: scans, error: scansError }, { data: masters, error: mastersError }] = await Promise.all([
-                    supabaseClient.from('scans').select('serial_number, stages'),
-                    supabaseClient.from('serial_master').select('serial_number, work_orders(wo_number, product_name, customer_name)')
-                ]);
+                // Call the new database function
+                const { data: reworkItems, error } = await supabaseClient
+                    .rpc('get_rework_queue_items');
 
-                if (scansError || mastersError) {
-                    showMessage('Error loading rework queue: ' + (scansError?.message || mastersError?.message));
+                if (error) {
+                    showMessage('Error loading rework queue: ' + error.message);
                     reworkTableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">Error loading rework queue.</td></tr>`;
                     return;
                 }
 
-                const masterMap = new Map((masters || []).map(item => [item.serial_number, item]));
-                const reworkItems = [];
-
-                for (const scan of scans || []) {
-                    if (!scan.stages || scan.stages.length === 0) continue;
-
-                    const sortedStages = [...scan.stages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                    const latestFail = [...sortedStages].filter(s => s.status === 'FAIL').pop();
-
-                    if (!latestFail) continue;
-
-                    const hasFix = sortedStages.some(s =>
-                        s.stage === 'REWORK' &&
-                        s.status === 'PASS' &&
-                        new Date(s.timestamp) > new Date(latestFail.timestamp)
-                    );
-
-                    if (!hasFix) {
-                        const master = masterMap.get(scan.serial_number) || {};
-                        reworkItems.push({
-                            serial: scan.serial_number,
-                            wo: master.work_orders ? master.work_orders.wo_number : 'N/A',
-                            customer: master.work_orders ? master.work_orders.customer_name : 'N/A',
-                            product: master.work_orders ? master.work_orders.product_name : 'N/A',
-                            failedStage: latestFail.stage,
-                            remarks: latestFail.remarks,
-                            timestamp: latestFail.timestamp
-                        });
-                    }
-                }
-
-                reworkItems.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                renderReworkQueue(reworkItems);
+                renderReworkQueue(reworkItems || []);
             }
 
             function renderReworkQueue(data) {
                 if (!reworkTableBody) return;
+
                 if (data.length === 0) {
                     reworkTableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">Rework queue is empty!</td></tr>`;
                     return;
                 }
+
+                // Use the new field names from the database function
                 reworkTableBody.innerHTML = data.map(item => `
-                                                             <tr>
-                                                               <td>${item.serial}</td>
-                                                               <td>${item.wo}</td>
-                                                               <td>${item.customer}</td>
-                                                               <td>${item.product}</td>
-                                                               <td>${item.failedStage}</td>
-                                                               <td>${item.remarks || '---'}</td>
-                                                               <td>${new Date(item.timestamp).toLocaleString()}</td>
-                                                             </tr>
-                                                           `).join('');
+            <tr>
+                <td>${item.serial}</td>
+                <td>${item.wo}</td>
+                <td>${item.customer}</td>
+                <td>${item.product}</td>
+                <td>${item.failedstage}</td>
+                <td>${item.remarks || '---'}</td>
+                <td>${new Date(item.timestamp).toLocaleString()}</td>
+            </tr>
+        `).join('');
+            }
+
+            // --- Inside your serial scan/detail handling (merged fragments) ---
+            async function handleSerialScan(serial) {
+                // ... existing code ...
+
+                // 2. Get Scan History Data
+                const { data: row, error: scanRowError } = await supabaseClient
+                    .from('scans')
+                    .select('*')
+                    .eq('serial_number', serial)
+                    .single();
+
+                if (scanRowError && scanRowError.code !== 'PGRST116') {
+                    return showMessage(`Error fetching scan data: ${scanRowError.message}`);
+                }
+
+                const allStages = row?.stages || [];
+
+                // 3. Determine Serial's Current Failure State
+                // ... logic to detect failure ...
+
+                if (isFailed) {
+                    // Fetch NCR if exists
+                    const { data: ncr, error: ncrError } = await supabaseClient
+                        .from('ncrs')
+                        .select('*')
+                        .eq('serial_number', serial)
+                        .maybeSingle();
+
+                    // Render NCR details in UI
+                    document.getElementById('ncr-details').innerHTML = `
+                <table class="ncr-table">
+                    <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
+                    <tr>
+                        <td class="field-label">Root Cause:</td>
+                        <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Proposed correction (long-term):</td>
+                        <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Immediate correction:</td>
+                        <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
+                    </tr>
+                    <tr>
+                        <td class="field-label">Action By:</td>
+                        <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
+                    </tr>
+                </table>
+            `;
+                }
+
+                // Update completion flag if needed
+                const { error: updateCompleteError } = await supabaseClient
+                    .from('scans')
+                    .update({ is_complete: true })
+                    .eq('serial_number', serial);
+
+                if (updateCompleteError) {
+                    console.error('Failed to update is_complete flag:', updateCompleteError);
+                }
+
+                // ... rest of scan logic ...
             }
 
             // --- Dashboard ---
@@ -3195,9 +3373,9 @@
                                     if (!existingScanTime || stageTimeMs > existingScanTime) {
                                         dailyChartScans.set(uniqueScanKey, stageTimeMs);
                                         // Binning Logic
-                                        if(stageStatus === 'FAIL') {
+                                        if (stageStatus === 'FAIL') {
                                             bins[binKey]['FAIL']++;
-                                            failCount++; // For KPI
+                                            failCount++; // For KPI
                                             if (stage.remarks) failureReasons[stage.remarks] = (failureReasons[stage.remarks] || 0) + 1;
                                             chartProductStats[product].fail++; // For KPI/Ticker
                                         } else if (stageStatus === 'PASS') {
@@ -3205,22 +3383,22 @@
 
                                             // --- NEW LOGIC TO SORT BY 'MULTI PROD' ---
                                             // If this is the first scan of the day, set the first product
-                                               if (bins[binKey].firstProduct === null) {
+                                            if (bins[binKey].firstProduct === null) {
                                                 bins[binKey].firstProduct = product;
                                             }
 
                                             // Check if the current scan's product is the first product
                                             if (product === bins[binKey].firstProduct) {
                                                 // This is Product 1. Use Green/Blue.
-                                                 if (stageName === 'AOI-TOP') {
+                                                if (stageName === 'AOI-TOP') {
                                                     bins[binKey]['AOI-TOP']++;
                                                 } else {
                                                     // Stack AOI-BOT and all other passes (TESTING, PACKING etc) as Green
-                                                     bins[binKey]['AOI-BOT']++;
+                                                    bins[binKey]['AOI-BOT']++;
                                                 }
                                             } else {
                                                 // This is a *different* product. Stack ALL its passes as ORANGE.
-                                               bins[binKey]['MULTI PROD']++;
+                                                bins[binKey]['MULTI PROD']++;
                                             }
                                             // --- END NEW LOGIC ---
                                         }
@@ -3413,19 +3591,385 @@
                     return;
                 }
                 body.innerHTML = statsArray.map(([product, data]) => `
-                <tr>
-                    <td>${product}</td>
-                    <td>${data.wo}</td>
-                    <td>${data.cust}</td>
-                    <td>${data.pass}</td>
-                    <td>${data.fail}</td>
-                </tr>
-            `).join('');
+                        <tr>
+                            <td>${product}</td>
+                            <td>${data.wo}</td>
+                            <td>${data.cust}</td>
+                            <td>${data.pass}</td>
+                            <td>${data.fail}</td>
+                        </tr>
+                    `).join('');
             }
             window.closeChartDetailsModal = function () {
                 const modal = document.getElementById('chart-details-modal');
                 if (modal) modal.classList.remove('active');
             }
+            // --- VVV PASTE ALL THIS NEW CODE BEFORE THE '});' at the end ---
+
+            // --- NC/CAR Management Functions ---
+
+            /**
+             * Loads all NCRs into the admin 'CAR Management' page.
+             */
+            async function loadCarReports() {
+                const tableBody = document.getElementById('car-table-body');
+                if (!tableBody) return;
+
+                tableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">Loading reports...</td></tr>`;
+
+                const { data, error } = await supabaseClient
+                    .from('non_conformance_reports')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">Error: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="loading-cell">No Non-Conformance Reports found.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = data.map(ncr => `
+            <tr>
+                <td>${ncr.id}</td>
+                <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
+                    ${ncr.status}
+                </td>
+                <td>${ncr.serial_number}</td>
+                <td>${ncr.failure_stage}</td>
+                <td>${ncr.failure_remark}</td>
+                <td>${ncr.raised_by_emp_id}</td>
+                <td class="employee-actions">
+                    <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
+                    <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
+                </td>
+            </tr>
+        `).join('');
+            }
+
+            /**
+             * Closes the NCR edit modal.
+             */
+            function closeEditNcrModal() {
+                const modal = document.getElementById('ncr-edit-modal');
+                if (modal) modal.classList.remove('active');
+            }
+            // Attach this to the close button
+            document.getElementById('close-ncr-edit-modal').onclick = closeEditNcrModal;
+
+            /**
+             * Helper to format ISO date strings for <input type="datetime-local">
+             */
+            function formatDateForInput(isoString) {
+                if (!isoString) return '';
+                const date = new Date(isoString);
+                return date.toISOString().slice(0, 16); // Formats to "YYYY-MM-DDTHH:MM"
+            }
+
+            /**
+             * Opens the admin modal to view/edit an NCR.
+             */
+            window.editNcrReport = async (ncrId) => {
+                const modal = document.getElementById('ncr-edit-modal');
+                const message = document.getElementById('ncr-edit-message');
+                if (!modal || !message) return;
+
+                message.classList.remove('visible');
+                modal.classList.add('active');
+
+                document.getElementById('ncr-edit-title-id').textContent = ncrId;
+                document.getElementById('ncr-edit-id').value = ncrId;
+                document.getElementById('ncr-edit-status').value = '';
+                document.getElementById('ncr-edit-correction-notes').value = 'Loading...';
+                document.getElementById('ncr-edit-correction-by').value = 'Loading...';
+                document.getElementById('ncr-edit-correction-date').value = '';
+                document.getElementById('ncr-edit-root-cause').value = 'Loading...';
+                document.getElementById('ncr-edit-corrective-plan').value = 'Loading...';
+
+                const { data: ncr, error } = await supabaseClient
+                    .from('non_conformance_reports')
+                    .select('*')
+                    .eq('id', ncrId)
+                    .single();
+
+                if (error) {
+                    showMessage(message, `Error: ${error.message}`, 'error');
+                    return;
+                }
+
+                document.getElementById('ncr-edit-status').value = ncr.status;
+                document.getElementById('ncr-edit-correction-notes').value = ncr.correction_notes || '';
+                document.getElementById('ncr-edit-correction-by').value = ncr.correction_by_emp_id || '';
+                document.getElementById('ncr-edit-correction-date').value = formatDateForInput(ncr.correction_date);
+                document.getElementById('ncr-edit-root-cause').value = ncr.root_cause || '';
+                document.getElementById('ncr-edit-corrective-plan').value = ncr.corrective_action_plan || '';
+            };
+
+            /**
+             * Saves the admin's changes from the modal back to Supabase.
+             */
+            async function submitNcrUpdate() {
+                const message = document.getElementById('ncr-edit-message');
+                const ncrId = document.getElementById('ncr-edit-id').value;
+                const newStatus = document.getElementById('ncr-edit-status').value;
+
+                const updates = {
+                    status: newStatus,
+                    correction_notes: document.getElementById('ncr-edit-correction-notes').value.trim(),
+                    correction_by_emp_id: document.getElementById('ncr-edit-correction-by').value.trim(),
+                    correction_date: document.getElementById('ncr-edit-correction-date').value || null,
+                    root_cause: document.getElementById('ncr-edit-root-cause').value.trim(),
+                    corrective_action_plan: document.getElementById('ncr-edit-corrective-plan').value.trim(),
+                };
+
+                if (newStatus === 'Closed') {
+                    updates.verified_by_emp_id = currentUser.empId; // Stamp with current admin's ID
+                    updates.closure_date = new Date().toISOString();
+                }
+
+                const { error } = await supabaseClient
+                    .from('non_conformance_reports')
+                    .update(updates)
+                    .eq('id', ncrId);
+
+                if (error) {
+                    showMessage(message, `Error saving: ${error.message}`, 'error');
+                } else {
+                    showMessage(message, 'Report saved successfully!', 'success');
+                    setTimeout(() => {
+                        closeEditNcrModal();
+                        loadCarReports(); // Refresh the admin table
+                    }, 1000);
+                }
+            }
+            document.getElementById('submit-ncr-update').onclick = submitNcrUpdate;
+
+            /**
+ /**
+/**
+/**
+         * NCR PDF – V18 – Fixes blank second page issue
+         * (Removes fixed height: 297mm)
+         */
+            window.printNcrReport = async (ncrId) => {
+                console.log(`Generating PDF for NCR #${ncrId}...`);
+
+                // --- 1. LOGO ---
+                // !! PASTE YOUR LOGO URL HERE !!
+                const companyLogoUrl = 'data:image/png;base64,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';
+
+                // --- 2. FETCH DATA ---
+                const { data: ncr, error } = await supabaseClient
+                    .from('non_conformance_reports')
+                    .select(`
+                    *,
+                    serial_master (
+                        serial_number,
+                        work_orders (
+                            wo_number,
+                            customer_name,
+                            product_name
+                        )
+                    )
+                `)
+                    .eq('id', ncrId)
+                    .single();
+
+                if (error) { showMessage(`Error: ${error.message}`); return; }
+
+                // --- 3. HELPERS ---
+                const fmt = iso => iso ? new Date(iso).toLocaleDateString('en-GB') : '...';
+                const cb = (label, val) => `<span style="font-size:10.5px;">${label === val ? '✔' : '☐'}</span>`;
+                const boolCb = yes => `<span style="font-size:10.5px;">${yes ? '✔' : '☐'}</span>`;
+
+                // --- 4. HTML + CSS (EXACT MATCH TO IMAGE) ---
+                const div = document.createElement('div');
+                div.innerHTML = `
+<style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html { margin: 0; padding: 0; }
+
+    .page {
+        width: 210mm;
+        /* VVV --- THIS LINE IS THE FIX --- VVV */
+        /* REMOVED height: 297mm; to prevent blank second page */
+        padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 7.4pt;
+        line-height: 1.32;
+        color: #000;
+        background: #fff;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
+    td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
+    
+    .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
+    .logo { max-height: 18mm; object-fit: contain; }
+    .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
+
+    .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
+    .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
+
+    .box { min-height: 6mm; line-height: 1.35; }
+    .chk span { margin-right: 2px; }
+    .avoid { page-break-inside: avoid; }
+</style>
+
+<div class="page">
+    <table class="hdr">
+        <tr>
+            <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
+            <td style="width:54%;" class="title">Non-Conformance Report</td>
+            <td style="width:24%; text-align:left; padding-left:4px;">
+                <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
+                <b>NCR No.:</b> ${ncr.id}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
+        <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
+    </table>
+
+    <table>
+        <tr>
+            <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
+            <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
+            <td class="lbl">Priority:</td>
+            <td class="chk">
+                ${boolCb(ncr.priority === 'Low')} Low
+                ${boolCb(ncr.priority === 'Medium')} Medium
+                ${boolCb(ncr.priority === 'High')} High
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
+            <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
+        <tr>
+            <td class="chk">${cb('Design', ncr.classification)} Design</td>
+            <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
+            <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
+        </tr>
+        <tr>
+            <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
+            <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
+            <td class="chk">${cb('Material', ncr.classification)} Material</td>
+        </tr>
+        <tr>
+            <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
+            <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
+            <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
+        <tr><td class="lbl">Cause of NCR determined:</td>
+            <td class="box">
+                ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
+                ${ncr.root_cause || '...'}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
+        <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
+        <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
+    </table>
+
+    <table>
+        <tr>
+            <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
+            <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
+        </tr>
+        <tr>
+            <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
+            <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
+        </tr>
+    </table>
+
+    <div class="avoid">
+        <table>
+            <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
+            <tr><td class="box">
+                The implementation and effectiveness of corrective measures were checked and found to be:<br>
+                ${boolCb(ncr.status === 'Closed')} Acceptable<br>
+                ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
+                <b>Comments:</b> ${ncr.follow_up_comments || '...'}
+            </td></tr>
+        </table>
+
+        <table>
+            <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+            <tr>
+                <td class="lbl" style="width:26%;">NCR correction checked by:</td>
+                <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
+                <td class="lbl" style="width:14%;">Date:</td>
+                <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+            </tr>
+            <tr>
+                <td class="lbl">NCR correction approved by:</td>
+                <td>${ncr.verified_by_emp_id || '...'}</td>
+                <td class="lbl">Date:</td>
+                <td>${fmt(ncr.closure_date)}</td>
+            </tr>
+        </table>
+    </div>
+</div>`;
+
+                document.body.appendChild(div);
+
+                // --- 5. PDF OPTIONS ---
+                const safeName = (ncr.serial_master?.work_orders?.product_name || 'Report').replace(/[^\w]/g, '_');
+                const opt = {
+                    margin: 0, // Let the .page CSS handle all margins
+                    filename: `NCR-${ncr.id}_${safeName}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2.1, useCORS: true, letterRendering: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                try {
+                    const uri = await html2pdf().set(opt).from(div).output('datauristring');
+                    const win = window.open('', '_blank');
+                    if (win) {
+                        win.document.title = opt.filename; // Set the tab title
+                        win.document.write(`
+<html style="margin:0;padding:0;height:100%">
+<head><style>@page{size:A4;margin:0}body,iframe{margin:0;padding:0;width:100%;height:100%;border:none}</style></head>
+<body><iframe src="${uri}" style="width:100%;height:100%;border:none"></iframe></body>
+</html>`);
+                        win.document.close();
+                    } else {
+                        html2pdf().set(opt).from(div).save();
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showMessage('PDF failed', 'error');
+                }
+
+                document.body.removeChild(div);
+            };
+
+            // --- ^^^ END OF NEW CODE BLOCK ^^^ ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
     </script>
