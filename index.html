@@ -225,7 +225,7 @@
                     stroke-width: 2;
                 }
 
-        input:not([type="file"]), select, textarea {
+        input:not([type="file"]):not([type="date"]):not([type="datetime-local"]), select, textarea {
             width: 100%;
             padding: 12px 15px;
             margin: 8px 0;
@@ -235,6 +235,20 @@
             font-size: 15px;
             background: var(--bg-dark);
             color: var(--text-primary);
+        }
+
+        /* ADD THIS NEW RULE */
+        input[type="date"],
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px 15px; /* Slightly less padding to fit the icon */
+            box-sizing: border-box;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 15px;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            color-scheme: dark; /* Helps the browser show a dark-themed calendar */
         }
 
             input:focus, select:focus, textarea:focus {
@@ -761,6 +775,64 @@
                 margin-top: 0;
             }
 
+        /* --- NEW CSS FOR OEE DATA BOXES --- */
+        .oee-data-box {
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--bg-dark); /* Darker background for contrast */
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+            .oee-data-box p {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-size: 13px;
+                line-height: 1.6;
+                padding: 4px 0;
+                border-bottom: 1px solid var(--border-color);
+                margin: 0;
+            }
+
+                .oee-data-box p:last-child {
+                    border-bottom: none;
+                }
+
+                .oee-data-box p span:first-child {
+                    color: var(--text-secondary);
+                }
+
+                .oee-data-box p span:last-child {
+                    font-weight: 600;
+                    font-family: var(--font-mono);
+                    font-size: 14px;
+                }
+
+        .oee-final-score {
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-surface);
+            border-radius: 6px;
+            border: 1px solid var(--primary-blue);
+            margin-top: 20px;
+        }
+
+            .oee-final-score h4 {
+                color: var(--text-secondary);
+                font-size: 16px;
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+            }
+
+            .oee-final-score h2 {
+                font-size: 42px;
+                color: var(--primary-blue);
+                font-family: var(--font-mono);
+                margin: 0;
+                text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+            }
+
         .close {
             float: right;
             font-size: 32px;
@@ -940,6 +1012,9 @@
                         <input type="text" id="new-wo-customer" placeholder="Customer Name">
                         <input type="text" id="new-wo-product" placeholder="Product Name">
                         <input type="number" id="new-wo-quantity" placeholder="Target Quantity">
+
+                        <input type="number" id="new-wo-cycle-time" placeholder="Ideal Cycle Time (in minutes)" step="0.1" min="0">
+
                         <button id="create-wo-btn" class="btn btn-primary" style="width: auto;">Create WO</button>
                     </div>
                 </div>
@@ -1024,7 +1099,23 @@
                         <option>REWORK</option>
                     </select>
                     <button id="saveBulkSerials" class="btn btn-primary">Save All Serials to WO</button>
+                </div> <div id="component-lot-section" class="content-card">
+                    <h4>Log Component Lots</h4>
+                    <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">
+                        Scan component reels as they are loaded onto a machine for a Work Order.
+                    </p>
+                    <div class="form-grid">
+                        <select id="component-wo-select" aria-label="Select Work Order">
+                            <option value="">Select an Active Work Order...</option>
+                        </select>
+                        <input type="text" id="component-machine-id" placeholder="Machine ID (e.g., SMT-1)">
+                        <input type="text" id="component-part-number" placeholder="Component Part Number (Scan)">
+                        <input type="text" id="component-lot-code" placeholder="Component Lot Code (Scan)">
+                        <button id="submit-component-lot-btn" class="btn btn-primary" style="width: auto;">Log Component</button>
+                    </div>
+                    <p id="component-lot-message" class="message-box" style="margin-top: 15px;"></p>
                 </div>
+
             </div>
 
             <div id="history-section" class="main-section content-card">
@@ -1087,6 +1178,11 @@
             </div>
             <div id="downtime-view-section" class="main-section content-card">
                 <h4>Downtime History</h4>
+
+                <div id="downtime-analytics-chart-container" class="chart-widget" style="min-height: 250px; max-height: 300px; margin-bottom: 20px;">
+                    <h5>Downtime Analysis (Last 30 Days)</h5>
+                    <div id="downtimeParetoChart"></div>
+                </div>
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -1181,111 +1277,206 @@
                     <button id="submit-remarks" class="btn btn-danger">Submit</button>
                 </div>
             </div>
-            <div id="downtime-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeDowntimeModal()">×</span>
-                    <h3>Log New Downtime Event</h3>
-                    <select id="downtime-reason">
-                        <option value="">Select a reason...</option>
-                        <option>Parts Shortage</option>
-                        <option>Machine Breakdown</option>
-                        <option>Scheduled Maintenance</option>
-                        <option>Operator Unavailable</option>
-                        <option>Quality Issue</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <input type="text" id="downtime-other-reason" placeholder="Please specify reason" style="display:none;">
-                    <input type="text" id="downtime-machine-name" placeholder="Machine Name">
-                    <input type="text" id="downtime-machine-model" placeholder="Machine Model">
-                    <input type="text" id="downtime-attending-person" placeholder="Who is attending?">
-                    <label for="downtime-start" style="display: block; text-align: left; margin-top: 10px; font-size: 14px; color: var(--text-secondary);">Start Time & Date</label>
-                    <input type="datetime-local" id="downtime-start">
-                    <label for="downtime-end" style="display: block; text-align: left; margin-top: 10px; font-size: 14px; color: var(--text-secondary);">Expected End Time & Date</label>
-                    <input type="datetime-local" id="downtime-end">
-                    <button id="submit-downtime" class="btn btn-primary">Submit Request</button>
-                    <p id="downtime-message" class="message-box"></p>
-                </div>
-            </div>
-            <div id="action-taken-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeActionTakenModal()">×</span>
-                    <h3>Clear Downtime Event</h3>
-                    <p style="margin-top:0; margin-bottom:12px; color: var(--text-secondary);">Please describe the action taken to resolve this issue.</p>
-                    <textarea id="action-taken-input" placeholder="e.g., Replaced faulty sensor, restarted the conveyor belt..." style="min-height: 100px; width: 100%; box-sizing: border-box; margin-bottom: 12px;"></textarea>
-                    <input type="hidden" id="downtime-id-to-clear">
-                    <button id="submit-action-taken" class="btn btn-success">Submit and Clear</button>
-                    <p id="action-taken-message" class="message-box"></p>
-                </div>
-            </div>
-            <div id="employee-edit-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" id="close-employee-modal">×</span>
-                    <h3>Edit Employee</h3>
-                    <input type="hidden" id="employee-id-to-edit">
-                    <div>
-                        <label for="edit-empId">Employee ID</label>
-                        <input type="text" id="edit-empId" disabled style="background: #30363d; cursor: not-allowed;">
-                    </div>
-                    <div>
-                        <label for="edit-newPassword">New Password (leave blank to keep current)</label>
-                        <input type="password" id="edit-newPassword" placeholder="Enter new password">
-                    </div>
-                    <div>
-                        <label for="edit-role">Role</label>
-                        <select id="edit-role">
-                            <option value="operator">Operator</option>
-                            <option value="admin">Admin</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="edit-stages">Assigned Stages</label>
-                        <select id="edit-stages" multiple>
-                            <option>SERIAL NUMBER SCANNING</option>
-                            <option>AOI-BOT</option>
-                            <option>AOI-TOP</option>
-                            <option>REWORK</option>
-                            <option>MANUAL SOLDERING</option>
-                            <option>TESTING</option>
-                            <option>PACKING</option>
-                            <option>SMT-FQC</option>
-                            <option>TH-FQC</option>
-                        </select>
-                    </div>
-                    <button id="submit-employee-update" class="btn btn-primary">Save Changes</button>
-                    <p id="edit-employee-message" class="message-box"></p>
-                </div>
-            </div>
+            <div id="analytics-section" class="main-section">
 
-            <div id="wo-details-modal" class="modal">
-                <div class="modal-content" style="width: 80%; max-width: 1000px;">
-                    <span id="close-wo-details-btn" class="close">×</span>
-                    <h3 id="wo-details-title">Work Order Details</h3>
-                    <div id="wo-details-summary" style="margin-bottom: 15px; font-size: 14px; color: var(--text-secondary);"></div>
+                <div class="content-card">
+                    <h4>OEE (Overall Equipment Effectiveness) Report</h4>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; align-items: end; margin-bottom: 20px;">
+                        <div>
+                            <label for="oee-analytics-start" style="font-size: 13px; color: var(--text-secondary);">Start Time & Date</label>
+                            <input type="datetime-local" id="oee-analytics-start">
+                        </div>
+                        <div>
+                            <label for="oee-analytics-end" style="font-size: 13px; color: var(--text-secondary);">End Time & Date</label>
+                            <input type="datetime-local" id="oee-analytics-end">
+                        </div>
+                        <div>
+                            <label for="oee-analytics-wo" style="font-size: 13px; color: var(--text-secondary);">Filter by Work Order</label>
+                            <select id="oee-analytics-wo">
+                                <option value="all">Select Start/End Date First...</option>
+                            </select>
+                        </div>
+                        <button id="load-oee-analytics-btn" class="btn btn-primary" style="width: auto;">Load Report</button>
+                    </div>
+
+                    <div id="oee-charts-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+
+                        <div>
+                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                <h5>Availability</h5>
+                                <div id="oee-availability-chart"></div>
+                            </div>
+                            <div id="oee-data-availability" class="oee-data-box">
+                                <p><span>A. Planned Time:</span> <span id="oee-planned-time">-- min</span></p>
+                                <p><span>B. Total Downtime:</span> <span id="oee-downtime">-- min</span></p>
+                                <p><span><b>Run Time (A - B):</b></span> <span id="oee-run-time">-- min</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                <h5>Performance</h5>
+                                <div id="oee-performance-chart"></div>
+                            </div>
+                            <div id="oee-data-performance" class="oee-data-box">
+                                <p><span>C. Run Time:</span> <span id="oee-perf-run-time">-- min</span></p>
+                                <p><span>D. Total Parts:</span> <span id="oee-perf-total-parts">--</span></p>
+                                <p><span><b>Target Time:</b></span> <span id="oee-target-time">-- min</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                <h5>Quality</h5>
+                                <div id="oee-quality-chart"></div>
+                            </div>
+                            <div id="oee-data-quality" class="oee-data-box">
+                                <p><span>E. Total Parts:</span> <span id="oee-qual-total-parts">--</span></p>
+                                <p><span>F. Good Parts:</span> <span id="oee-good-parts">--</span></p>
+                                <p><span><b>Rejected Parts (E - F):</b></span> <span id="oee-reject-parts">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="oee-final-score">
+                        <h4>Overall OEE (Availability × Performance × Quality)</h4>
+                        <h2 id="oee-final-value">--%</h2>
+                    </div>
+                    <p id="oee-analytics-message" class="message-box" style="margin-top: 15px;"></p>
+                </div> <div class="content-card">
+                    <h4>Operator Performance</h4>
+                    <div style="margin-bottom: 16px;">
+                        <label for="operator-performance-range" style="font-size: 14px; color: var(--text-secondary);">Select Period:</label>
+                        <select id="operator-performance-range" class="btn" style="width: auto; padding: 6px 10px; margin: 0 0 0 10px;">
+                            <option value="24">Last 24 Hours</option>
+                            <option value="168">Last 7 Days</option>
+                            <option value="720">Last 30 Days</option>
+                        </select>
+                        <button id="refresh-operator-performance" class="btn btn-light" style="width: auto; padding: 8px 12px; margin-left: 10px;">Load</button>
+                    </div>
                     <div class="table-wrapper" style="max-height: 60vh;">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Serial Number</th>
-                                    <th>Last Stage</th>
-                                    <th>Last Status</th>
-                                    <th>Last Scan Time</th>
-                                    <th>Remarks</th>
+                                    <th>Employee ID</th>
+                                    <th>Total Scans</th>
+                                    <th>Pass</th>
+                                    <th>Fail</th>
+                                    <th>Pass Rate (Yield)</th>
                                 </tr>
                             </thead>
-                            <tbody id="wo-details-table-body">
+                            <tbody id="operator-performance-table-body">
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="pagination-controls" id="wo-details-pagination">
-                        <span class="page-info" id="wo-details-page-info">Page 1 of 1</span>
-                        <button id="wo-details-prev" class="btn btn-light">Previous</button>
-                        <button id="wo-details-next" class="btn btn-light">Next</button>
                     </div>
                 </div>
             </div>
 
         </div>
+        <div id="downtime-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeDowntimeModal()">×</span>
+                <h3>Log New Downtime Event</h3>
+                <select id="downtime-reason">
+                    <option value="">Select a reason...</option>
+                    <option>Parts Shortage</option>
+                    <option>Machine Breakdown</option>
+                    <option>Scheduled Maintenance</option>
+                    <option>Operator Unavailable</option>
+                    <option>Quality Issue</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" id="downtime-other-reason" placeholder="Please specify reason" style="display:none;">
+                <input type="text" id="downtime-machine-name" placeholder="Machine Name">
+                <input type="text" id="downtime-machine-model" placeholder="Machine Model">
+                <input type="text" id="downtime-attending-person" placeholder="Who is attending?">
+                <label for="downtime-start" style="display: block; text-align: left; margin-top: 10px; font-size: 14px; color: var(--text-secondary);">Start Time & Date</label>
+                <input type="datetime-local" id="downtime-start">
+                <label for="downtime-end" style="display: block; text-align: left; margin-top: 10px; font-size: 14px; color: var(--text-secondary);">Expected End Time & Date</label>
+                <input type="datetime-local" id="downtime-end">
+                <button id="submit-downtime" class="btn btn-primary">Submit Request</button>
+                <p id="downtime-message" class="message-box"></p>
+            </div>
+        </div>
+        <div id="action-taken-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeActionTakenModal()">×</span>
+                <h3>Clear Downtime Event</h3>
+                <p style="margin-top:0; margin-bottom:12px; color: var(--text-secondary);">Please describe the action taken to resolve this issue.</p>
+                <textarea id="action-taken-input" placeholder="e.g., Replaced faulty sensor, restarted the conveyor belt..." style="min-height: 100px; width: 100%; box-sizing: border-box; margin-bottom: 12px;"></textarea>
+                <input type="hidden" id="downtime-id-to-clear">
+                <button id="submit-action-taken" class="btn btn-success">Submit and Clear</button>
+                <p id="action-taken-message" class="message-box"></p>
+            </div>
+        </div>
+        <div id="employee-edit-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" id="close-employee-modal">×</span>
+                <h3>Edit Employee</h3>
+                <input type="hidden" id="employee-id-to-edit">
+                <div>
+                    <label for="edit-empId">Employee ID</label>
+                    <input type="text" id="edit-empId" disabled style="background: #30363d; cursor: not-allowed;">
+                </div>
+                <div>
+                    <label for="edit-newPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="edit-newPassword" placeholder="Enter new password">
+                </div>
+                <div>
+                    <label for="edit-role">Role</label>
+                    <select id="edit-role">
+                        <option value="operator">Operator</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="edit-stages">Assigned Stages</label>
+                    <select id="edit-stages" multiple>
+                        <option>SERIAL NUMBER SCANNING</option>
+                        <option>AOI-BOT</option>
+                        <option>AOI-TOP</option>
+                        <option>REWORK</option>
+                        <option>MANUAL SOLDERING</option>
+                        <option>TESTING</option>
+                        <option>PACKING</option>
+                        <option>SMT-FQC</option>
+                        <option>TH-FQC</option>
+                    </select>
+                </div>
+                <button id="submit-employee-update" class="btn btn-primary">Save Changes</button>
+                <p id="edit-employee-message" class="message-box"></p>
+            </div>
+        </div>
+
+        <div id="wo-details-modal" class="modal">
+            <div class="modal-content" style="width: 80%; max-width: 1000px;">
+                <span id="close-wo-details-btn" class="close">×</span>
+                <h3 id="wo-details-title">Work Order Details</h3>
+                <div id="wo-details-summary" style="margin-bottom: 15px; font-size: 14px; color: var(--text-secondary);"></div>
+                <div class="table-wrapper" style="max-height: 60vh;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Serial Number</th>
+                                <th>Last Stage</th>
+                                <th>Last Status</th>
+                                <th>Last Scan Time</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wo-details-table-body">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-controls" id="wo-details-pagination">
+                    <span class="page-info" id="wo-details-page-info">Page 1 of 1</span>
+                    <button id="wo-details-prev" class="btn btn-light">Previous</button>
+                    <button id="wo-details-next" class="btn btn-light">Next</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div id="ncr-edit-modal" class="modal">
@@ -1479,6 +1670,49 @@
             const woDetailsPrevBtn = document.getElementById('wo-details-prev');
             const woDetailsNextBtn = document.getElementById('wo-details-next');
 
+            // --- ADD THIS BLOCK ---
+
+            // Find the OEE date pickers
+            const oeeStartDateInput = document.getElementById('oee-analytics-start');
+            const oeeEndDateInput = document.getElementById('oee-analytics-end');
+
+            // Create a function to call when either date changes
+            function handleOeeDateChange() {
+                if (oeeStartDateInput.value && oeeEndDateInput.value) {
+                    const startTime = new Date(oeeStartDateInput.value);
+                    const endTime = new Date(oeeEndDateInput.value);
+
+                    if (endTime > startTime) {
+                        loadOeeAnalyticsWOs(startTime, endTime);
+                    } else {
+                        const woSelect = document.getElementById('oee-analytics-wo');
+                        if (woSelect) woSelect.innerHTML = '<option value="">End date must be after start date</option>';
+                    }
+                }
+            }
+
+            // Attach the listener to both inputs
+            if (oeeStartDateInput) oeeStartDateInput.addEventListener('change', handleOeeDateChange);
+            if (oeeEndDateInput) oeeEndDateInput.addEventListener('change', handleOeeDateChange);
+
+            // Listener for OEE Analytics refresh button
+            const refreshOeeBtn = document.getElementById('load-oee-analytics-btn');
+            if (refreshOeeBtn) {
+                refreshOeeBtn.addEventListener('click', loadOeeAnalytics);
+            }
+
+            // Listener for Component Lot submission
+            const submitComponentLotBtn = document.getElementById('submit-component-lot-btn');
+            if (submitComponentLotBtn) {
+                submitComponentLotBtn.addEventListener('click', submitComponentLot);
+            }
+
+            // Listener for Operator Performance refresh button
+            const refreshOperatorBtn = document.getElementById('refresh-operator-performance');
+            if (refreshOperatorBtn) {
+                refreshOperatorBtn.addEventListener('click', loadOperatorPerformance);
+            }
+
             // --- State & Chart Instances ---
             let currentUser = {};
             let scanChannel = null;
@@ -1491,6 +1725,12 @@
             let allWOs = [];
             let chartBins = [];
             let globalScans = [];
+            let downtimeParetoChart = null; // You should already have this
+
+            // --- ADD THESE NEW LINES ---
+            let oeeAvailabilityChart = null;
+            let oeePerformanceChart = null;
+            let oeeQualityChart = null;
 
             // Pagination State Variables
             const ROWS_PER_PAGE = 25;
@@ -1599,6 +1839,11 @@
                     else if (id === 'rework-section') loadReworkQueue();
                     else if (id === 'wo-management-section') loadWorkOrders(0);
 
+                    // --- ADD THIS LINE ---
+                    else if (id === 'analytics-section') {
+                        loadOperatorPerformance(); // Load operator stats by default
+                    }
+
                     // VVV THIS IS THE NEW LINE VVV
                     else if (id === 'car-management-section') loadCarReports();
 
@@ -1646,29 +1891,47 @@
                     dashboard: '📊', scan: '📠', downtime: '⏱️',
                     downtimeView: '📜', employee: '👥',
                     admin: '⚙️', history: '📚', rework: '🛠️',
-                    wo: '📦', logout: '🚪', car: '📈' // Added CAR icon
+                    wo: '📦', logout: '🚪',
+                    car: '📋', // <-- CHANGED this from 📈
+                    analytics: '📈' // <-- ADDED this new line
                 };
 
                 sidebarOptions.innerHTML = `
-            <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
-            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
-            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
-            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+                <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+        <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+        <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+        <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+        <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
+        ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
 
-            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
 
-            <button onclick="window.showSection('history-section')">${icons.history} History</button>
-            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
-        `;
-            }
+        ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+
+        ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+
+        <button onclick="window.showSection('history-section')">${icons.history} History</button>
+        <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+`;
+            } // end of setupSidebar
 
             async function loadActiveWOsForAdmin() {
-                if (!bulkWoSelect) { console.warn("Bulk WO select not found."); return; }
-                bulkWoSelect.innerHTML = '<option value="">Loading WOs...</option>';
+                // Find both select elements
+                const bulkWoSelect = document.getElementById('bulk-wo-select');
+                const componentWoSelect = document.getElementById('component-wo-select');
+
+                // Check if both elements exist before proceeding
+                if (!bulkWoSelect || !componentWoSelect) {
+                    console.warn("One or more admin WO selects not found on this page.");
+                }
+
+                const loadingHtml = '<option value="">Loading WOs...</option>';
+
+                // Populate elements only if they exist
+                if (bulkWoSelect) bulkWoSelect.innerHTML = loadingHtml;
+                if (componentWoSelect) componentWoSelect.innerHTML = loadingHtml;
+
                 const { data: activeWOs, error } = await supabaseClient
                     .from('work_orders')
                     .select('id, wo_number, product_name')
@@ -1677,16 +1940,23 @@
 
                 if (error) {
                     showMessage('Error loading active WOs: ' + error.message);
+                    // Set error message on both if they exist
+                    if (bulkWoSelect) bulkWoSelect.innerHTML = '<option value="">Error loading WOs</option>';
+                    if (componentWoSelect) componentWoSelect.innerHTML = '<option value="">Error loading WOs</option>';
                     return;
                 }
-                if (!activeWOs || activeWOs.length === 0) {
-                    bulkWoSelect.innerHTML = '<option value="">No Active Work Orders found.</option>';
-                } else {
-                    bulkWoSelect.innerHTML = '<option value="">Select an Active Work Order...</option>';
-                    activeWOs.forEach(wo => {
-                        bulkWoSelect.innerHTML += `<option value="${wo.id}">${wo.wo_number} (${wo.product_name})</option>`;
-                    });
+
+                let optionsHtml = '<option value="">No Active Work Orders found.</option>';
+                if (activeWOs && activeWOs.length > 0) {
+                    optionsHtml = '<option value="">Select an Active Work Order...</option>';
+                    optionsHtml += activeWOs.map(wo => {
+                        return `<option value="${wo.id}">${wo.wo_number} (${wo.product_name})</option>`;
+                    }).join('');
                 }
+
+                // Populate both dropdowns with the same list
+                if (bulkWoSelect) bulkWoSelect.innerHTML = optionsHtml;
+                if (componentWoSelect) componentWoSelect.innerHTML = optionsHtml;
             }
 
             // --- Login/Logout ---
@@ -1938,16 +2208,16 @@
 
                         // Use data-wo-id attribute instead of inline onclick for better practice
                         return `
-                                                                          <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
-                                                                            <td>${wo.wo_number}</td>
-                                                                            <td>${wo.customer_name || '---'}</td>
-                                                                            <td>${wo.product_name}</td>
-                                                                            <td>${progressText}</td>
-                                                                            <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
-                                                                            <td>${new Date(wo.created_at).toLocaleDateString()}</td>
-                                                                            <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
-                                                                          </tr>
-                                                                        `;
+                                                                              <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
+                                                                                <td>${wo.wo_number}</td>
+                                                                                <td>${wo.customer_name || '---'}</td>
+                                                                                <td>${wo.product_name}</td>
+                                                                                <td>${progressText}</td>
+                                                                                <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
+                                                                                <td>${new Date(wo.created_at).toLocaleDateString()}</td>
+                                                                                <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
+                                                                              </tr>
+                                                                            `;
                     }).join('');
 
                     // Add event listener to the table body for delegation
@@ -1985,8 +2255,17 @@
                 const product = newWoProductInput.value.trim();
                 const quantity = parseInt(newWoQuantityInput.value);
 
+                // ADDED THIS LINE
+                const idealCycleTime = parseFloat(document.getElementById('new-wo-cycle-time').value);
+
                 if (!woNumber || !customer || !product || !quantity || quantity <= 0) {
                     showMessage('Please fill valid fields (WO#, Customer, Product, Qty > 0).');
+                    return;
+                }
+
+                // ADDED THIS VALIDATION
+                if (!idealCycleTime || idealCycleTime <= 0) {
+                    showMessage('Please enter a valid Ideal Cycle Time greater than 0.');
                     return;
                 }
 
@@ -1995,7 +2274,9 @@
                     customer_name: customer,
                     product_name: product,
                     target_quantity: quantity,
-                    status: 'Active'
+                    status: 'Active',
+                    // ADDED THIS LINE
+                    ideal_cycle_time: idealCycleTime
                 });
 
                 if (error) {
@@ -2006,6 +2287,9 @@
                     newWoCustomerInput.value = '';
                     newWoProductInput.value = '';
                     newWoQuantityInput.value = '';
+                    // ADDED THIS
+                    document.getElementById('new-wo-cycle-time').value = '';
+
                     loadWorkOrders(0);
                     loadActiveWOsForAdmin();
                 }
@@ -2072,10 +2356,10 @@
                 const { data: serials, error, count } = await supabaseClient
                     .from('serial_master')
                     .select(`
-                            serial_number,
-                            stages,
-                            scans(stages)
-                        `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
+                                serial_number,
+                                stages,
+                                scans(stages)
+                            `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
                     .eq('work_order_id', woDetailsCurrentWOId)
                     .order('serial_number', { ascending: true }) // Sort them consistently
                     .range(from, to);
@@ -2109,14 +2393,14 @@
                         const statusColor = lastStatus === 'PASS' ? 'var(--success-color)' : (lastStatus === 'FAIL' ? 'var(--danger-color)' : 'var(--text-secondary)');
 
                         return `
-                                <tr>
-                                    <td>${serial.serial_number}</td>
-                                    <td>${lastStage}</td>
-                                    <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
-                                    <td>${lastTimestamp}</td>
-                                    <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
-                                </tr>
-                            `;
+                                    <tr>
+                                        <td>${serial.serial_number}</td>
+                                        <td>${lastStage}</td>
+                                        <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
+                                        <td>${lastTimestamp}</td>
+                                        <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
+                                    </tr>
+                                `;
                     }).join('');
                 }
 
@@ -2156,16 +2440,16 @@
                     return;
                 }
                 employeeTableBody.innerHTML = allEmployees.map(emp => `
-                                                                       <tr>
-                                                                         <td>${emp.emp_id}</td>
-                                                                         <td>${emp.role || 'operator'}</td>
-                                                                         <td>${(emp.stages || []).join(', ')}</td>
-                                                                         <td class="employee-actions">
-                                                                           <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
-                                                                           <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
-                                                                         </td>
-                                                                       </tr>
-                                                                     `).join('');
+                                                                           <tr>
+                                                                             <td>${emp.emp_id}</td>
+                                                                             <td>${emp.role || 'operator'}</td>
+                                                                             <td>${(emp.stages || []).join(', ')}</td>
+                                                                             <td class="employee-actions">
+                                                                               <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
+                                                                               <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
+                                                                             </td>
+                                                                           </tr>
+                                                                         `).join('');
             }
 
             if (createEmployeeBtn) {
@@ -2575,6 +2859,9 @@
                 }
                 downtimeTotalRows = count;
                 renderDowntimeHistory(data || []);
+
+                // THIS LINE IS NEW
+                loadDowntimeAnalyticsChart();
             }
 
             function renderDowntimeHistory(data) {
@@ -2598,16 +2885,16 @@
                             ? `<button onclick="window.clearDowntime(${row.id})" class="btn btn-success" style="width:auto;padding:8px 12px;">Clear</button>`
                             : (row.action_taken || 'Resolved');
                         return `
-                                                                            <tr>
-                                                                                <td>${row.reason}</td>
-                                                                                <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
-                                                                                <td>${startTime.toLocaleString()}</td>
-                                                                                <td>${endTime ? endTime.toLocaleString() : '---'}</td>
-                                                                                <td>${duration}</td>
-                                                                                <td>${row.attending_person}</td>
-                                                                                <td>${actionCellContent}</td>
-                                                                            </tr>
-                                                                        `;
+                                                                                <tr>
+                                                                                    <td>${row.reason}</td>
+                                                                                    <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
+                                                                                    <td>${startTime.toLocaleString()}</td>
+                                                                                    <td>${endTime ? endTime.toLocaleString() : '---'}</td>
+                                                                                    <td>${duration}</td>
+                                                                                    <td>${row.attending_person}</td>
+                                                                                    <td>${actionCellContent}</td>
+                                                                                </tr>
+                                                                            `;
                     }).join('');
                 }
 
@@ -2858,17 +3145,17 @@
                         const remarks = row.lastRemarks || '';
                         const truncatedRemarks = remarks.length > 20 ? remarks.substring(0, 20) + '...' : remarks;
                         return `
-                                                                       <tr>
-                                                                         <td>${row.serial}</td>
-                                                                         <td>${row.po}</td>
-                                                                         <td>${row.customer}</td>
-                                                                         <td>${row.product}</td>
-                                                                         <td>${row.lastStage || ''}</td>
-                                                                         <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
-                                                                         <td>${row.lastEmpId || ''}</td>
-                                                                         <td title="${remarks}">${truncatedRemarks || '---'}</td>
-                                                                         <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
-                                                                       </tr>`
+                                                                           <tr>
+                                                                             <td>${row.serial}</td>
+                                                                             <td>${row.po}</td>
+                                                                             <td>${row.customer}</td>
+                                                                             <td>${row.product}</td>
+                                                                             <td>${row.lastStage || ''}</td>
+                                                                             <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
+                                                                             <td>${row.lastEmpId || ''}</td>
+                                                                             <td title="${remarks}">${truncatedRemarks || '---'}</td>
+                                                                             <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
+                                                                           </tr>`
                     }).join('');
                 }
 
@@ -2912,22 +3199,22 @@
 
                 if (modalBody) {
                     modalBody.innerHTML = `
-                                                                           <div class="table-wrapper">
-                                                                             <table>
-                                                                               <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
-                                                                               <tbody>
-                                                                                 ${sortedStages.map(s => `
-                                                                                   <tr>
-                                                                                     <td>${s.stage || ''}</td>
-                                                                                     <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
-                                                                                     <td>${s.emp_id || ''}</td>
-                                                                                     <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
-                                                                                     <td>${s.remarks || ''}</td>
-                                                                                   </tr>`).join('')}
-                                                                                  ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
-                                                                               </tbody>
-                                                                             </table>
-                                                                           </div>`;
+                                                                               <div class="table-wrapper">
+                                                                                 <table>
+                                                                                   <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
+                                                                                   <tbody>
+                                                                                     ${sortedStages.map(s => `
+                                                                                       <tr>
+                                                                                         <td>${s.stage || ''}</td>
+                                                                                         <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
+                                                                                         <td>${s.emp_id || ''}</td>
+                                                                                         <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
+                                                                                         <td>${s.remarks || ''}</td>
+                                                                                       </tr>`).join('')}
+                                                                                      ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
+                                                                                   </tbody>
+                                                                                 </table>
+                                                                               </div>`;
                     if (modal) modal.classList.add('active');
                 } else {
                     console.error("Modal body not found!");
@@ -3019,16 +3306,16 @@
 
                 // Use the new field names from the database function
                 reworkTableBody.innerHTML = data.map(item => `
-            <tr>
-                <td>${item.serial}</td>
-                <td>${item.wo}</td>
-                <td>${item.customer}</td>
-                <td>${item.product}</td>
-                <td>${item.failedstage}</td>
-                <td>${item.remarks || '---'}</td>
-                <td>${new Date(item.timestamp).toLocaleString()}</td>
-            </tr>
-        `).join('');
+                <tr>
+                    <td>${item.serial}</td>
+                    <td>${item.wo}</td>
+                    <td>${item.customer}</td>
+                    <td>${item.product}</td>
+                    <td>${item.failedstage}</td>
+                    <td>${item.remarks || '---'}</td>
+                    <td>${new Date(item.timestamp).toLocaleString()}</td>
+                </tr>
+            `).join('');
             }
 
             // --- Inside your serial scan/detail handling (merged fragments) ---
@@ -3061,26 +3348,26 @@
 
                     // Render NCR details in UI
                     document.getElementById('ncr-details').innerHTML = `
-                <table class="ncr-table">
-                    <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
-                    <tr>
-                        <td class="field-label">Root Cause:</td>
-                        <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
-                    </tr>
-                    <tr>
-                        <td class="field-label">Proposed correction (long-term):</td>
-                        <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
-                    </tr>
-                    <tr>
-                        <td class="field-label">Immediate correction:</td>
-                        <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
-                    </tr>
-                    <tr>
-                        <td class="field-label">Action By:</td>
-                        <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
-                    </tr>
-                </table>
-            `;
+                    <table class="ncr-table">
+                        <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
+                        <tr>
+                            <td class="field-label">Root Cause:</td>
+                            <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
+                        </tr>
+                        <tr>
+                            <td class="field-label">Proposed correction (long-term):</td>
+                            <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
+                        </tr>
+                        <tr>
+                            <td class="field-label">Immediate correction:</td>
+                            <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
+                        </tr>
+                        <tr>
+                            <td class="field-label">Action By:</td>
+                            <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
+                        </tr>
+                    </table>
+                `;
                 }
 
                 // Update completion flag if needed
@@ -3591,14 +3878,14 @@
                     return;
                 }
                 body.innerHTML = statsArray.map(([product, data]) => `
-                        <tr>
-                            <td>${product}</td>
-                            <td>${data.wo}</td>
-                            <td>${data.cust}</td>
-                            <td>${data.pass}</td>
-                            <td>${data.fail}</td>
-                        </tr>
-                    `).join('');
+                            <tr>
+                                <td>${product}</td>
+                                <td>${data.wo}</td>
+                                <td>${data.cust}</td>
+                                <td>${data.pass}</td>
+                                <td>${data.fail}</td>
+                            </tr>
+                        `).join('');
             }
             window.closeChartDetailsModal = function () {
                 const modal = document.getElementById('chart-details-modal');
@@ -3633,21 +3920,21 @@
                 }
 
                 tableBody.innerHTML = data.map(ncr => `
-            <tr>
-                <td>${ncr.id}</td>
-                <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
-                    ${ncr.status}
-                </td>
-                <td>${ncr.serial_number}</td>
-                <td>${ncr.failure_stage}</td>
-                <td>${ncr.failure_remark}</td>
-                <td>${ncr.raised_by_emp_id}</td>
-                <td class="employee-actions">
-                    <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
-                    <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
-                </td>
-            </tr>
-        `).join('');
+                <tr>
+                    <td>${ncr.id}</td>
+                    <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
+                        ${ncr.status}
+                    </td>
+                    <td>${ncr.serial_number}</td>
+                    <td>${ncr.failure_stage}</td>
+                    <td>${ncr.failure_remark}</td>
+                    <td>${ncr.raised_by_emp_id}</td>
+                    <td class="employee-actions">
+                        <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
+                        <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
+                    </td>
+                </tr>
+            `).join('');
             }
 
             /**
@@ -3748,7 +4035,7 @@
             document.getElementById('submit-ncr-update').onclick = submitNcrUpdate;
 
             /**
- /**
+/**
 /**
 /**
          * NCR PDF – V18 – Fixes blank second page issue
@@ -3765,16 +4052,16 @@
                 const { data: ncr, error } = await supabaseClient
                     .from('non_conformance_reports')
                     .select(`
-                    *,
-                    serial_master (
-                        serial_number,
-                        work_orders (
-                            wo_number,
-                            customer_name,
-                            product_name
+                        *,
+                        serial_master (
+                            serial_number,
+                            work_orders (
+                                wo_number,
+                                customer_name,
+                                product_name
+                            )
                         )
-                    )
-                `)
+                    `)
                     .eq('id', ncrId)
                     .single();
 
@@ -3789,150 +4076,150 @@
                 const div = document.createElement('div');
                 div.innerHTML = `
 <style>
-    @page { size: A4; margin: 0; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body, html { margin: 0; padding: 0; }
+        @page { size: A4; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { margin: 0; padding: 0; }
 
-    .page {
-        width: 210mm;
-        /* VVV --- THIS LINE IS THE FIX --- VVV */
-        /* REMOVED height: 297mm; to prevent blank second page */
-        padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 7.4pt;
-        line-height: 1.32;
-        color: #000;
-        background: #fff;
-    }
+        .page {
+            width: 210mm;
+            /* VVV --- THIS LINE IS THE FIX --- VVV */
+            /* REMOVED height: 297mm; to prevent blank second page */
+            padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 7.4pt;
+            line-height: 1.32;
+            color: #000;
+            background: #fff;
+        }
 
-    table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
-    td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
-    
-    .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
-    .logo { max-height: 18mm; object-fit: contain; }
-    .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
+        td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
 
-    .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
-    .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
+        .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
+        .logo { max-height: 18mm; object-fit: contain; }
+        .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
 
-    .box { min-height: 6mm; line-height: 1.35; }
-    .chk span { margin-right: 2px; }
-    .avoid { page-break-inside: avoid; }
+        .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
+        .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
+
+        .box { min-height: 6mm; line-height: 1.35; }
+        .chk span { margin-right: 2px; }
+        .avoid { page-break-inside: avoid; }
 </style>
 
 <div class="page">
-    <table class="hdr">
-        <tr>
-            <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
-            <td style="width:54%;" class="title">Non-Conformance Report</td>
-            <td style="width:24%; text-align:left; padding-left:4px;">
-                <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
-                <b>NCR No.:</b> ${ncr.id}
-            </td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
-        <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
-    </table>
-
-    <table>
-        <tr>
-            <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
-            <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
-        </tr>
-        <tr>
-            <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
-            <td class="lbl">Priority:</td>
-            <td class="chk">
-                ${boolCb(ncr.priority === 'Low')} Low
-                ${boolCb(ncr.priority === 'Medium')} Medium
-                ${boolCb(ncr.priority === 'High')} High
-            </td>
-        </tr>
-    </table>
-
-    <table>
-        <tr>
-            <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
-            <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
-        <tr>
-            <td class="chk">${cb('Design', ncr.classification)} Design</td>
-            <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
-            <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
-        </tr>
-        <tr>
-            <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
-            <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
-            <td class="chk">${cb('Material', ncr.classification)} Material</td>
-        </tr>
-        <tr>
-            <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
-            <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
-            <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
-        <tr><td class="lbl">Cause of NCR determined:</td>
-            <td class="box">
-                ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
-                ${ncr.root_cause || '...'}
-            </td>
-        </tr>
-    </table>
-
-    <table>
-        <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
-        <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
-        <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
-    </table>
-
-    <table>
-        <tr>
-            <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
-            <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
-        </tr>
-        <tr>
-            <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
-            <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
-        </tr>
-    </table>
-
-    <div class="avoid">
-        <table>
-            <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
-            <tr><td class="box">
-                The implementation and effectiveness of corrective measures were checked and found to be:<br>
-                ${boolCb(ncr.status === 'Closed')} Acceptable<br>
-                ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
-                <b>Comments:</b> ${ncr.follow_up_comments || '...'}
-            </td></tr>
+        <table class="hdr">
+            <tr>
+                <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
+                <td style="width:54%;" class="title">Non-Conformance Report</td>
+                <td style="width:24%; text-align:left; padding-left:4px;">
+                    <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
+                    <b>NCR No.:</b> ${ncr.id}
+                </td>
+            </tr>
         </table>
 
         <table>
-            <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+            <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
+            <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
+        </table>
+
+        <table>
             <tr>
-                <td class="lbl" style="width:26%;">NCR correction checked by:</td>
-                <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
-                <td class="lbl" style="width:14%;">Date:</td>
-                <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+                <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
+                <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
             </tr>
             <tr>
-                <td class="lbl">NCR correction approved by:</td>
-                <td>${ncr.verified_by_emp_id || '...'}</td>
-                <td class="lbl">Date:</td>
-                <td>${fmt(ncr.closure_date)}</td>
+                <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
+                <td class="lbl">Priority:</td>
+                <td class="chk">
+                    ${boolCb(ncr.priority === 'Low')} Low
+                    ${boolCb(ncr.priority === 'Medium')} Medium
+                    ${boolCb(ncr.priority === 'High')} High
+                </td>
             </tr>
         </table>
-    </div>
+
+        <table>
+            <tr>
+                <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
+                <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
+            <tr>
+                <td class="chk">${cb('Design', ncr.classification)} Design</td>
+                <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
+                <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
+            </tr>
+            <tr>
+                <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
+                <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
+                <td class="chk">${cb('Material', ncr.classification)} Material</td>
+            </tr>
+            <tr>
+                <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
+                <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
+                <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
+            <tr><td class="lbl">Cause of NCR determined:</td>
+                <td class="box">
+                    ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
+                    ${ncr.root_cause || '...'}
+                </td>
+            </tr>
+        </table>
+
+        <table>
+            <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
+            <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
+            <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
+        </table>
+
+        <table>
+            <tr>
+                <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
+                <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
+            </tr>
+            <tr>
+                <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
+                <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
+            </tr>
+        </table>
+
+        <div class="avoid">
+            <table>
+                <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
+                <tr><td class="box">
+                    The implementation and effectiveness of corrective measures were checked and found to be:<br>
+                    ${boolCb(ncr.status === 'Closed')} Acceptable<br>
+                    ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
+                    <b>Comments:</b> ${ncr.follow_up_comments || '...'}
+                </td></tr>
+            </table>
+
+            <table>
+                <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+                <tr>
+                    <td class="lbl" style="width:26%;">NCR correction checked by:</td>
+                    <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
+                    <td class="lbl" style="width:14%;">Date:</td>
+                    <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+                </tr>
+                <tr>
+                    <td class="lbl">NCR correction approved by:</td>
+                    <td>${ncr.verified_by_emp_id || '...'}</td>
+                    <td class="lbl">Date:</td>
+                    <td>${fmt(ncr.closure_date)}</td>
+                </tr>
+            </table>
+        </div>
 </div>`;
 
                 document.body.appendChild(div);
@@ -3969,7 +4256,411 @@
                 document.body.removeChild(div);
             };
 
+            // 5. NEW function: submitComponentLot()
+            // NEW function: submitComponentLot
+            async function submitComponentLot() {
+                const woId = document.getElementById('component-wo-select').value;
+                const machineId = document.getElementById('component-machine-id').value.trim();
+                const partNumber = document.getElementById('component-part-number').value.trim();
+                const lotCode = document.getElementById('component-lot-code').value.trim();
+                const messageEl = document.getElementById('component-lot-message');
+
+                // Helper function for the modal message
+                function showModalMessage(msg, type) {
+                    if (messageEl) {
+                        messageEl.textContent = msg;
+                        messageEl.className = `message-box ${type === 'error' ? 'message-error' : 'message-success'} visible`;
+                    } else {
+                        // Fallback to toast
+                        showMessage(msg, type);
+                    }
+                }
+
+                if (!woId || !machineId || !partNumber || !lotCode) {
+                    showModalMessage('All fields are required.', 'error');
+                    return;
+                }
+
+                const { error } = await supabaseClient.from('component_lots').insert({
+                    work_order_id: woId,
+                    machine_id: machineId,
+                    component_part_number: partNumber,
+                    component_lot_code: lotCode,
+                    loaded_by_emp_id: currentUser.empId
+                });
+
+                if (error) {
+                    showModalMessage(`Error: ${error.message}`, 'error');
+                } else {
+                    showModalMessage(`Lot code ${lotCode} logged for ${machineId}.`, 'success');
+                    // Clear inputs
+                    document.getElementById('component-part-number').value = '';
+                    document.getElementById('component-lot-code').value = '';
+                    document.getElementById('component-part-number').focus();
+                }
+            }
+
+            // NEW function: loadDowntimeAnalyticsChart
+            async function loadDowntimeAnalyticsChart() {
+                const chartEl = document.getElementById('downtimeParetoChart');
+                if (!chartEl) {
+                    console.warn("Downtime Pareto chart element not found.");
+                    return;
+                }
+
+                // Fetch data for the last 30 days
+                const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30)).toISOString();
+
+                const { data, error } = await supabaseClient
+                    .from('downtime_logs')
+                    .select('reason, start_time, end_time')
+                    .gte('start_time', thirtyDaysAgo);
+
+                if (error) {
+                    chartEl.innerHTML = "<p>Error loading chart data.</p>";
+                    return;
+                }
+
+                // Calculate total minutes per reason
+                const reasonTotals = {}; // { "Parts Shortage": 120, "Machine Breakdown": 55 }
+                const now = new Date().getTime();
+
+                data.forEach(log => {
+                    const start = new Date(log.start_time).getTime();
+                    const end = log.end_time ? new Date(log.end_time).getTime() : now;
+                    const durationMinutes = (end - start) / 60000;
+
+                    const reason = log.reason || "Unspecified";
+                    reasonTotals[reason] = (reasonTotals[reason] || 0) + durationMinutes;
+                });
+
+                // Sort data for Pareto chart (high to low)
+                const sortedData = Object.entries(reasonTotals)
+                    .sort(([, a], [, b]) => b - a);
+
+                const chartLabels = sortedData.map(entry => entry[0]);
+                const chartSeriesData = sortedData.map(entry => Math.round(entry[1]));
+
+                if (downtimeParetoChart) {
+                    downtimeParetoChart.destroy();
+                }
+
+                const options = {
+                    chart: { type: 'bar', height: '100%', foreColor: '#c9d1d9', toolbar: { show: false } },
+                    series: [{ name: 'Total Minutes', data: chartSeriesData }],
+                    xaxis: { categories: chartLabels, labels: { style: { colors: '#8b949e' } } },
+                    yaxis: { title: { text: 'Total Minutes' }, labels: { style: { colors: '#8b949e' } } },
+                    plotOptions: { bar: { horizontal: false, columnWidth: '60%' } },
+                    colors: ['var(--primary-blue)'],
+                    grid: { borderColor: '#30363d' },
+                    tooltip: { theme: 'dark' }
+                };
+
+                downtimeParetoChart = new ApexCharts(chartEl, options);
+                downtimeParetoChart.render();
+            }
+
+            // 4. NEW function: loadOperatorPerformance()
+            async function loadOperatorPerformance() {
+                const tableBody = document.getElementById('operator-performance-table-body');
+                const rangeSelect = document.getElementById('operator-performance-range');
+                if (!tableBody || !rangeSelect) return;
+
+                tableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">Loading performance data...</td></tr>`;
+
+                const hours = parseInt(rangeSelect.value);
+                const startTime = new Date(new Date().getTime() - hours * 60 * 60 * 1000).toISOString();
+
+                // Call the new database function
+                const { data, error } = await supabaseClient.rpc('get_operator_performance', {
+                    start_time_filter: startTime
+                });
+
+                if (error) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">Error: ${error.message}</td></tr>`;
+                    return;
+                }
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">No scan data found for this period.</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = data.map(op => {
+                    const total = op.pass_count + op.fail_count;
+                    const yield = total > 0 ? ((op.pass_count / total) * 100).toFixed(1) : "0.0";
+                    return `
+                    <tr>
+                        <td>${op.emp_id}</td>
+                        <td>${total}</td>
+                        <td>${op.pass_count}</td>
+                        <td>${op.fail_count}</td>
+                        <td style="font-weight: 600; color: ${yield >= 95 ? 'var(--glow-green)' : 'var(--warning-color)'}">${yield}%</td>
+                    </tr>
+                `;
+                }).join('');
+            }
             // --- ^^^ END OF NEW CODE BLOCK ^^^ ---
+            // --- NEW: OEE Analytics Page Functions ---
+
+            // Populates the "Filter by Work Order" dropdown
+            // Populates the "Filter by Work Order" dropdown BASED ON DATE
+            async function loadOeeAnalyticsWOs(startTime, endTime) {
+                const woSelect = document.getElementById('oee-analytics-wo');
+                if (!woSelect) return;
+
+                woSelect.innerHTML = '<option value="">Loading WOs...</option>';
+
+                const { data, error } = await supabaseClient
+                    .from('work_orders')
+                    .select('id, wo_number, product_name, ideal_cycle_time')
+                    .not('ideal_cycle_time', 'is', null) // Must have a cycle time
+                    .gt('ideal_cycle_time', 0)
+                    // --- NEW FILTER LOGIC ---
+                    // 1. Must have started BEFORE the period ENDED
+                    .lt('created_at', endTime.toISOString())
+                    // 2. Must be (Still Active) OR (Completed AFTER the period STARTED)
+                    .or(`status.eq.Active,completed_at.gte.${startTime.toISOString()}`)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error("Error loading WOs for OEE filter:", error);
+                    woSelect.innerHTML = '<option value="">Error loading WOs</option>';
+                    return;
+                }
+
+                if (data.length === 0) {
+                    woSelect.innerHTML = '<option value="all">No WOs in this range</option>';
+                    return;
+                }
+
+                let optionsHtml = '<option value="all">All Filtered Work Orders</option>';
+                optionsHtml += data.map(wo => {
+                    return `<option value="${wo.id}">${wo.wo_number} (${wo.product_name})</option>`;
+                }).join('');
+
+                woSelect.innerHTML = optionsHtml;
+            }
+
+            // Main function to calculate and draw OEE charts (FIXED)
+            async function loadOeeAnalytics() {
+                const messageEl = document.getElementById('oee-analytics-message');
+                const startInput = document.getElementById('oee-analytics-start');
+                const endInput = document.getElementById('oee-analytics-end');
+                const woSelect = document.getElementById('oee-analytics-wo');
+
+                if (!startInput.value || !endInput.value) {
+                    return showMessage(messageEl, 'Please select a Start and End date.', 'error');
+                }
+
+                const woId = woSelect.value;
+                if (!woId || woId === "all") {
+                    return showMessage(messageEl, "Please select a *single* Work Order to calculate OEE.", 'error');
+                }
+
+                const userStartTime = new Date(startInput.value);
+                const userEndTime = new Date(endInput.value);
+                if (userEndTime.getHours() === 0 && userEndTime.getMinutes() === 0) {
+                    userEndTime.setHours(23, 59, 59, 999);
+                }
+
+                showMessage(messageEl, 'Loading OEE data (this may take a moment for large WOs)...', 'success');
+
+                const userStartTimeMs = userStartTime.getTime();
+                const userEndTimeMs = userEndTime.getTime();
+
+                // --- 1. GET ALL SCANS FOR THE SELECTED WO ---
+                let serials = [];
+                let page = 0;
+                const PAGE_SIZE = 1000;
+
+                while (true) {
+                    const from = page * PAGE_SIZE;
+                    const to = from + PAGE_SIZE - 1;
+
+                    let smQuery = supabaseClient.from('serial_master')
+                        .select('scans(stages), work_orders(ideal_cycle_time)')
+                        .not('work_orders.ideal_cycle_time', 'is', null)
+                        .gt('work_orders.ideal_cycle_time', 0)
+                        .eq('work_order_id', woId)
+                        .range(from, to);
+
+                    const { data: pageData, error: scanError } = await smQuery;
+
+                    if (scanError) {
+                        return showMessage(messageEl, `Scan Error: ${scanError.message}`, 'error');
+                    }
+
+                    if (pageData) {
+                        serials.push(...pageData);
+                    }
+
+                    if (!pageData || pageData.length < PAGE_SIZE) {
+                        break;
+                    }
+
+                    page++;
+                    showMessage(messageEl, `Loading data... (found ${serials.length} units so far)`, 'success');
+                }
+                // --- END OF PAGINATION LOGIC ---
+
+                // --- 2. FIND TRUE PRODUCTION RUN TIME & CALCULATE P/Q ---
+                let totalParts = 0;
+                let totalPass = 0;
+                let expectedTime = 0;
+                let totalReject = 0;
+
+                let firstScanTimeMs = Infinity;
+                let lastScanTimeMs = 0;
+
+                for (const serial of serials) {
+                    const cycleTime = serial.work_orders?.ideal_cycle_time;
+                    if (!cycleTime || cycleTime <= 0) continue;
+
+                    let scansInPeriod = [];
+
+                    for (const stage of serial.scans.stages) {
+                        const stageTimeMs = new Date(stage.timestamp).getTime();
+
+                        if (stageTimeMs >= userStartTimeMs && stageTimeMs <= userEndTimeMs) {
+                            const status = (stage.status || 'N/A').toUpperCase();
+
+                            if (status === 'PASS' || status === 'FAIL') {
+                                scansInPeriod.push({ timestamp: stageTimeMs, status: status });
+                            }
+
+                            if (stageTimeMs < firstScanTimeMs) firstScanTimeMs = stageTimeMs;
+                            if (stageTimeMs > lastScanTimeMs) lastScanTimeMs = stageTimeMs;
+                        }
+                    }
+
+                    if (scansInPeriod.length > 0) {
+                        totalParts++;
+                        expectedTime += cycleTime;
+
+                        scansInPeriod.sort((a, b) => b.timestamp - a.timestamp);
+
+                        if (scansInPeriod[0].status === 'PASS') {
+                            totalPass++;
+                        } else {
+                            totalReject++;
+                        }
+                    }
+                }
+
+                if (totalParts === 0) {
+                    showMessage(messageEl, 'Report loaded. No production (PASS/FAIL) scans found for this WO in this time period.', 'success');
+                    // ... (rest of code to clear charts and tables) ...
+                    document.getElementById('oee-planned-time').textContent = `0.00 min`;
+                    document.getElementById('oee-downtime').textContent = `0.00 min`;
+                    document.getElementById('oee-run-time').textContent = `0.00 min`;
+                    document.getElementById('oee-perf-run-time').textContent = `0.00 min`;
+                    document.getElementById('oee-perf-total-parts').textContent = `0 units`;
+                    document.getElementById('oee-target-time').textContent = `0.00 min`;
+                    document.getElementById('oee-qual-total-parts').textContent = `0 units`;
+                    document.getElementById('oee-good-parts').textContent = `0 units`;
+                    document.getElementById('oee-reject-parts').textContent = `0 units`;
+                    document.getElementById('oee-final-value').textContent = `N/A`;
+                    if (oeeAvailabilityChart) oeeAvailabilityChart.updateSeries([0]);
+                    if (oeePerformanceChart) oeePerformanceChart.updateSeries([0]);
+                    if (oeeQualityChart) oeeQualityChart.updateSeries([0]);
+                    return;
+                }
+
+                // --- 3. CALCULATE AVAILABILITY ---
+                // ** THIS IS THE CORRECTED SECTION **
+                // The *first* 'availability' declaration has been removed.
+                const plannedProductionTimeMinutes = (lastScanTimeMs - firstScanTimeMs) / 60000;
+
+                const { data: downtimeLogs, error: dtError } = await supabaseClient
+                    .from('downtime_logs')
+                    .select('start_time, end_time')
+                    .gte('start_time', new Date(firstScanTimeMs).toISOString())
+                    .lte('start_time', new Date(lastScanTimeMs).toISOString());
+
+                if (dtError) return showMessage(messageEl, `Downtime Error: ${dtError.message}`, 'error');
+
+                let totalDowntimeMinutes = 0;
+                if (downtimeLogs) {
+                    for (const log of downtimeLogs) {
+                        const start = new Date(log.start_time).getTime();
+                        const end = log.end_time ? new Date(log.end_time).getTime() : new Date().getTime();
+                        const clampedStart = Math.max(start, firstScanTimeMs);
+                        const clampedEnd = Math.min(end, lastScanTimeMs);
+                        if (clampedEnd > clampedStart) {
+                            totalDowntimeMinutes += (clampedEnd - clampedStart) / 60000;
+                        }
+                    }
+                }
+
+                const runTimeMinutes = Math.max(0, plannedProductionTimeMinutes - totalDowntimeMinutes);
+                const finalPlannedTime = (plannedProductionTimeMinutes > 0) ? plannedProductionTimeMinutes : runTimeMinutes;
+
+                // This is now the ONLY declaration of 'availability'
+                const availability = (finalPlannedTime > 0) ? (runTimeMinutes / finalPlannedTime) : 0;
+
+                // --- 4. FINALIZE P & Q with new Run Time ---
+                const quality = (totalParts > 0) ? (totalPass / totalParts) : 0;
+                const performance = (runTimeMinutes > 0) ? (expectedTime / runTimeMinutes) : 0;
+                const finalPerformance = Math.min(performance, 1.0); // Cap at 100%
+                const oee = availability * finalPerformance * quality;
+
+                // --- 5. Render Charts ---
+                showMessage(messageEl, 'Report loaded successfully!', 'success');
+
+                if (oeeAvailabilityChart) oeeAvailabilityChart.destroy();
+                if (oeePerformanceChart) oeePerformanceChart.destroy();
+                if (oeeQualityChart) oeeQualityChart.destroy();
+
+                oeeAvailabilityChart = renderOeeGauge('oee-availability-chart', 'Availability', availability);
+                oeePerformanceChart = renderOeeGauge('oee-performance-chart', 'Performance', finalPerformance);
+                oeeQualityChart = renderOeeGauge('oee-quality-chart', 'Quality', quality);
+
+                // --- 6. Populate Data Tables ---
+                const round = (val) => val.toFixed(2);
+
+                document.getElementById('oee-planned-time').textContent = `${round(finalPlannedTime)} min`;
+                document.getElementById('oee-downtime').textContent = `${round(totalDowntimeMinutes)} min`;
+                document.getElementById('oee-run-time').textContent = `${round(runTimeMinutes)} min`;
+
+                document.getElementById('oee-perf-run-time').textContent = `${round(runTimeMinutes)} min`;
+                document.getElementById('oee-perf-total-parts').textContent = `${totalParts} units`;
+                document.getElementById('oee-target-time').textContent = `${round(expectedTime)} min`;
+
+                document.getElementById('oee-qual-total-parts').textContent = `${totalParts} units`;
+                document.getElementById('oee-good-parts').textContent = `${totalPass} units`;
+                document.getElementById('oee-reject-parts').textContent = `${totalReject} units`;
+
+                document.getElementById('oee-final-value').textContent = `${(oee * 100).toFixed(1)}%`;
+            }
+            // Helper function to draw the OEE gauge charts
+            function renderOeeGauge(elementId, title, value) {
+                const percent = Math.round(value * 100);
+                const options = {
+                    chart: { type: 'radialBar', height: '100%' },
+                    series: [percent],
+                    plotOptions: {
+                        radialBar: {
+                            hollow: { size: '60%' },
+                            dataLabels: {
+                                name: { show: true, fontSize: '14px', color: '#8b949e', offsetY: -10 },
+                                value: {
+                                    show: true, fontSize: '24px', color: '#c9d1d9', offsetY: 5,
+                                    formatter: val => `${val}%`
+                                }
+                            }
+                        }
+                    },
+                    stroke: { lineCap: 'round' },
+                    labels: [title],
+                    colors: [percent > 85 ? 'var(--glow-green)' : (percent > 60 ? 'var(--warning-color)' : 'var(--glow-red)')]
+                };
+                const chart = new ApexCharts(document.getElementById(elementId), options);
+                chart.render();
+                return chart;
+            }
+
+    // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
     </script>
