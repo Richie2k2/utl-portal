@@ -1689,7 +1689,7 @@
         </div>
     </div>
 
-    <div id="quality-bot">
+    <div id="quality-bot" class="bot-closed">
         <div id="bot-header">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0.5">
                 <path d="M15 7h2v2h-2zM7 7h2v2H7zM16 12H8v4h8v-4zm5-7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18zM3 3a1 1 0 0 0-1 1v1h20V4a1 1 0 0 0-1-1H3z" />
@@ -4964,9 +4964,21 @@
                     document.body.style.userSelect = 'none'; // Prevent text selection
                 }
 
+                // THIS IS THE CORRECT, COMPLETE FUNCTION. REPLACE YOURS WITH THIS.
                 function dragEnd(e) {
+                    // --- THIS IS THE FIX ---
+                    // If a drag was never started on the handle, just exit.
+                    if (!active) return;
+                    // --- END OF FIX ---
+
                     active = false;
                     document.body.style.userSelect = 'auto'; // Re-enable text selection
+
+                    // If we weren't dragging (it was just a click), toggle the bot
+                    if (!isDragging) {
+                        toggleBot();
+                    }
+                }
 
                     // --- ADD THIS ---
                     // If we weren't dragging (it was a click), toggle the bot
@@ -5001,7 +5013,6 @@
                         element.style.top = newTop + "px";
                     }
                 }
-            }
             // --- END OF DRAGGABLE CHATBOT LOGIC ---
 
             // --- END OF AI CHATBOT CODE ---
