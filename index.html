@@ -34,7 +34,6 @@
             margin: 0;
             overflow: hidden;
         }
-
             /* Fullscreen Mode Fixes */
             body.fullscreen-active .sidebar, body.fullscreen-active .content-header {
                 display: none;
@@ -236,30 +235,29 @@
             background: var(--bg-dark);
             color: var(--text-primary);
         }
-
         /* ADD THIS NEW RULE */
         input[type="date"],
         input[type="datetime-local"] {
             width: 100%;
-            padding: 10px 15px; /* Slightly less padding to fit the icon */
+            padding: 10px 15px;
             box-sizing: border-box;
             border-radius: 6px;
             border: 1px solid var(--border-color);
             font-size: 15px;
             background: var(--bg-dark);
             color: var(--text-primary);
-            color-scheme: dark; /* Helps the browser show a dark-themed calendar */
+            color-scheme: dark;
         }
 
-            input:focus, select:focus, textarea:focus {
-                outline: none;
-                border-color: var(--primary-blue);
-                box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2);
-            }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2);
+        }
 
-            select[multiple] {
-                height: 120px;
-            }
+        select[multiple] {
+            height: 120px;
+        }
 
         .btn {
             display: inline-flex;
@@ -320,7 +318,7 @@
             overflow-y: auto;
             height: calc(100vh - 40px);
         }
-            /* Added overflow */
+
             .content-area.active {
                 display: block;
             }
@@ -369,7 +367,6 @@
             padding: 24px;
             box-sizing: border-box;
         }
-
         /* Toast Notification System */
         #toast-container {
             position: fixed;
@@ -421,7 +418,6 @@
                 transform: translateX(0);
             }
         }
-
         /* Old message box, still used in modals */
         .message-box {
             margin: 15px 0 0 0;
@@ -447,10 +443,9 @@
             color: #fca5a5;
             border: 1px solid #ef44444d;
         }
-
         /* Dashboard Layout */
         #dashboard-section {
-            height: calc(100vh - 125px); /* Adjusted for potential scrollbar */
+            height: calc(100vh - 125px);
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -564,6 +559,180 @@
                 font-family: var(--font-mono);
                 margin: 0;
             }
+        /* --- AI CHATBOT STYLES --- */
+        #quality-bot {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 380px;
+            height: 520px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            z-index: 99999;
+            font-family: var(--font-body);
+            flex-direction: column;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        body.logged-in #quality-bot {
+            display: flex;
+        }
+
+        #quality-bot.bot-closed {
+            height: 60px;
+            width: 240px;
+            border-radius: 16px;
+            cursor: pointer;
+        }
+
+            #quality-bot.bot-closed #bot-body {
+                display: none;
+            }
+
+            #quality-bot.bot-closed #bot-close {
+                display: none;
+            }
+
+        #bot-header {
+            padding: 0 20px;
+            height: 60px;
+            background: var(--primary-blue);
+            color: white;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        #bot-close {
+            margin-left: auto;
+            font-size: 28px;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+            #bot-close:hover {
+                transform: scale(1.2);
+            }
+
+        #bot-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #bot-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bot-msg {
+            background: #00000033;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            max-width: 85%;
+            align-self: flex-start;
+            font-size: 14px;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .user-msg {
+            background: var(--primary-blue);
+            color: white;
+            align-self: flex-end;
+            border-radius: 18px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-msg .typing {
+            display: inline-block;
+            animation: typing-blink 1s infinite;
+        }
+
+            .bot-msg .typing:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .bot-msg .typing:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+        @keyframes typing-blink {
+            0% {
+                opacity: 0.2;
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.2;
+            }
+        }
+
+        #bot-input-area {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        #bot-input {
+            flex: 1;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            padding: 12px 18px;
+            color: white;
+            font-size: 14px;
+            margin: 0;
+        }
+
+            #bot-input:focus {
+                outline: none;
+                border-color: var(--primary-blue);
+                box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.2);
+            }
+
+        #bot-input-area button {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+            transition: filter 0.2s;
+        }
+
+            #bot-input-area button:hover {
+                filter: brightness(1.2);
+            }
 
         #kpi-pass-rate .value {
             color: var(--glow-green);
@@ -669,7 +838,7 @@
             overflow-x: auto;
         }
 
-        #history-section .table-wrapper, #rework-section .table-wrapper, #wo-management-section .table-wrapper, #downtime-view-section .table-wrapper { /* Added downtime */
+        #history-section .table-wrapper, #rework-section .table-wrapper, #wo-management-section .table-wrapper, #downtime-view-section .table-wrapper {
             overflow-y: auto;
             max-height: 60vh;
         }
@@ -697,7 +866,7 @@
             top: 0;
             z-index: 1;
         }
-        /* Sticky header */
+
         tbody tr:hover {
             background-color: #30363d;
         }
@@ -705,7 +874,7 @@
         tbody tr[onclick] {
             cursor: pointer;
         }
-        /* Clickable row style */
+
         td.loading-cell {
             text-align: center;
             color: var(--text-secondary);
@@ -713,7 +882,6 @@
             font-style: italic;
         }
 
-        /* Form layout helper */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -726,7 +894,6 @@
                 align-self: end;
             }
 
-        /* Pagination Styles */
         .pagination-controls {
             display: flex;
             justify-content: flex-end;
@@ -775,11 +942,10 @@
                 margin-top: 0;
             }
 
-        /* --- NEW CSS FOR OEE DATA BOXES --- */
         .oee-data-box {
             margin-top: 15px;
             padding: 10px;
-            background: var(--bg-dark); /* Darker background for contrast */
+            background: var(--bg-dark);
             border-radius: 4px;
             border: 1px solid var(--border-color);
         }
@@ -884,7 +1050,7 @@
                 padding: 15px;
                 height: auto;
             }
-            /* Allow height adjustment */
+
             .dashboard-grid {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto auto minmax(150px, 1fr) minmax(150px, 1fr) minmax(100px, 1fr);
@@ -1523,6 +1689,27 @@
         </div>
     </div>
 
+    <div id="quality-bot">
+        <div id="bot-header">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0.5">
+                <path d="M15 7h2v2h-2zM7 7h2v2H7zM16 12H8v4h8v-4zm5-7a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h18zM3 3a1 1 0 0 0-1 1v1h20V4a1 1 0 0 0-1-1H3z" />
+            </svg>
+            <span>Ask Quality AI</span>
+            <span id="bot-close" onclick="closeBot(event)">×</span>
+        </div>
+        <div id="bot-body">
+            <div id="bot-messages">
+                <div class="bot-msg">Hello! I am monitoring all production data. Ask me anything about quality, yield, or work orders.</div>
+            </div>
+            <div id="bot-input-area">
+                <input type="text" id="bot-input" placeholder="e.g. What's our top defect today?" autocomplete="off">
+                <button id="bot-send-btn" onclick="sendBotMessage()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="chart-details-modal" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 800px;">
             <span class="close" onclick="closeChartDetailsModal()">×</span>
@@ -1897,22 +2084,22 @@
                 };
 
                 sidebarOptions.innerHTML = `
-                <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-        <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
-        <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-        <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-        <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
-        ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
+                                    <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+                            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+                            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+                            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+                            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
+                            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
 
-        ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
+                            ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
 
-        ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-        ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+                            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
+                            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
 
-        ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+                            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
 
-        <button onclick="window.showSection('history-section')">${icons.history} History</button>
-        <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+                            <button onclick="window.showSection('history-section')">${icons.history} History</button>
+                            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
 `;
             } // end of setupSidebar
 
@@ -2008,6 +2195,7 @@
                     }
 
                     currentUser = { empId: matchingEmployee.emp_id, stage: isAdmin ? 'Admin' : stage, role: userRole };
+                    document.body.classList.add('logged-in');
 
                     if (mainContainer) mainContainer.classList.add('logged-in');
                     if (loginWrapper) loginWrapper.style.display = 'none';
@@ -2029,6 +2217,7 @@
             // Make logout global for the button onclick
             window.logout = function () {
                 console.log("Logout called"); // <-- Logging
+                document.body.classList.remove('logged-in');
                 if (scanChannel) {
                     supabaseClient.removeChannel(scanChannel).then(() => console.log("Realtime channel removed."));
                     scanChannel = null;
@@ -2208,16 +2397,16 @@
 
                         // Use data-wo-id attribute instead of inline onclick for better practice
                         return `
-                                                                              <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
-                                                                                <td>${wo.wo_number}</td>
-                                                                                <td>${wo.customer_name || '---'}</td>
-                                                                                <td>${wo.product_name}</td>
-                                                                                <td>${progressText}</td>
-                                                                                <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
-                                                                                <td>${new Date(wo.created_at).toLocaleDateString()}</td>
-                                                                                <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
-                                                                              </tr>
-                                                                            `;
+                                                                                                  <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
+                                                                                                    <td>${wo.wo_number}</td>
+                                                                                                    <td>${wo.customer_name || '---'}</td>
+                                                                                                    <td>${wo.product_name}</td>
+                                                                                                    <td>${progressText}</td>
+                                                                                                    <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
+                                                                                                    <td>${new Date(wo.created_at).toLocaleDateString()}</td>
+                                                                                                    <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
+                                                                                                  </tr>
+                                                                                                `;
                     }).join('');
 
                     // Add event listener to the table body for delegation
@@ -2356,10 +2545,10 @@
                 const { data: serials, error, count } = await supabaseClient
                     .from('serial_master')
                     .select(`
-                                serial_number,
-                                stages,
-                                scans(stages)
-                            `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
+                                                    serial_number,
+                                                    stages,
+                                                    scans(stages)
+                                                `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
                     .eq('work_order_id', woDetailsCurrentWOId)
                     .order('serial_number', { ascending: true }) // Sort them consistently
                     .range(from, to);
@@ -2393,14 +2582,14 @@
                         const statusColor = lastStatus === 'PASS' ? 'var(--success-color)' : (lastStatus === 'FAIL' ? 'var(--danger-color)' : 'var(--text-secondary)');
 
                         return `
-                                    <tr>
-                                        <td>${serial.serial_number}</td>
-                                        <td>${lastStage}</td>
-                                        <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
-                                        <td>${lastTimestamp}</td>
-                                        <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
-                                    </tr>
-                                `;
+                                                        <tr>
+                                                            <td>${serial.serial_number}</td>
+                                                            <td>${lastStage}</td>
+                                                            <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
+                                                            <td>${lastTimestamp}</td>
+                                                            <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
+                                                        </tr>
+                                                    `;
                     }).join('');
                 }
 
@@ -2440,16 +2629,16 @@
                     return;
                 }
                 employeeTableBody.innerHTML = allEmployees.map(emp => `
-                                                                           <tr>
-                                                                             <td>${emp.emp_id}</td>
-                                                                             <td>${emp.role || 'operator'}</td>
-                                                                             <td>${(emp.stages || []).join(', ')}</td>
-                                                                             <td class="employee-actions">
-                                                                               <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
-                                                                               <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
-                                                                             </td>
-                                                                           </tr>
-                                                                         `).join('');
+                                                                                               <tr>
+                                                                                                 <td>${emp.emp_id}</td>
+                                                                                                 <td>${emp.role || 'operator'}</td>
+                                                                                                 <td>${(emp.stages || []).join(', ')}</td>
+                                                                                                 <td class="employee-actions">
+                                                                                                   <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
+                                                                                                   <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
+                                                                                                 </td>
+                                                                                               </tr>
+                                                                                             `).join('');
             }
 
             if (createEmployeeBtn) {
@@ -2885,16 +3074,16 @@
                             ? `<button onclick="window.clearDowntime(${row.id})" class="btn btn-success" style="width:auto;padding:8px 12px;">Clear</button>`
                             : (row.action_taken || 'Resolved');
                         return `
-                                                                                <tr>
-                                                                                    <td>${row.reason}</td>
-                                                                                    <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
-                                                                                    <td>${startTime.toLocaleString()}</td>
-                                                                                    <td>${endTime ? endTime.toLocaleString() : '---'}</td>
-                                                                                    <td>${duration}</td>
-                                                                                    <td>${row.attending_person}</td>
-                                                                                    <td>${actionCellContent}</td>
-                                                                                </tr>
-                                                                            `;
+                                                                                                    <tr>
+                                                                                                        <td>${row.reason}</td>
+                                                                                                        <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
+                                                                                                        <td>${startTime.toLocaleString()}</td>
+                                                                                                        <td>${endTime ? endTime.toLocaleString() : '---'}</td>
+                                                                                                        <td>${duration}</td>
+                                                                                                        <td>${row.attending_person}</td>
+                                                                                                        <td>${actionCellContent}</td>
+                                                                                                    </tr>
+                                                                                                `;
                     }).join('');
                 }
 
@@ -3145,17 +3334,17 @@
                         const remarks = row.lastRemarks || '';
                         const truncatedRemarks = remarks.length > 20 ? remarks.substring(0, 20) + '...' : remarks;
                         return `
-                                                                           <tr>
-                                                                             <td>${row.serial}</td>
-                                                                             <td>${row.po}</td>
-                                                                             <td>${row.customer}</td>
-                                                                             <td>${row.product}</td>
-                                                                             <td>${row.lastStage || ''}</td>
-                                                                             <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
-                                                                             <td>${row.lastEmpId || ''}</td>
-                                                                             <td title="${remarks}">${truncatedRemarks || '---'}</td>
-                                                                             <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
-                                                                           </tr>`
+                                                                                               <tr>
+                                                                                                 <td>${row.serial}</td>
+                                                                                                 <td>${row.po}</td>
+                                                                                                 <td>${row.customer}</td>
+                                                                                                 <td>${row.product}</td>
+                                                                                                 <td>${row.lastStage || ''}</td>
+                                                                                                 <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
+                                                                                                 <td>${row.lastEmpId || ''}</td>
+                                                                                                 <td title="${remarks}">${truncatedRemarks || '---'}</td>
+                                                                                                 <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
+                                                                                               </tr>`
                     }).join('');
                 }
 
@@ -3199,22 +3388,22 @@
 
                 if (modalBody) {
                     modalBody.innerHTML = `
-                                                                               <div class="table-wrapper">
-                                                                                 <table>
-                                                                                   <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
-                                                                                   <tbody>
-                                                                                     ${sortedStages.map(s => `
-                                                                                       <tr>
-                                                                                         <td>${s.stage || ''}</td>
-                                                                                         <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
-                                                                                         <td>${s.emp_id || ''}</td>
-                                                                                         <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
-                                                                                         <td>${s.remarks || ''}</td>
-                                                                                       </tr>`).join('')}
-                                                                                      ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
-                                                                                   </tbody>
-                                                                                 </table>
-                                                                               </div>`;
+                                                                                                   <div class="table-wrapper">
+                                                                                                     <table>
+                                                                                                       <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
+                                                                                                       <tbody>
+                                                                                                         ${sortedStages.map(s => `
+                                                                                                           <tr>
+                                                                                                             <td>${s.stage || ''}</td>
+                                                                                                             <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
+                                                                                                             <td>${s.emp_id || ''}</td>
+                                                                                                             <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
+                                                                                                             <td>${s.remarks || ''}</td>
+                                                                                                           </tr>`).join('')}
+                                                                                                          ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
+                                                                                                       </tbody>
+                                                                                                     </table>
+                                                                                                   </div>`;
                     if (modal) modal.classList.add('active');
                 } else {
                     console.error("Modal body not found!");
@@ -3306,16 +3495,16 @@
 
                 // Use the new field names from the database function
                 reworkTableBody.innerHTML = data.map(item => `
-                <tr>
-                    <td>${item.serial}</td>
-                    <td>${item.wo}</td>
-                    <td>${item.customer}</td>
-                    <td>${item.product}</td>
-                    <td>${item.failedstage}</td>
-                    <td>${item.remarks || '---'}</td>
-                    <td>${new Date(item.timestamp).toLocaleString()}</td>
-                </tr>
-            `).join('');
+                                    <tr>
+                                        <td>${item.serial}</td>
+                                        <td>${item.wo}</td>
+                                        <td>${item.customer}</td>
+                                        <td>${item.product}</td>
+                                        <td>${item.failedstage}</td>
+                                        <td>${item.remarks || '---'}</td>
+                                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                                    </tr>
+                                `).join('');
             }
 
             // --- Inside your serial scan/detail handling (merged fragments) ---
@@ -3348,26 +3537,26 @@
 
                     // Render NCR details in UI
                     document.getElementById('ncr-details').innerHTML = `
-                    <table class="ncr-table">
-                        <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
-                        <tr>
-                            <td class="field-label">Root Cause:</td>
-                            <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
-                        </tr>
-                        <tr>
-                            <td class="field-label">Proposed correction (long-term):</td>
-                            <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
-                        </tr>
-                        <tr>
-                            <td class="field-label">Immediate correction:</td>
-                            <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
-                        </tr>
-                        <tr>
-                            <td class="field-label">Action By:</td>
-                            <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
-                        </tr>
-                    </table>
-                `;
+                                        <table class="ncr-table">
+                                            <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
+                                            <tr>
+                                                <td class="field-label">Root Cause:</td>
+                                                <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="field-label">Proposed correction (long-term):</td>
+                                                <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="field-label">Immediate correction:</td>
+                                                <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="field-label">Action By:</td>
+                                                <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
+                                            </tr>
+                                        </table>
+                                    `;
                 }
 
                 // Update completion flag if needed
@@ -3878,14 +4067,14 @@
                     return;
                 }
                 body.innerHTML = statsArray.map(([product, data]) => `
-                            <tr>
-                                <td>${product}</td>
-                                <td>${data.wo}</td>
-                                <td>${data.cust}</td>
-                                <td>${data.pass}</td>
-                                <td>${data.fail}</td>
-                            </tr>
-                        `).join('');
+                                                <tr>
+                                                    <td>${product}</td>
+                                                    <td>${data.wo}</td>
+                                                    <td>${data.cust}</td>
+                                                    <td>${data.pass}</td>
+                                                    <td>${data.fail}</td>
+                                                </tr>
+                                            `).join('');
             }
             window.closeChartDetailsModal = function () {
                 const modal = document.getElementById('chart-details-modal');
@@ -3920,21 +4109,21 @@
                 }
 
                 tableBody.innerHTML = data.map(ncr => `
-                <tr>
-                    <td>${ncr.id}</td>
-                    <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
-                        ${ncr.status}
-                    </td>
-                    <td>${ncr.serial_number}</td>
-                    <td>${ncr.failure_stage}</td>
-                    <td>${ncr.failure_remark}</td>
-                    <td>${ncr.raised_by_emp_id}</td>
-                    <td class="employee-actions">
-                        <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
-                        <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
-                    </td>
-                </tr>
-            `).join('');
+                                    <tr>
+                                        <td>${ncr.id}</td>
+                                        <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
+                                            ${ncr.status}
+                                        </td>
+                                        <td>${ncr.serial_number}</td>
+                                        <td>${ncr.failure_stage}</td>
+                                        <td>${ncr.failure_remark}</td>
+                                        <td>${ncr.raised_by_emp_id}</td>
+                                        <td class="employee-actions">
+                                            <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
+                                            <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
+                                        </td>
+                                    </tr>
+                                `).join('');
             }
 
             /**
@@ -4052,16 +4241,16 @@
                 const { data: ncr, error } = await supabaseClient
                     .from('non_conformance_reports')
                     .select(`
-                        *,
-                        serial_master (
-                            serial_number,
-                            work_orders (
-                                wo_number,
-                                customer_name,
-                                product_name
-                            )
-                        )
-                    `)
+                                            *,
+                                            serial_master (
+                                                serial_number,
+                                                work_orders (
+                                                    wo_number,
+                                                    customer_name,
+                                                    product_name
+                                                )
+                                            )
+                                        `)
                     .eq('id', ncrId)
                     .single();
 
@@ -4076,150 +4265,150 @@
                 const div = document.createElement('div');
                 div.innerHTML = `
 <style>
-        @page { size: A4; margin: 0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body, html { margin: 0; padding: 0; }
+                            @page { size: A4; margin: 0; }
+                            * { box-sizing: border-box; margin: 0; padding: 0; }
+                            body, html { margin: 0; padding: 0; }
 
-        .page {
-            width: 210mm;
-            /* VVV --- THIS LINE IS THE FIX --- VVV */
-            /* REMOVED height: 297mm; to prevent blank second page */
-            padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 7.4pt;
-            line-height: 1.32;
-            color: #000;
-            background: #fff;
-        }
+                            .page {
+                                width: 210mm;
+                                /* VVV --- THIS LINE IS THE FIX --- VVV */
+                                /* REMOVED height: 297mm; to prevent blank second page */
+                                padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
+                                font-family: Arial, Helvetica, sans-serif;
+                                font-size: 7.4pt;
+                                line-height: 1.32;
+                                color: #000;
+                                background: #fff;
+                            }
 
-        table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
-        td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
+                            table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
+                            td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
 
-        .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
-        .logo { max-height: 18mm; object-fit: contain; }
-        .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
+                            .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
+                            .logo { max-height: 18mm; object-fit: contain; }
+                            .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
 
-        .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
-        .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
+                            .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
+                            .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
 
-        .box { min-height: 6mm; line-height: 1.35; }
-        .chk span { margin-right: 2px; }
-        .avoid { page-break-inside: avoid; }
+                            .box { min-height: 6mm; line-height: 1.35; }
+                            .chk span { margin-right: 2px; }
+                            .avoid { page-break-inside: avoid; }
 </style>
 
 <div class="page">
-        <table class="hdr">
-            <tr>
-                <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
-                <td style="width:54%;" class="title">Non-Conformance Report</td>
-                <td style="width:24%; text-align:left; padding-left:4px;">
-                    <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
-                    <b>NCR No.:</b> ${ncr.id}
-                </td>
-            </tr>
-        </table>
+                            <table class="hdr">
+                                <tr>
+                                    <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
+                                    <td style="width:54%;" class="title">Non-Conformance Report</td>
+                                    <td style="width:24%; text-align:left; padding-left:4px;">
+                                        <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
+                                        <b>NCR No.:</b> ${ncr.id}
+                                    </td>
+                                </tr>
+                            </table>
 
-        <table>
-            <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
-            <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
-        </table>
+                            <table>
+                                <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
+                                <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
+                            </table>
 
-        <table>
-            <tr>
-                <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
-                <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
-            </tr>
-            <tr>
-                <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
-                <td class="lbl">Priority:</td>
-                <td class="chk">
-                    ${boolCb(ncr.priority === 'Low')} Low
-                    ${boolCb(ncr.priority === 'Medium')} Medium
-                    ${boolCb(ncr.priority === 'High')} High
-                </td>
-            </tr>
-        </table>
+                            <table>
+                                <tr>
+                                    <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
+                                    <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
+                                    <td class="lbl">Priority:</td>
+                                    <td class="chk">
+                                        ${boolCb(ncr.priority === 'Low')} Low
+                                        ${boolCb(ncr.priority === 'Medium')} Medium
+                                        ${boolCb(ncr.priority === 'High')} High
+                                    </td>
+                                </tr>
+                            </table>
 
-        <table>
-            <tr>
-                <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
-                <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
-            </tr>
-        </table>
+                            <table>
+                                <tr>
+                                    <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
+                                    <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
+                                </tr>
+                            </table>
 
-        <table>
-            <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
-            <tr>
-                <td class="chk">${cb('Design', ncr.classification)} Design</td>
-                <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
-                <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
-            </tr>
-            <tr>
-                <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
-                <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
-                <td class="chk">${cb('Material', ncr.classification)} Material</td>
-            </tr>
-            <tr>
-                <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
-                <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
-                <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
-            </tr>
-        </table>
+                            <table>
+                                <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
+                                <tr>
+                                    <td class="chk">${cb('Design', ncr.classification)} Design</td>
+                                    <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
+                                    <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
+                                </tr>
+                                <tr>
+                                    <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
+                                    <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
+                                    <td class="chk">${cb('Material', ncr.classification)} Material</td>
+                                </tr>
+                                <tr>
+                                    <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
+                                    <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
+                                    <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
+                                </tr>
+                            </table>
 
-        <table>
-            <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
-            <tr><td class="lbl">Cause of NCR determined:</td>
-                <td class="box">
-                    ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
-                    ${ncr.root_cause || '...'}
-                </td>
-            </tr>
-        </table>
+                            <table>
+                                <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
+                                <tr><td class="lbl">Cause of NCR determined:</td>
+                                    <td class="box">
+                                        ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
+                                        ${ncr.root_cause || '...'}
+                                    </td>
+                                </tr>
+                            </table>
 
-        <table>
-            <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
-            <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
-            <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
-        </table>
+                            <table>
+                                <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
+                                <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
+                                <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
+                            </table>
 
-        <table>
-            <tr>
-                <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
-                <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
-            </tr>
-            <tr>
-                <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
-                <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
-            </tr>
-        </table>
+                            <table>
+                                <tr>
+                                    <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
+                                    <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
+                                </tr>
+                                <tr>
+                                    <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
+                                    <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
+                                </tr>
+                            </table>
 
-        <div class="avoid">
-            <table>
-                <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
-                <tr><td class="box">
-                    The implementation and effectiveness of corrective measures were checked and found to be:<br>
-                    ${boolCb(ncr.status === 'Closed')} Acceptable<br>
-                    ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
-                    <b>Comments:</b> ${ncr.follow_up_comments || '...'}
-                </td></tr>
-            </table>
+                            <div class="avoid">
+                                <table>
+                                    <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
+                                    <tr><td class="box">
+                                        The implementation and effectiveness of corrective measures were checked and found to be:<br>
+                                        ${boolCb(ncr.status === 'Closed')} Acceptable<br>
+                                        ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
+                                        <b>Comments:</b> ${ncr.follow_up_comments || '...'}
+                                    </td></tr>
+                                </table>
 
-            <table>
-                <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
-                <tr>
-                    <td class="lbl" style="width:26%;">NCR correction checked by:</td>
-                    <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
-                    <td class="lbl" style="width:14%;">Date:</td>
-                    <td style="width:36%;">${fmt(ncr.closure_date)}</td>
-                </tr>
-                <tr>
-                    <td class="lbl">NCR correction approved by:</td>
-                    <td>${ncr.verified_by_emp_id || '...'}</td>
-                    <td class="lbl">Date:</td>
-                    <td>${fmt(ncr.closure_date)}</td>
-                </tr>
-            </table>
-        </div>
+                                <table>
+                                    <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+                                    <tr>
+                                        <td class="lbl" style="width:26%;">NCR correction checked by:</td>
+                                        <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
+                                        <td class="lbl" style="width:14%;">Date:</td>
+                                        <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="lbl">NCR correction approved by:</td>
+                                        <td>${ncr.verified_by_emp_id || '...'}</td>
+                                        <td class="lbl">Date:</td>
+                                        <td>${fmt(ncr.closure_date)}</td>
+                                    </tr>
+                                </table>
+                            </div>
 </div>`;
 
                 document.body.appendChild(div);
@@ -4390,14 +4579,14 @@
                     const total = op.pass_count + op.fail_count;
                     const yield = total > 0 ? ((op.pass_count / total) * 100).toFixed(1) : "0.0";
                     return `
-                    <tr>
-                        <td>${op.emp_id}</td>
-                        <td>${total}</td>
-                        <td>${op.pass_count}</td>
-                        <td>${op.fail_count}</td>
-                        <td style="font-weight: 600; color: ${yield >= 95 ? 'var(--glow-green)' : 'var(--warning-color)'}">${yield}%</td>
-                    </tr>
-                `;
+                                        <tr>
+                                            <td>${op.emp_id}</td>
+                                            <td>${total}</td>
+                                            <td>${op.pass_count}</td>
+                                            <td>${op.fail_count}</td>
+                                            <td style="font-weight: 600; color: ${yield >= 95 ? 'var(--glow-green)' : 'var(--warning-color)'}">${yield}%</td>
+                                        </tr>
+                                    `;
                 }).join('');
             }
             // --- ^^^ END OF NEW CODE BLOCK ^^^ ---
@@ -4659,8 +4848,165 @@
                 chart.render();
                 return chart;
             }
+            // --- AI CHATBOT – v4 (GenAI Powered) ---
+            const botMessages = document.getElementById('bot-messages');
+            const botInput = document.getElementById('bot-input');
+            const qualityBot = document.getElementById('quality-bot');
 
-    // --- END: OEE Analytics Page Functions ---
+            // --- Global click listeners ---
+            window.toggleBot = function () {
+                if (qualityBot) qualityBot.classList.toggle('bot-closed');
+                // Auto-focus the input when opening
+                if (!qualityBot.classList.contains('bot-closed')) {
+                    botInput.focus();
+                }
+            }
+
+            // This stops the click from bubbling up and re-opening the bot
+            window.closeBot = function (event) {
+                event.stopPropagation();
+                if (qualityBot) qualityBot.classList.add('bot-closed');
+            }
+
+            // --- Main send function ---
+            window.sendBotMessage = async function () {
+                const question = botInput.value.trim();
+                if (!question || botInput.disabled) return; // Don't send if empty or already sending
+
+                addMessage(question, 'user-msg');
+                botInput.value = '';
+                botInput.disabled = true;
+
+                const typing = addMessage('<span class="typing">.</span><span class="typing">.</span><span class="typing">.</span>', 'bot-msg');
+
+                try {
+                    // --- THIS IS THE "BRAIN" ---
+                    // We call the 'quality-ai-assistant' Edge Function we deployed
+                    const { data, error } = await supabaseClient.functions.invoke('quality-ai-assistant', {
+                        body: { question: question }
+                    });
+
+                    if (error) {
+                        // This is an error from the function itself (e.g., it crashed)
+                        throw new Error(error.message);
+                    }
+
+                    if (data.error) {
+                        // This is an error the function *caught* (e.g., Gemini key is wrong)
+                        throw new Error(data.error);
+                    }
+
+                    // Success!
+                    botMessages.removeChild(typing);
+                    addMessage(data.answer, 'bot-msg'); // Display the AI-generated answer
+
+                } catch (err) {
+                    console.error("Error invoking Edge Function:", err);
+                    botMessages.removeChild(typing);
+                    // Show a user-friendly error
+                    let friendlyError = err.message.includes('Function not found')
+                        ? "The AI assistant is not deployed. (Function not found)"
+                        : "I ran into a database error. Please check the console.";
+                    addMessage(friendlyError, 'bot-msg');
+                } finally {
+                    botInput.disabled = false;
+                    botInput.focus();
+                }
+            }
+
+            // --- Helper to add a message to the UI (v2) ---
+            function addMessage(text, className) {
+                const div = document.createElement('div');
+                div.className = `bot-msg ${className || ''}`;
+
+                if (className === 'user-msg') {
+                    // --- For User messages, safely set as plain text ---
+                    div.textContent = text;
+                } else {
+                    // --- For Bot messages, render the HTML (for <strong>, <br>, and <span>) ---
+                    div.innerHTML = text;
+                }
+
+                botMessages.appendChild(div);
+                botMessages.scrollTop = botMessages.scrollHeight;
+                return div;
+            }
+
+            // ----------------------------------------------
+            // --- 2. PASTE THIS NEW JAVASCRIPT BLOCK ---
+
+            // --- Add 'Enter' key listener ---
+            if (botInput) {
+                botInput.addEventListener('keypress', e => {
+                    if (e.key === 'Enter' && !botInput.disabled) window.sendBotMessage();
+                });
+            }
+            // --- END OF AI CHATBOT CODE ---
+            // --- DRAGGABLE CHATBOT LOGIC ---
+            makeDraggable(document.getElementById("quality-bot"), document.getElementById("bot-header"));
+
+            function makeDraggable(element, dragHandle) {
+                let active = false;
+                let isDragging = false; // <-- ADD THIS
+                let xOffset = 0;
+                let yOffset = 0;
+
+                dragHandle.addEventListener("mousedown", dragStart);
+                document.addEventListener("mouseup", dragEnd);
+                document.addEventListener("mousemove", drag);
+
+                function dragStart(e) {
+                    isDragging = false; // <-- ADD THIS (Reset on mousedown)
+                    active = true;
+                    // Calculate offset from top/left corner
+                    xOffset = e.clientX - element.offsetLeft;
+                    yOffset = e.clientY - element.offsetTop;
+                    document.body.style.userSelect = 'none'; // Prevent text selection
+                }
+
+                function dragEnd(e) {
+                    active = false;
+                    document.body.style.userSelect = 'auto'; // Re-enable text selection
+
+                    // --- ADD THIS ---
+                    // If we weren't dragging (it was a click), toggle the bot
+                    if (!isDragging) {
+                        toggleBot();
+                    }
+                    // --- END ADD ---
+                }
+
+                function drag(e) {
+                    if (active) {
+                        isDragging = true; // <-- ADD THIS (Flag that a drag is happening)
+                        e.preventDefault();
+
+                        // New bot position = mouse position - offset
+                        let newLeft = e.clientX - xOffset;
+                        let newTop = e.clientY - yOffset;
+
+                        // Boundary checks (Allow dragging partially off-screen)
+                        const edgeMargin = 50; // How much must stay on screen
+                        const minX = -(element.offsetWidth - edgeMargin);
+                        const minY = 0; // Still prevent dragging off the top
+                        const maxX = window.innerWidth - edgeMargin;
+                        const maxY = window.innerHeight - edgeMargin;
+
+                        // Apply boundaries
+                        newLeft = Math.max(minX, Math.min(newLeft, maxX));
+                        newTop = Math.max(minY, Math.min(newTop, maxY));
+
+                        // Set the new position
+                        element.style.left = newLeft + "px";
+                        element.style.top = newTop + "px";
+                    }
+                }
+            }
+            // --- END OF DRAGGABLE CHATBOT LOGIC ---
+
+            // --- END OF AI CHATBOT CODE ---
+
+            // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
     </script>
