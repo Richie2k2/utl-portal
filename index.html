@@ -4946,74 +4946,84 @@
             makeDraggable(document.getElementById("quality-bot"), document.getElementById("bot-header"));
 
             function makeDraggable(element, dragHandle) {
+                // 1. Initialize State Variables inside the function
                 let active = false;
-                let isDragging = false; // <-- ADD THIS
+                let isDragging = false;
                 let xOffset = 0;
                 let yOffset = 0;
 
-                dragHandle.addEventListener("mousedown", dragStart);
-                document.addEventListener("mouseup", dragEnd);
-                document.addEventListener("mousemove", drag);
-
-                function dragStart(e) {
-                    isDragging = false; // <-- ADD THIS (Reset on mousedown)
-                    active = true;
-                    // Calculate offset from top/left corner
-                    xOffset = e.clientX - element.offsetLeft;
-                    yOffset = e.clientY - element.offsetTop;
-                    document.body.style.userSelect = 'none'; // Prevent text selection
+                // 2. Add Event Listeners
+                if (dragHandle) {
+                    dragHandle.addEventListener("mousedown", dragStart);
+                    document.addEventListener("mouseup", dragEnd);
+                    document.addEventListener("mousemove", drag);
                 }
 
-                // THIS IS THE CORRECT, COMPLETE FUNCTION. REPLACE YOURS WITH THIS.
+                function dragStart(e) {
+                    // Reset dragging flag
+                    isDragging = false;
+                    active = true;
+
+                    // Calculate offset relative to the element's top-left corner
+                    // (This prevents the element from snapping to the mouse pointer's center)
+                    xOffset = e.clientX - element.offsetLeft;
+                    yOffset = e.clientY - element.offsetTop;
+
+                    // Prevent text selection while dragging
+                    document.body.style.userSelect = 'none';
+                }
+
                 function dragEnd(e) {
-                    // --- THIS IS THE FIX ---
-                    // If a drag was never started on the handle, just exit.
+                    // If we weren't actively dragging this specific element, ignore
                     if (!active) return;
-                    // --- END OF FIX ---
 
                     active = false;
                     document.body.style.userSelect = 'auto'; // Re-enable text selection
 
-                    // If we weren't dragging (it was just a click), toggle the bot
+                    // If the mouse didn't move significantly (isDragging is false), 
+                    // treat this as a Click to toggle the bot.
                     if (!isDragging) {
-                        toggleBot();
+                        // Ensure toggleBot is defined in your main script
+                        if (typeof toggleBot === 'function') {
+                            toggleBot();
+                        } else {
+                            console.warn("toggleBot function is missing");
+                        }
                     }
-                }
-
-                    // --- ADD THIS ---
-                    // If we weren't dragging (it was a click), toggle the bot
-                    if (!isDragging) {
-                        toggleBot();
-                    }
-                    // --- END ADD ---
                 }
 
                 function drag(e) {
+                    // Only run if the mouse is down on the header
                     if (active) {
-                        isDragging = true; // <-- ADD THIS (Flag that a drag is happening)
                         e.preventDefault();
+                        isDragging = true; // Mark that we are actually moving
 
-                        // New bot position = mouse position - offset
+                        // Calculate new position
                         let newLeft = e.clientX - xOffset;
                         let newTop = e.clientY - yOffset;
 
-                        // Boundary checks (Allow dragging partially off-screen)
-                        const edgeMargin = 50; // How much must stay on screen
+                        // --- Boundary Checks ---
+                        const edgeMargin = 50; // Keep at least 50px on screen
+
+                        // X-Axis boundaries
                         const minX = -(element.offsetWidth - edgeMargin);
-                        const minY = 0; // Still prevent dragging off the top
                         const maxX = window.innerWidth - edgeMargin;
+
+                        // Y-Axis boundaries (Prevent dragging above top of screen)
+                        const minY = 0;
                         const maxY = window.innerHeight - edgeMargin;
 
                         // Apply boundaries
                         newLeft = Math.max(minX, Math.min(newLeft, maxX));
                         newTop = Math.max(minY, Math.min(newTop, maxY));
 
-                        // Set the new position
+                        // Apply styles
                         element.style.left = newLeft + "px";
                         element.style.top = newTop + "px";
                     }
                 }
-            // --- END OF DRAGGABLE CHATBOT LOGIC ---
+            }
+// --- END OF DRAGGABLE CHATBOT LOGIC ---
 
             // --- END OF AI CHATBOT CODE ---
 
