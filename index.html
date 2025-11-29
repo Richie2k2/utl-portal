@@ -1172,18 +1172,34 @@
 
             <div id="wo-management-section" class="main-section">
                 <div class="content-card">
-                    <h4>Create New Work Order</h4>
-                    <div class="form-grid">
-                        <input type="text" id="new-wo-number" placeholder="Work Order Number (e.g., WO-1001)">
-                        <input type="text" id="new-wo-customer" placeholder="Customer Name">
-                        <input type="text" id="new-wo-product" placeholder="Product Name">
-                        <input type="number" id="new-wo-quantity" placeholder="Target Quantity">
+    <h4>Create New Work Order</h4>
+    <div class="form-grid">
+        <input type="text" id="new-wo-number" placeholder="Work Order Number (e.g., WO-1001)">
+        <input type="text" id="new-wo-customer" placeholder="Customer Name">
+        <input type="text" id="new-wo-product" placeholder="Product Name">
+        <input type="number" id="new-wo-quantity" placeholder="Target Quantity">
+        <input type="number" id="new-wo-cycle-time" placeholder="Ideal Cycle Time (in minutes)" step="0.1" min="0">
+    </div>
 
-                        <input type="number" id="new-wo-cycle-time" placeholder="Ideal Cycle Time (in minutes)" step="0.1" min="0">
+    <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+        <h5 style="margin-bottom: 5px;">Import Feeder Setup (CSV)</h5>
+        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
+            <strong>Format:</strong> Side (TOP/BOT), Machine, Slot, PartNumber, Description
+        </p>
+        <input type="file" id="feeder-csv-upload" accept=".csv" class="form-control" style="margin-bottom: 10px;">
+        
+        <div id="csv-preview-container" style="max-height: 150px; overflow-y: auto; background: #0d1117; border: 1px solid #333; font-size: 11px; padding: 5px; display: none;">
+            <table style="width: 100%; text-align: left; color: #ccc;">
+                <thead><tr style="border-bottom: 1px solid #555;"><th>Side</th><th>Mach</th><th>Slot</th><th>Part #</th></tr></thead>
+                <tbody id="csv-preview-body"></tbody>
+            </table>
+        </div>
+    </div>
 
-                        <button id="create-wo-btn" class="btn btn-primary" style="width: auto;">Create WO</button>
-                    </div>
-                </div>
+    <div style="margin-top: 20px;">
+        <button id="create-wo-btn" class="btn btn-primary" style="width: auto;">Create WO & Save Setup</button>
+    </div>
+</div>
                 <div class="content-card">
                     <h4>Existing Work Orders</h4>
                     <div style="margin-bottom: 16px;">
@@ -1213,6 +1229,126 @@
                     </div>
                 </div>
             </div>
+
+<div id="reload-section" class="main-section" style="display: none;">
+    <div class="header-box">
+        <h2>Reload Component</h2>
+        <div class="status-badge pulse">Live Mode</div>
+    </div>
+
+    <div class="content-card" style="max-width: 800px; margin: 0 auto;">
+        
+        <div style="background: #21262d; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+            <label style="color: var(--primary-blue); font-weight: bold; display: block; margin-bottom: 8px;">
+                Select Production Stage:
+            </label>
+            <select id="reload-process-side" class="form-control" style="font-size: 16px; font-weight: bold; color: white;">
+                <option value="TOP">TOP Side (SMT)</option>
+                <option value="BOT">BOTTOM Side (SMT)</option>
+            </select>
+        </div>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
+            
+            <div style="grid-column: 1 / -1;">
+                <label style="color: var(--text-secondary);">1. Scan New Reel Barcode</label>
+                <input type="text" id="reload-part-scan" class="form-control" 
+                       placeholder="Scan Part Number..." autofocus 
+                       onchange="handleReloadScan(this.value)"
+                       style="border: 2px solid var(--primary-blue); background: #0d1117;">
+            </div>
+
+            <div style="grid-column: 1 / -1; background: #161b22; padding: 15px; border: 1px solid #30363d; border-radius: 6px;">
+                <h5 style="color: var(--text-secondary); margin-top: 0;">Auto-Detected Location</h5>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="font-size: 11px; color: #888;">Machine ID</label>
+                        <input type="text" id="target-machine" readonly 
+                               style="color: var(--glow-green); font-weight: bold; border: none; background: transparent; padding: 0;">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; color: #888;">Target Slot / Feeder</label>
+                        <input type="text" id="target-slot" readonly 
+                               style="color: var(--glow-green); font-weight: bold; font-size: 18px; border: none; background: transparent; padding: 0;">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; color: #888;">Work Order</label>
+                        <input type="text" id="reload-wo-display" readonly 
+                               style="color: #ccc; border: none; background: transparent; padding: 0;">
+                        <input type="hidden" id="reload-wo-id">
+                    </div>
+                    <div>
+                        <label style="font-size: 11px; color: #888;">Part Description</label>
+                        <input type="text" id="reload-description" readonly 
+                               style="color: #ccc; border: none; background: transparent; padding: 0;">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label style="color: var(--text-secondary);">2. Verify Quantity</label>
+                <input type="number" id="reload-qty" class="form-control" placeholder="e.g. 5000">
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="submitComponentReload()" class="btn btn-success" style="width: 100%; height: 42px;">
+                    CONFIRM LOAD
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="traceability-section" class="main-section" style="display: none;">
+    <div class="header-box">
+        <h2>Component Traceability History</h2>
+    </div>
+
+    <div class="content-card">
+        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            <div>
+                <label>Start Date</label>
+                <input type="date" id="report-start-date" class="form-control">
+            </div>
+            <div>
+                <label>End Date</label>
+                <input type="date" id="report-end-date" class="form-control">
+            </div>
+            <div>
+                <label>Search Filter</label>
+                <input type="text" id="report-search-term" class="form-control" placeholder="WO / Part / User">
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="generateTraceabilityReport()" class="btn btn-primary" style="width: 100%;">Search Logs</button>
+            </div>
+        </div>
+
+        <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead style="background: #161b22;">
+                    <tr style="text-align: left; color: var(--text-secondary);">
+                        <th style="padding: 12px;">Timestamp</th>
+                        <th style="padding: 12px;">Side</th>
+                        <th style="padding: 12px;">WO Number</th>
+                        <th style="padding: 12px;">Model</th>
+                        <th style="padding: 12px;">Machine / Slot</th>
+                        <th style="padding: 12px;">Part Number</th>
+                        <th style="padding: 12px;">Qty</th>
+                        <th style="padding: 12px;">User (Emp ID)</th>
+                    </tr>
+                </thead>
+                <tbody id="report-table-body">
+                    <tr><td colspan="8" style="padding: 20px; text-align: center;">Select dates to view history.</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: right;">
+            <button onclick="exportReportToCSV()" class="btn btn-light">⬇️ Export to CSV</button>
+        </div>
+    </div>
+</div>
 
             <div id="employee-management-section" class="main-section content-card">
                 <h4>Employee Management</h4>
@@ -1265,24 +1401,8 @@
                         <option>REWORK</option>
                     </select>
                     <button id="saveBulkSerials" class="btn btn-primary">Save All Serials to WO</button>
-                </div> <div id="component-lot-section" class="content-card">
-                    <h4>Log Component Lots</h4>
-                    <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">
-                        Scan component reels as they are loaded onto a machine for a Work Order.
-                    </p>
-                    <div class="form-grid">
-                        <select id="component-wo-select" aria-label="Select Work Order">
-                            <option value="">Select an Active Work Order...</option>
-                        </select>
-                        <input type="text" id="component-machine-id" placeholder="Machine ID (e.g., SMT-1)">
-                        <input type="text" id="component-part-number" placeholder="Component Part Number (Scan)">
-                        <input type="text" id="component-lot-code" placeholder="Component Lot Code (Scan)">
-                        <button id="submit-component-lot-btn" class="btn btn-primary" style="width: auto;">Log Component</button>
-                    </div>
-                    <p id="component-lot-message" class="message-box" style="margin-top: 15px;"></p>
-                </div>
-
-            </div>
+              </div>
+         </div>
 
             <div id="history-section" class="main-section content-card">
                 <h4>Scan History</h4>
@@ -1651,7 +1771,7 @@
             <h3>Review NCR #<span id="ncr-edit-title-id"></span></h3>
             <input type="hidden" id="ncr-edit-id">
 
-            <div classs="form-grid">
+            <div class="form-grid">
                 <div>
                     <label for="ncr-edit-status">Report Status</label>
                     <select id="ncr-edit-status">
@@ -1688,6 +1808,15 @@
             <p id="ncr-edit-message" class="message-box"></p>
         </div>
     </div>
+
+    <div id="part-selection-modal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
+    <div class="modal-content" style="background: #161b22; margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 600px; color: var(--text-primary);">
+        <h4 style="color: var(--warning-color);">⚠️ Multiple Locations Found</h4>
+        <p>This part is used in multiple places. Select the correct one:</p>
+        <div id="part-conflict-list" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
+        <button onclick="document.getElementById('part-selection-modal').style.display='none'" class="btn btn-danger" style="margin-top: 15px;">Cancel</button>
+    </div>
+</div>
 
     <div id="quality-bot" class="bot-closed">
         <div id="bot-header">
@@ -2004,6 +2133,53 @@
                 dashboardRangeSelect.innerHTML += `<option value="${twoMonthsAgoValue}">${months[twoMonthsAgo.getMonth()]} ${twoMonthsAgo.getFullYear()}</option>`;
             }
             // --- Sidebar & Section Management ---
+            let parsedFeederData = []; // Store CSV data globally
+
+// Add this Listener for the CSV file input
+document.getElementById('feeder-csv-upload')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) { processCSV(event.target.result); };
+    reader.readAsText(file);
+});
+
+function processCSV(csvText) {
+    const lines = csvText.split('\n');
+    parsedFeederData = []; 
+    const previewBody = document.getElementById('csv-preview-body');
+    if(previewBody) previewBody.innerHTML = ''; 
+
+    // Skip header (i=1). Expects: Side, Machine, Slot, Part, Desc
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        const cols = line.split(',');
+        
+        const rowData = {
+            side: cols[0]?.trim().toUpperCase() || 'TOP',
+            machine: cols[1]?.trim() || 'N/A',
+            slot: cols[2]?.trim() || 'N/A',
+            part_number: cols[3]?.trim() || 'N/A',
+            description: cols[4]?.trim() || 'N/A'
+        };
+        parsedFeederData.push(rowData);
+
+        // Preview (First 50 rows)
+        if (i < 50 && previewBody) {
+            const tr = `<tr>
+                <td style="color: var(--glow-green)">${rowData.side}</td>
+                <td>${rowData.machine}</td>
+                <td>${rowData.slot}</td>
+                <td>${rowData.part_number}</td>
+            </tr>`;
+            previewBody.insertAdjacentHTML('beforeend', tr);
+        }
+    }
+    const container = document.getElementById('csv-preview-container');
+    if(container) container.style.display = 'block';
+    showMessage(`Parsed ${parsedFeederData.length} rows.`, 'success');
+}
             // Make functions available globally IF they are called by inline HTML onclick
             // REPLACE your old window.showSection function with this one
             window.showSection = function (id) {
@@ -2069,39 +2245,45 @@
                 downtimeModal.classList.add('active');
             }
 
-            // --- Setup Sidebar needs to be defined before login ---
             // REPLACE your old setupSidebar function with this one
-            function setupSidebar(isAdmin) {
-                console.log("Setting up sidebar, isAdmin:", isAdmin); // <-- Logging
-                if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
-                const icons = {
-                    dashboard: '📊', scan: '📠', downtime: '⏱️',
-                    downtimeView: '📜', employee: '👥',
-                    admin: '⚙️', history: '📚', rework: '🛠️',
-                    wo: '📦', logout: '🚪',
-                    car: '📋', // <-- CHANGED this from 📈
-                    analytics: '📈' // <-- ADDED this new line
-                };
+function setupSidebar(isAdmin) {
+    console.log("Setting up sidebar, isAdmin:", isAdmin); 
+    if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
+    
+    const icons = {
+        dashboard: '📊', scan: '📠', downtime: '⏱️',
+        downtimeView: '📜', employee: '👥',
+        admin: '⚙️', history: '📚', rework: '🛠️',
+        wo: '📦', logout: '🚪',
+        car: '📋', 
+        analytics: '📈',
+        reload: '🔄',      // <--- NEW ICON for Reload
+        traceability: '🔍' // <--- NEW ICON for History
+    };
 
-                sidebarOptions.innerHTML = `
-                                    <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-                            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
-                            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-                            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-                            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
-                            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
+    sidebarOptions.innerHTML = `
+        <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+        <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+        
+        <button onclick="window.showSection('reload-section')">${icons.reload} Reload Component</button>
 
-                            ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
+        <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+        <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+        <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
+        
+        ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
 
-                            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-                            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('traceability-section')">${icons.traceability} Reload History</button>` : ''}
 
-                            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+        ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
 
-                            <button onclick="window.showSection('history-section')">${icons.history} History</button>
-                            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
-`;
-            } // end of setupSidebar
+        <button onclick="window.showSection('history-section')">${icons.history} History</button>
+        <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+    `;
+}
 
             async function loadActiveWOsForAdmin() {
                 // Find both select elements
@@ -2439,50 +2621,36 @@
             if (woNextBtn) woNextBtn.onclick = () => { if ((woCurrentPage + 1) * ROWS_PER_PAGE < woTotalRows) loadWorkOrders(woCurrentPage + 1); };
 
             async function createWorkOrder() {
-                const woNumber = newWoNumberInput.value.trim();
-                const customer = newWoCustomerInput.value.trim();
-                const product = newWoProductInput.value.trim();
-                const quantity = parseInt(newWoQuantityInput.value);
+    const woNumber = document.getElementById('new-wo-number').value.trim();
+    const customer = document.getElementById('new-wo-customer').value.trim();
+    const product = document.getElementById('new-wo-product').value.trim();
+    const quantity = parseInt(document.getElementById('new-wo-quantity').value);
+    const idealCycleTime = parseFloat(document.getElementById('new-wo-cycle-time').value);
 
-                // ADDED THIS LINE
-                const idealCycleTime = parseFloat(document.getElementById('new-wo-cycle-time').value);
+    if (!woNumber || !product || !quantity) return showMessage('Fill required fields.', 'error');
 
-                if (!woNumber || !customer || !product || !quantity || quantity <= 0) {
-                    showMessage('Please fill valid fields (WO#, Customer, Product, Qty > 0).');
-                    return;
-                }
+    if (parsedFeederData.length === 0) {
+        if(!confirm("No Feeder Setup CSV uploaded. Create empty WO?")) return;
+    }
 
-                // ADDED THIS VALIDATION
-                if (!idealCycleTime || idealCycleTime <= 0) {
-                    showMessage('Please enter a valid Ideal Cycle Time greater than 0.');
-                    return;
-                }
+    const { error } = await supabaseClient.from('work_orders').insert({
+        wo_number: woNumber,
+        customer_name: customer,
+        product_name: product,
+        target_quantity: quantity,
+        status: 'Active',
+        ideal_cycle_time: idealCycleTime,
+        feeder_setup: parsedFeederData // <--- This saves the CSV data!
+    });
 
-                const { error } = await supabaseClient.from('work_orders').insert({
-                    wo_number: woNumber,
-                    customer_name: customer,
-                    product_name: product,
-                    target_quantity: quantity,
-                    status: 'Active',
-                    // ADDED THIS LINE
-                    ideal_cycle_time: idealCycleTime
-                });
-
-                if (error) {
-                    showMessage(`Error creating WO: ${error.message}`);
-                } else {
-                    showMessage('Work Order created successfully!', 'success');
-                    newWoNumberInput.value = '';
-                    newWoCustomerInput.value = '';
-                    newWoProductInput.value = '';
-                    newWoQuantityInput.value = '';
-                    // ADDED THIS
-                    document.getElementById('new-wo-cycle-time').value = '';
-
-                    loadWorkOrders(0);
-                    loadActiveWOsForAdmin();
-                }
-            }
+    if (error) showMessage(`Error: ${error.message}`, 'error');
+    else {
+        showMessage('Work Order Created!', 'success');
+        document.getElementById('csv-preview-container').style.display = 'none';
+        parsedFeederData = [];
+        loadWorkOrders(0);
+    }
+}
             if (createWoBtn) createWoBtn.onclick = createWorkOrder;
 
             // NEW, RE-WRITTEN FUNCTION 1
@@ -4592,6 +4760,165 @@
             // --- ^^^ END OF NEW CODE BLOCK ^^^ ---
             // --- NEW: OEE Analytics Page Functions ---
 
+            // --- OPERATOR RELOAD FUNCTIONS ---
+
+// --- COMPONENT RELOADING LOGIC (Attached to Window) ---
+
+window.handleReloadScan = async function(scannedValue) {
+    if (!scannedValue) return;
+    scannedValue = scannedValue.trim();
+    
+    const currentSide = document.getElementById('reload-process-side').value;
+
+    // Reset UI
+    document.getElementById('target-machine').value = "...";
+    document.getElementById('target-slot').value = "...";
+    document.getElementById('reload-description').value = "";
+    document.getElementById('reload-wo-display').value = "Searching...";
+
+    try {
+        const { data: activeWOs, error } = await supabaseClient
+            .from('work_orders')
+            .select('id, wo_number, feeder_setup')
+            .eq('status', 'Active');
+
+        if (error) throw error;
+
+        let allMatches = [];
+
+        // Search logic
+        activeWOs.forEach(wo => {
+            if (wo.feeder_setup && Array.isArray(wo.feeder_setup)) {
+                const matchingRows = wo.feeder_setup.filter(row => 
+                    row.part_number && 
+                    row.part_number.toLowerCase() === scannedValue.toLowerCase() &&
+                    row.side === currentSide
+                );
+                matchingRows.forEach(row => allMatches.push({ wo: wo, setup: row }));
+            }
+        });
+
+        if (allMatches.length === 0) {
+            document.getElementById('reload-wo-display').value = "Not Found";
+            showMessage(`Part not found on ${currentSide} side.`, "error");
+        } else if (allMatches.length === 1) {
+            selectPartMatch(allMatches[0]);
+        } else {
+            showPartConflictModal(allMatches);
+        }
+
+    } catch (err) {
+        console.error(err);
+        showMessage("Error: " + err.message, "error");
+    }
+};
+
+window.submitComponentReload = async function() {
+    const woId = document.getElementById('reload-wo-id').value;
+    const partNo = document.getElementById('reload-part-scan').value;
+    const qty = document.getElementById('reload-qty').value;
+    const side = document.getElementById('reload-process-side').value;
+
+    if (!woId || !partNo || !qty) {
+        showMessage("Please complete scan and quantity.", "error");
+        return;
+    }
+
+    const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+
+    const { error } = await supabaseClient.from('component_logs').insert([{
+        wo_id: woId,
+        part_number: partNo,
+        description: document.getElementById('reload-description').value,
+        reel_qty: qty,
+        machine_id: document.getElementById('target-machine').value,
+        target_slot: document.getElementById('target-slot').value,
+        process_side: side,
+        emp_id: userId,
+        created_at: new Date().toISOString()
+    }]);
+
+    if (error) {
+        showMessage("Save Failed: " + error.message, "error");
+    } else {
+        showMessage("Reload Recorded Successfully!", "success");
+        document.getElementById('reload-part-scan').value = '';
+        document.getElementById('reload-qty').value = '';
+        document.getElementById('target-machine').value = '';
+        document.getElementById('target-slot').value = '';
+        document.getElementById('reload-wo-display').value = '';
+        document.getElementById('reload-part-scan').focus();
+    }
+};
+
+// --- Helpers for the modal ---
+window.selectPartMatch = function(match) {
+    document.getElementById('reload-wo-display').value = match.wo.wo_number;
+    document.getElementById('reload-wo-id').value = match.wo.id;
+    document.getElementById('target-machine').value = match.setup.machine;
+    document.getElementById('target-slot').value = match.setup.slot;
+    document.getElementById('reload-description').value = match.setup.description;
+    
+    document.getElementById('part-selection-modal').style.display = 'none';
+    showMessage("Part Found! Please verify Qty.", "success");
+    document.getElementById('reload-qty').focus();
+};
+
+window.showPartConflictModal = function(matches) {
+    const container = document.getElementById('part-conflict-list');
+    if(!container) return;
+    container.innerHTML = '';
+    
+    matches.forEach(match => {
+        const div = document.createElement('div');
+        div.style.cssText = "padding: 10px; border: 1px solid #444; margin-bottom: 5px; cursor: pointer; background: #0d1117;";
+        div.innerHTML = `<div style="color:var(--primary-blue)">${match.wo.wo_number}</div><div>${match.setup.machine} - Slot: <b style="color:var(--glow-green)">${match.setup.slot}</b></div>`;
+        div.onclick = () => window.selectPartMatch(match);
+        container.appendChild(div);
+    });
+    
+    document.getElementById('part-selection-modal').style.display = 'block';
+};
+
+async function submitComponentReload() {
+    const woId = document.getElementById('reload-wo-id').value;
+    const partNo = document.getElementById('reload-part-scan').value;
+    const qty = document.getElementById('reload-qty').value;
+    const side = document.getElementById('reload-process-side').value;
+
+    if (!woId || !partNo || !qty) {
+        showMessage("Please complete scan and quantity.", "error");
+        return;
+    }
+
+    // Auto-Capture User ID
+    const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+
+    const { error } = await supabaseClient.from('component_logs').insert([{
+        wo_id: woId,
+        part_number: partNo,
+        description: document.getElementById('reload-description').value,
+        reel_qty: qty,
+        machine_id: document.getElementById('target-machine').value,
+        target_slot: document.getElementById('target-slot').value,
+        process_side: side,
+        emp_id: userId,
+        created_at: new Date().toISOString()
+    }]);
+
+    if (error) {
+        showMessage("Save Failed: " + error.message, "error");
+    } else {
+        showMessage("Reload Recorded Successfully!", "success");
+        // Clear Scan Fields
+        document.getElementById('reload-part-scan').value = '';
+        document.getElementById('reload-qty').value = '';
+        document.getElementById('target-machine').value = '';
+        document.getElementById('target-slot').value = '';
+        document.getElementById('reload-wo-display').value = '';
+        document.getElementById('reload-part-scan').focus();
+    }
+}
             // Populates the "Filter by Work Order" dropdown
             // Populates the "Filter by Work Order" dropdown BASED ON DATE
             async function loadOeeAnalyticsWOs(startTime, endTime) {
@@ -4848,6 +5175,8 @@
                 chart.render();
                 return chart;
             }
+           
+           
             // --- AI CHATBOT – v4 (GenAI Powered) ---
             const botMessages = document.getElementById('bot-messages');
             const botInput = document.getElementById('bot-input');
@@ -5023,10 +5352,81 @@
                     }
                 }
             }
-// --- END OF DRAGGABLE CHATBOT LOGIC ---
-
             // --- END OF AI CHATBOT CODE ---
+// --- ADMIN TRACEABILITY REPORT FUNCTIONS ---
+let reportDataExport = [];
 
+window.generateTraceabilityReport = async function() {
+    const start = document.getElementById('report-start-date').value;
+    const end = document.getElementById('report-end-date').value;
+    const filter = document.getElementById('report-search-term').value.toLowerCase();
+    const tbody = document.getElementById('report-table-body');
+
+    if (!start || !end) return showMessage("Select Start and End dates.", "error");
+
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
+
+    const { data, error } = await supabaseClient
+        .from('component_logs')
+        .select(`*, work_orders(wo_number, product_name)`)
+        .gte('created_at', start + 'T00:00:00')
+        .lte('created_at', end + 'T23:59:59')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        showMessage("Fetch Error: " + error.message, "error");
+        return;
+    }
+
+    reportDataExport = data; // Store for CSV
+    tbody.innerHTML = '';
+
+    const filtered = data.filter(row => {
+        const text = JSON.stringify(row).toLowerCase();
+        return !filter || text.includes(filter);
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found.</td></tr>';
+        return;
+    }
+
+    filtered.forEach(row => {
+        const sideBadge = row.process_side === 'BOT' 
+            ? '<span style="color:#ff7b72; border:1px solid #ff7b72; padding:2px 4px; border-radius:3px;">BOT</span>' 
+            : '<span style="color:#79c0ff; border:1px solid #79c0ff; padding:2px 4px; border-radius:3px;">TOP</span>';
+
+        const tr = `
+            <tr style="border-bottom: 1px solid #333;">
+                <td style="padding:10px;">${new Date(row.created_at).toLocaleString()}</td>
+                <td style="padding:10px;">${sideBadge}</td>
+                <td style="padding:10px; font-weight:bold;">${row.work_orders?.wo_number}</td>
+                <td style="padding:10px;">${row.work_orders?.product_name}</td>
+                <td style="padding:10px; color: var(--glow-green);">${row.machine_id} <small>(${row.target_slot})</small></td>
+                <td style="padding:10px;">${row.part_number}</td>
+                <td style="padding:10px;">${row.reel_qty}</td>
+                <td style="padding:10px; color:#888;">${row.emp_id}</td>
+            </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', tr);
+    });
+};
+
+window.exportReportToCSV = function() {
+    if (!reportDataExport.length) return showMessage("No data to export", "error");
+    
+    let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Qty,User\n";
+    reportDataExport.forEach(r => {
+        csv += `${r.created_at},${r.process_side},${r.work_orders?.wo_number},${r.work_orders?.product_name},${r.machine_id},${r.target_slot},${r.part_number},${r.reel_qty},${r.emp_id}\n`;
+    });
+    
+    const link = document.createElement("a");
+    link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
+    link.download = "Reload_History.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
             // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
