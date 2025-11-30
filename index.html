@@ -1334,6 +1334,7 @@
                         <th style="padding: 12px;">Model</th>
                         <th style="padding: 12px;">Machine / Slot</th>
                         <th style="padding: 12px;">Part Number</th>
+                        <th style="padding: 12px;">Description</th>
                         <th style="padding: 12px;">Qty</th>
                         <th style="padding: 12px;">User (Emp ID)</th>
                     </tr>
@@ -2274,7 +2275,7 @@ function setupSidebar(isAdmin) {
         ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
         ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
 
-        ${isAdmin ? `<button onclick="window.showSection('traceability-section')">${icons.traceability} Reload History</button>` : ''}
+        <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
 
         ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
         ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
@@ -2417,6 +2418,27 @@ function setupSidebar(isAdmin) {
             }
 
 
+            window.resetTraceabilityTab = function() {
+    // 1. Get today's date
+    const today = new Date().toISOString().split('T')[0];
+
+    // 2. Find the inputs
+    const startDate = document.getElementById("report-start-date");
+    const endDate = document.getElementById("report-end-date");
+
+    // 3. Reset values and refresh report
+    if (startDate && endDate) {
+        startDate.value = today;
+        endDate.value = today;
+        
+        // Slight delay to ensure the tab is active before rendering
+        setTimeout(() => {
+            if (typeof generateTraceabilityReport === "function") {
+                generateTraceabilityReport();
+            }
+        }, 50);
+    }
+};
             // --- Work Order Management ---
             // (LoadWorkOrders, RenderWorkOrders, CreateWorkOrder, showWoDetails, closeWoDetailsModal, isSerialFullyCompleted)
             // ... Paste the definitions for these 6 functions here (from the previous response) ...
@@ -2926,7 +2948,6 @@ function setupSidebar(isAdmin) {
                 });
             } else { console.warn("Serial input not found."); }
 
-            // REPLACE your old scan function with this one
             // REPLACE your old scan function with this one
             async function scan(status, remarks = '', classification = '') {
                 console.log(`scan called with status: ${status}, classification: ${classification}`);
@@ -5404,6 +5425,7 @@ window.generateTraceabilityReport = async function() {
                 <td style="padding:10px;">${row.work_orders?.product_name}</td>
                 <td style="padding:10px; color: var(--glow-green);">${row.machine_id} <small>(${row.target_slot})</small></td>
                 <td style="padding:10px;">${row.part_number}</td>
+                <td style="padding:10px;">${row.description || 'N/A'}</td>
                 <td style="padding:10px;">${row.reel_qty}</td>
                 <td style="padding:10px; color:#888;">${row.emp_id}</td>
             </tr>
@@ -5413,20 +5435,46 @@ window.generateTraceabilityReport = async function() {
 };
 
 window.exportReportToCSV = function() {
-    if (!reportDataExport.length) return showMessage("No data to export", "error");
+    if (!reportDataExport || !reportDataExport.length) return showMessage("No data to export", "error");
     
-    let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Qty,User\n";
+    // 1. Add "Description" to the header row
+    let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Description,Qty,User\n";
+    
     reportDataExport.forEach(r => {
-        csv += `${r.created_at},${r.process_side},${r.work_orders?.wo_number},${r.work_orders?.product_name},${r.machine_id},${r.target_slot},${r.part_number},${r.reel_qty},${r.emp_id}\n`;
+        // Clean description to remove commas so it doesn't break CSV format
+        const cleanDesc = (r.description || '').replace(/,/g, ' '); 
+        
+        // 2. Add cleanDesc to the row data
+        csv += `${r.created_at},${r.process_side},${r.work_orders?.wo_number || ''},${r.work_orders?.product_name || ''},${r.machine_id},${r.target_slot},${r.part_number},${cleanDesc},${r.reel_qty},${r.emp_id}\n`;
     });
     
     const link = document.createElement("a");
-    link.href = "data:text/csv;charset=utf-8," + encodeURI(csv);
-    link.download = "Reload_History.csv";
-    document.body.appendChild(link);
+    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    link.download = `Traceability_Report_${new Date().toISOString().slice(0,10)}.csv`;
     link.click();
-    document.body.removeChild(link);
 };
+
+// --- FIX STARTS HERE: Removed the "document.addEventListener" wrapper ---
+
+// 1. Get today's date in YYYY-MM-DD format
+const today = new Date().toISOString().split('T')[0];
+
+// 2. Find the date inputs
+const startDate = document.getElementById("report-start-date");
+const endDate = document.getElementById("report-end-date");
+
+// 3. Set them to today and run the report
+if (startDate && endDate) {
+    startDate.value = today;
+    endDate.value = today;
+    
+    // Automatically fetch data for today
+    if (typeof generateTraceabilityReport === "function") {
+        generateTraceabilityReport();
+    }
+}
+
+// --- END FIX ---
             // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
