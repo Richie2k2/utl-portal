@@ -5434,25 +5434,45 @@ window.generateTraceabilityReport = async function() {
     });
 };
 
-window.exportReportToCSV = function() {
-    if (!reportDataExport || !reportDataExport.length) return showMessage("No data to export", "error");
-    
-    // 1. Add "Description" to the header row
-    let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Description,Qty,User\n";
-    
-    reportDataExport.forEach(r => {
-        // Clean description to remove commas so it doesn't break CSV format
-        const cleanDesc = (r.description || '').replace(/,/g, ' '); 
-        
-        // 2. Add cleanDesc to the row data
-        csv += `${r.created_at},${r.process_side},${r.work_orders?.wo_number || ''},${r.work_orders?.product_name || ''},${r.machine_id},${r.target_slot},${r.part_number},${cleanDesc},${r.reel_qty},${r.emp_id}\n`;
-    });
-    
-    const link = document.createElement("a");
-    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-    link.download = `Traceability_Report_${new Date().toISOString().slice(0,10)}.csv`;
-    link.click();
-};
+            window.exportReportToCSV = function () {
+                if (!reportDataExport || !reportDataExport.length) return showMessage("No data to export", "error");
+
+                // 1. Add "Description" to the header row
+                let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Description,Qty,User\n";
+
+                reportDataExport.forEach(r => {
+                    let formattedDate = "";
+
+                    if (r.created_at) {
+                        const d = new Date(r.created_at);
+
+                        // --- FIX: AM/PM Conversion Logic ---
+                        let hours = d.getHours();
+                        const ampm = hours >= 12 ? 'PM' : 'AM';
+                        hours = hours % 12;
+                        hours = hours ? hours : 12; // the hour '0' should be '12'
+
+                        // Format: YYYY-MM-DD hh:mm:ss AM
+                        formattedDate = d.getFullYear() + "-" +
+                            String(d.getMonth() + 1).padStart(2, '0') + "-" +
+                            String(d.getDate()).padStart(2, '0') + " " +
+                            String(hours).padStart(2, '0') + ":" +
+                            String(d.getMinutes()).padStart(2, '0') + ":" +
+                            String(d.getSeconds()).padStart(2, '0') + " " +
+                            ampm;
+                    }
+
+                    // Clean description to remove commas
+                    const cleanDesc = (r.description || '').replace(/,/g, ' ');
+
+                    csv += `${formattedDate},${r.process_side},${r.work_orders?.wo_number || ''},${r.work_orders?.product_name || ''},${r.machine_id},${r.target_slot},${r.part_number},${cleanDesc},${r.reel_qty},${r.emp_id}\n`;
+                });
+
+                const link = document.createElement("a");
+                link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+                link.download = `Traceability_Report_${new Date().toISOString().slice(0, 10)}.csv`;
+                link.click();
+            };
 
 // --- FIX STARTS HERE: Removed the "document.addEventListener" wrapper ---
 
