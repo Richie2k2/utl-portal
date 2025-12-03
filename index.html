@@ -559,7 +559,214 @@
                 font-family: var(--font-mono);
                 margin: 0;
             }
-        /* --- AI CHATBOT STYLES --- */
+        /* --- EMBEDDED JIG INSTRUCTION STYLES --- */
+
+        /* The Container for the Animation Side */
+        .instruction-panel {
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- FIXTURE SURFACE & BRANDING --- */
+        .fixture-surface {
+            width: 280px;
+            height: 200px;
+            background: #1c1c1c;
+            border: 2px solid #333;
+            border-radius: 8px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 30px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+        }
+
+        .fixture-name {
+            position: absolute;
+            top: 15px;
+            font-family: 'Arial', sans-serif;
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: #444;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            border: 1px solid #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* ENIG Gold Pads */
+        .pad-gold {
+            background: linear-gradient(135deg, #d4af37, #fcd116, #d4af37);
+            box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.4), inset -1px -1px 2px rgba(0,0,0,0.2);
+            border-radius: 1px;
+            border: 1px solid #b8860b;
+        }
+
+        /* Pads Container */
+        .pads-group {
+            display: flex;
+            flex-direction: column; /* Resistor Top, SOT Bottom */
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Resistor Footprint */
+        .fp-resistor {
+            display: flex;
+            gap: 30px;
+        }
+
+            .fp-resistor .pad-gold {
+                width: 15px;
+                height: 25px;
+            }
+
+        /* SOT Footprint */
+        .fp-sot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            opacity: 0.3;
+        }
+
+        .sot-top {
+            display: flex;
+            gap: 8px;
+        }
+
+        .fp-sot .pad-gold {
+            width: 10px;
+            height: 15px;
+        }
+
+        /* --- STATIC COMPONENT (Target Position) --- */
+        .comp-static {
+            width: 40px;
+            height: 18px;
+            background: #111;
+            border-left: 5px solid #bdc3c7;
+            border-right: 5px solid #bdc3c7;
+            position: absolute;
+            z-index: 5;
+            opacity: 0;
+            /* COORDINATE FIX: */
+            /* Resistor pads are now at the TOP of the .pads-group stack. */
+            /* This coordinate aligns exactly with the .fp-resistor gap */
+            bottom: 135px;
+            left: 118px; /* Perfectly centered horizontally (280/2 - 40/2) */
+        }
+
+        /* --- HAND ASSEMBLY --- */
+        .hand-group {
+            position: absolute;
+            left: -200px;
+            top: 0px;
+            width: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .glove-body {
+            width: 50px;
+            height: 60px;
+            background: #3498db;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            transform: rotate(-15deg);
+        }
+
+        .tool-tweezer {
+            width: 6px;
+            height: 90px;
+            background: linear-gradient(90deg, #bdc3c7, #7f8c8d);
+            margin-top: -10px;
+            position: relative;
+            transform: rotate(15deg);
+            transform-origin: top center;
+        }
+
+        .comp-moving {
+            width: 40px;
+            height: 18px;
+            background: #111;
+            border-left: 5px solid #bdc3c7;
+            border-right: 5px solid #bdc3c7;
+            position: absolute;
+            bottom: -15px;
+            left: -17px;
+        }
+
+        /* --- ANIMATION (Target updated to bottom: 125px -> top: 57px) --- */
+        .anim-place-slow {
+            animation: placeFromLeft 4s ease-in-out forwards;
+        }
+
+        @keyframes placeFromLeft {
+            /* Start */
+            0% {
+                left: -200px;
+                top: 50px;
+            }
+            /* Hover Center */
+            30% {
+                left: 118px; /* Matches comp-static left */
+                top: -80px;
+            }
+            /* Place Down */
+            40% {
+                left: 118px;
+                /* Converted 'bottom: 125px' to 'top' value: */
+                /* 200px (height) - 125px (bottom) - 18px (comp height) = 57px top */
+                top: 57px;
+            }
+            /* Hold */
+            60% {
+                left: 118px;
+                top: 57px;
+            }
+            /* Lift Up */
+            70% {
+                left: 118px;
+                top: 30px;
+            }
+            /* Exit */
+            100% {
+                left: -200px;
+                top: 30px;
+            }
+        }
+
+        /* Status Text */
+        .instruction-text {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: #8b949e;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+            /* --- AI CHATBOT STYLES --- */
         #quality-bot {
             display: none;
             position: fixed;
@@ -1172,34 +1379,34 @@
 
             <div id="wo-management-section" class="main-section">
                 <div class="content-card">
-    <h4>Create New Work Order</h4>
-    <div class="form-grid">
-        <input type="text" id="new-wo-number" placeholder="Work Order Number (e.g., WO-1001)">
-        <input type="text" id="new-wo-customer" placeholder="Customer Name">
-        <input type="text" id="new-wo-product" placeholder="Product Name">
-        <input type="number" id="new-wo-quantity" placeholder="Target Quantity">
-        <input type="number" id="new-wo-cycle-time" placeholder="Ideal Cycle Time (in minutes)" step="0.1" min="0">
-    </div>
+                    <h4>Create New Work Order</h4>
+                    <div class="form-grid">
+                        <input type="text" id="new-wo-number" placeholder="Work Order Number (e.g., WO-1001)">
+                        <input type="text" id="new-wo-customer" placeholder="Customer Name">
+                        <input type="text" id="new-wo-product" placeholder="Product Name">
+                        <input type="number" id="new-wo-quantity" placeholder="Target Quantity">
+                        <input type="number" id="new-wo-cycle-time" placeholder="Ideal Cycle Time (in minutes)" step="0.1" min="0">
+                    </div>
 
-    <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
-        <h5 style="margin-bottom: 5px;">Import Feeder Setup (CSV)</h5>
-        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
-            <strong>Format:</strong> Side (TOP/BOT), Machine, Slot, PartNumber, Description
-        </p>
-        <input type="file" id="feeder-csv-upload" accept=".csv" class="form-control" style="margin-bottom: 10px;">
-        
-        <div id="csv-preview-container" style="max-height: 150px; overflow-y: auto; background: #0d1117; border: 1px solid #333; font-size: 11px; padding: 5px; display: none;">
-            <table style="width: 100%; text-align: left; color: #ccc;">
-                <thead><tr style="border-bottom: 1px solid #555;"><th>Side</th><th>Mach</th><th>Slot</th><th>Part #</th></tr></thead>
-                <tbody id="csv-preview-body"></tbody>
-            </table>
-        </div>
-    </div>
+                    <div style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        <h5 style="margin-bottom: 5px;">Import Feeder Setup (CSV)</h5>
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 10px;">
+                            <strong>Format:</strong> Side (TOP/BOT), Machine, Slot, PartNumber, Description
+                        </p>
+                        <input type="file" id="feeder-csv-upload" accept=".csv" class="form-control" style="margin-bottom: 10px;">
 
-    <div style="margin-top: 20px;">
-        <button id="create-wo-btn" class="btn btn-primary" style="width: auto;">Create WO & Save Setup</button>
-    </div>
-</div>
+                        <div id="csv-preview-container" style="max-height: 150px; overflow-y: auto; background: #0d1117; border: 1px solid #333; font-size: 11px; padding: 5px; display: none;">
+                            <table style="width: 100%; text-align: left; color: #ccc;">
+                                <thead><tr style="border-bottom: 1px solid #555;"><th>Side</th><th>Mach</th><th>Slot</th><th>Part #</th></tr></thead>
+                                <tbody id="csv-preview-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button id="create-wo-btn" class="btn btn-primary" style="width: auto;">Create WO & Save Setup</button>
+                    </div>
+                </div>
                 <div class="content-card">
                     <h4>Existing Work Orders</h4>
                     <div style="margin-bottom: 16px;">
@@ -1230,436 +1437,474 @@
                 </div>
             </div>
 
-<div id="reload-section" class="main-section" style="display: none;">
-    <div class="header-box">
-        <h2>Reload Component</h2>
-        <div class="status-badge pulse">Live Mode</div>
-    </div>
+            <div id="reload-section" class="main-section" style="display: none;">
 
-    <div class="content-card" style="max-width: 800px; margin: 0 auto;">
-        
-        <div style="background: #21262d; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-            <label style="color: var(--primary-blue); font-weight: bold; display: block; margin-bottom: 8px;">
-                Select Production Stage:
-            </label>
-            <select id="reload-process-side" class="form-control" style="font-size: 16px; font-weight: bold; color: white;">
-                <option value="TOP">TOP Side (SMT)</option>
-                <option value="BOT">BOTTOM Side (SMT)</option>
-            </select>
-        </div>
-
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-            
-            <div style="grid-column: 1 / -1;">
-                <label style="color: var(--text-secondary);">1. Scan New Reel Barcode</label>
-                <input type="text" id="reload-part-scan" class="form-control" 
-                       placeholder="Scan Part Number..." autofocus 
-                       onchange="handleReloadScan(this.value)"
-                       style="border: 2px solid var(--primary-blue); background: #0d1117;">
-            </div>
-
-            <div style="grid-column: 1 / -1; background: #161b22; padding: 15px; border: 1px solid #30363d; border-radius: 6px;">
-                <h5 style="color: var(--text-secondary); margin-top: 0;">Auto-Detected Location</h5>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div>
-                        <label style="font-size: 11px; color: #888;">Machine ID</label>
-                        <input type="text" id="target-machine" readonly 
-                               style="color: var(--glow-green); font-weight: bold; border: none; background: transparent; padding: 0;">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; color: #888;">Target Slot / Feeder</label>
-                        <input type="text" id="target-slot" readonly 
-                               style="color: var(--glow-green); font-weight: bold; font-size: 18px; border: none; background: transparent; padding: 0;">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; color: #888;">Work Order</label>
-                        <input type="text" id="reload-wo-display" readonly 
-                               style="color: #ccc; border: none; background: transparent; padding: 0;">
-                        <input type="hidden" id="reload-wo-id">
-                    </div>
-                    <div>
-                        <label style="font-size: 11px; color: #888;">Part Description</label>
-                        <input type="text" id="reload-description" readonly 
-                               style="color: #ccc; border: none; background: transparent; padding: 0;">
-                    </div>
+                <div class="header-box">
+                    <h2>Reload Component</h2>
+                    <div class="status-badge pulse">Live Mode</div>
                 </div>
-            </div>
 
-            <div>
-                <label style="color: var(--text-secondary);">2. Verify Quantity</label>
-                <input type="number" id="reload-qty" class="form-control" placeholder="e.g. 5000">
-            </div>
+                <div class="content-card" style="max-width: 1000px; margin: 0 auto;">
 
-            <div style="display: flex; align-items: flex-end;">
-                <button onclick="submitComponentReload()" class="btn btn-success" style="width: 100%; height: 42px;">
-                    CONFIRM LOAD
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="traceability-section" class="main-section" style="display: none;">
-    <div class="header-box">
-        <h2>Component Traceability History</h2>
-    </div>
-
-    <div class="content-card">
-        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
-            <div>
-                <label>Start Date</label>
-                <input type="date" id="report-start-date" class="form-control">
-            </div>
-            <div>
-                <label>End Date</label>
-                <input type="date" id="report-end-date" class="form-control">
-            </div>
-            <div>
-                <label>Search Filter</label>
-                <input type="text" id="report-search-term" class="form-control" placeholder="WO / Part / User">
-            </div>
-            <div style="display: flex; align-items: flex-end;">
-                <button onclick="generateTraceabilityReport()" class="btn btn-primary" style="width: 100%;">Search Logs</button>
-            </div>
-        </div>
-
-        <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                <thead style="background: #161b22;">
-                    <tr style="text-align: left; color: var(--text-secondary);">
-                        <th style="padding: 12px;">Timestamp</th>
-                        <th style="padding: 12px;">Side</th>
-                        <th style="padding: 12px;">WO Number</th>
-                        <th style="padding: 12px;">Model</th>
-                        <th style="padding: 12px;">Machine / Slot</th>
-                        <th style="padding: 12px;">Part Number</th>
-                        <th style="padding: 12px;">Description</th>
-                        <th style="padding: 12px;">Qty</th>
-                        <th style="padding: 12px;">User (Emp ID)</th>
-                    </tr>
-                </thead>
-                <tbody id="report-table-body">
-                    <tr><td colspan="8" style="padding: 20px; text-align: center;">Select dates to view history.</td></tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div style="margin-top: 15px; text-align: right;">
-            <button onclick="exportReportToCSV()" class="btn btn-light">⬇️ Export to CSV</button>
-        </div>
-    </div>
-</div>
-
-            <div id="employee-management-section" class="main-section content-card">
-                <h4>Employee Management</h4>
-                <div class="form-grid">
-                    <input type="text" id="newEmpId" placeholder="Employee ID">
-                    <input type="password" id="newPassword" placeholder="Password">
-                    <select id="newStages" multiple>
-                        <option>SERIAL NUMBER SCANNING</option>
-                        <option>AOI-BOT</option>
-                        <option>AOI-TOP</option>
-                        <option>REWORK</option>
-                        <option>MANUAL SOLDERING</option>
-                        <option>TESTING</option>
-                        <option>PACKING</option>
-                        <option>SMT-FQC</option>
-                        <option>TH-FQC</option>
-                    </select>
-                    <button id="createEmployee" class="btn btn-primary" style="width: auto;">Add Employee</button>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Emp ID</th><th>Role</th><th>Stages</th><th>Actions</th></tr></thead>
-                        <tbody id="employee-table-body">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div id="admin-section" class="main-section">
-                <div id="upload-csv-section" class="content-card">
-                    <h4>Upload CSV for Assignment</h4>
-                    <input type="file" id="csvFile" style="margin-bottom: 8px;">
-                    <button id="uploadCSV" class="btn btn-light" style="width: auto;">Upload CSV</button>
-
-                    <p style="margin: 20px 0 10px; font-size: 14px; color: var(--text-secondary);">After CSV Upload, select Work Order and save:</p>
-
-                    <select id="bulk-wo-select">
-                        <option value="">Select an Active Work Order...</option>
-                    </select>
-
-                    <select id="bulkStages" multiple>
-                        <option>SERIAL NUMBER SCANNING</option>
-                        <option>AOI-BOT</option>
-                        <option>AOI-TOP</option>
-                        <option>SMT-FQC</option>
-                        <option>MANUAL SOLDERING</option>
-                        <option>TH-FQC</option>
-                        <option>TESTING</option>
-                        <option>PACKING</option>
-                        <option>REWORK</option>
-                    </select>
-                    <button id="saveBulkSerials" class="btn btn-primary">Save All Serials to WO</button>
-              </div>
-         </div>
-
-            <div id="history-section" class="main-section content-card">
-                <h4>Scan History</h4>
-                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-                    <select id="filterType" style="width: auto; padding: 8px;">
-                        <option value="all">All</option>
-                        <option value="pass">Pass</option>
-                        <option value="fail">Fail</option>
-                    </select>
-                    <button id="exportHistory" class="btn btn-light" style="width: auto; padding: 8px 12px;">Export History</button>
-                    <input type="text" id="searchInput" placeholder="Search by Serial, WO, Product, or Customer..." style="flex-grow: 1; margin: 0;">
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Serial</th>
-                                <th>Work Order</th>
-                                <th>Customer</th>
-                                <th>Product</th>
-                                <th>Last Stage</th>
-                                <th>Last Status</th>
-                                <th>Emp ID</th>
-                                <th>Remarks</th>
-                                <th>Details</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history">
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination-controls" id="history-pagination">
-                    <span class="page-info" id="history-page-info">Page 1 of 1</span>
-                    <button id="history-prev" class="btn btn-light">Previous</button>
-                    <button id="history-next" class="btn btn-light">Next</button>
-                </div>
-            </div>
-
-            <div id="rework-section" class="main-section content-card">
-                <h4>Rework Queue</h4>
-                <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">Showing all items that have failed and are awaiting a successful 'REWORK' scan.</p>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Serial</th>
-                                <th>Work Order</th>
-                                <th>Customer</th>
-                                <th>Product</th>
-                                <th>Failed At Stage</th>
-                                <th>Failure Remark</th>
-                                <th>Failed On</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rework-table-body">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="downtime-view-section" class="main-section content-card">
-                <h4>Downtime History</h4>
-
-                <div id="downtime-analytics-chart-container" class="chart-widget" style="min-height: 250px; max-height: 300px; margin-bottom: 20px;">
-                    <h5>Downtime Analysis (Last 30 Days)</h5>
-                    <div id="downtimeParetoChart"></div>
-                </div>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Reason</th>
-                                <th>Machine</th>
-                                <th>Started</th>
-                                <th>Ended</th>
-                                <th>Duration</th>
-                                <th>Attended By</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="downtime-history">
-                        </tbody>
-                    </table>
-                </div>
-                <div class="pagination-controls" id="downtime-pagination">
-                    <span class="page-info" id="downtime-page-info">Page 1 of 1</span>
-                    <button id="downtime-prev" class="btn btn-light">Previous</button>
-                    <button id="downtime-next" class="btn btn-light">Next</button>
-                </div>
-            </div>
-            <div id="car-management-section" class="main-section content-card">
-                <h4>Quality Corrective Action Reports (CARs)</h4>
-                <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">
-                    Review open non-conformances, perform root cause analysis, and close reports.
-                </p>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>NCR ID</th>
-                                <th>Status</th>
-                                <th>Serial</th>
-                                <th>Failed At</th>
-                                <th>Reason</th>
-                                <th>Raised By</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="car-table-body">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div id="modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeModal()">×</span>
-                    <h3>Serial History</h3>
-                    <div id="modal-body"></div>
-                </div>
-            </div>
-            <div id="remarks-modal" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeRemarksModal()">×</span>
-                    <h3>Enter Failure Remarks</h3>
-
-                    <label for="remarks-classification"
-                           style="display:block; margin-top: 5px; color: var(--text-secondary);">
-                        Classification
-                    </label>
-                    <select id="remarks-classification">
-                        <option value="">Select Classification</option>
-                        <option>Workmanship</option>
-                        <option>Manufacturing</option>
-                        <option>Design</option>
-                        <option>Material</option>
-                        <option>Damage</option>
-                        <option>Quality</option>
-                        <option>Contractual</option>
-                        <option>Construction</option>
-                        <option>Other</option>
-                    </select>
-
-                    <label for="remarks-input"
-                           style="display:block; margin-top: 10px; color: var(--text-secondary);">
-                        Failure Reason
-                    </label>
-                    <select id="remarks-input">
-                        <option value="">Select Reason</option>
-                        <option>Tombstoning</option>
-                        <option>Billboarding</option>
-                        <option>Component Missing</option>
-                        <option>Wrong Polarity</option>
-                        <option>Solder Issue</option>
-                        <option>Component Misalignment</option>
-                        <option>Other</option>
-                    </select>
-
-                    <input type="text" id="other-remarks" placeholder="Specify if Other" style="display:none;">
-                    <button id="submit-remarks" class="btn btn-danger">Submit</button>
-                </div>
-            </div>
-            <div id="analytics-section" class="main-section">
-
-                <div class="content-card">
-                    <h4>OEE (Overall Equipment Effectiveness) Report</h4>
-                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; align-items: end; margin-bottom: 20px;">
-                        <div>
-                            <label for="oee-analytics-start" style="font-size: 13px; color: var(--text-secondary);">Start Time & Date</label>
-                            <input type="datetime-local" id="oee-analytics-start">
-                        </div>
-                        <div>
-                            <label for="oee-analytics-end" style="font-size: 13px; color: var(--text-secondary);">End Time & Date</label>
-                            <input type="datetime-local" id="oee-analytics-end">
-                        </div>
-                        <div>
-                            <label for="oee-analytics-wo" style="font-size: 13px; color: var(--text-secondary);">Filter by Work Order</label>
-                            <select id="oee-analytics-wo">
-                                <option value="all">Select Start/End Date First...</option>
-                            </select>
-                        </div>
-                        <button id="load-oee-analytics-btn" class="btn btn-primary" style="width: auto;">Load Report</button>
-                    </div>
-
-                    <div id="oee-charts-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
-
-                        <div>
-                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
-                                <h5>Availability</h5>
-                                <div id="oee-availability-chart"></div>
-                            </div>
-                            <div id="oee-data-availability" class="oee-data-box">
-                                <p><span>A. Planned Time:</span> <span id="oee-planned-time">-- min</span></p>
-                                <p><span>B. Total Downtime:</span> <span id="oee-downtime">-- min</span></p>
-                                <p><span><b>Run Time (A - B):</b></span> <span id="oee-run-time">-- min</span></p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
-                                <h5>Performance</h5>
-                                <div id="oee-performance-chart"></div>
-                            </div>
-                            <div id="oee-data-performance" class="oee-data-box">
-                                <p><span>C. Run Time:</span> <span id="oee-perf-run-time">-- min</span></p>
-                                <p><span>D. Total Parts:</span> <span id="oee-perf-total-parts">--</span></p>
-                                <p><span><b>Target Time:</b></span> <span id="oee-target-time">-- min</span></p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
-                                <h5>Quality</h5>
-                                <div id="oee-quality-chart"></div>
-                            </div>
-                            <div id="oee-data-quality" class="oee-data-box">
-                                <p><span>E. Total Parts:</span> <span id="oee-qual-total-parts">--</span></p>
-                                <p><span>F. Good Parts:</span> <span id="oee-good-parts">--</span></p>
-                                <p><span><b>Rejected Parts (E - F):</b></span> <span id="oee-reject-parts">--</span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="oee-final-score">
-                        <h4>Overall OEE (Availability × Performance × Quality)</h4>
-                        <h2 id="oee-final-value">--%</h2>
-                    </div>
-                    <p id="oee-analytics-message" class="message-box" style="margin-top: 15px;"></p>
-                </div> <div class="content-card">
-                    <h4>Operator Performance</h4>
-                    <div style="margin-bottom: 16px;">
-                        <label for="operator-performance-range" style="font-size: 14px; color: var(--text-secondary);">Select Period:</label>
-                        <select id="operator-performance-range" class="btn" style="width: auto; padding: 6px 10px; margin: 0 0 0 10px;">
-                            <option value="24">Last 24 Hours</option>
-                            <option value="168">Last 7 Days</option>
-                            <option value="720">Last 30 Days</option>
+                    <div style="background: #21262d; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                        <label style="color: var(--primary-blue); font-weight: bold; display: block; margin-bottom: 8px;">
+                            Select Production Stage:
+                        </label>
+                        <select id="reload-process-side" class="form-control" style="font-size: 16px; font-weight: bold; color: white;">
+                            <option value="TOP">TOP Side (SMT)</option>
+                            <option value="BOT">BOTTOM Side (SMT)</option>
                         </select>
-                        <button id="refresh-operator-performance" class="btn btn-light" style="width: auto; padding: 8px 12px; margin-left: 10px;">Load</button>
                     </div>
-                    <div class="table-wrapper" style="max-height: 60vh;">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Employee ID</th>
-                                    <th>Total Scans</th>
-                                    <th>Pass</th>
-                                    <th>Fail</th>
-                                    <th>Pass Rate (Yield)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="operator-performance-table-body">
-                            </tbody>
-                        </table>
+
+                    <div style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px;">
+
+                        <div style="display: flex; flex-direction: column; gap: 20px;">
+
+                            <div>
+                                <label style="color: var(--text-secondary);">1. Scan New Reel Barcode</label>
+                                <input type="text" id="reload-part-scan" class="form-control"
+                                       placeholder="Scan Part Number..." autofocus
+                                       onchange="handleReloadScan(this.value)"
+                                       style="border: 2px solid var(--primary-blue); background: #0d1117;">
+                            </div>
+
+                            <div style="background: #161b22; padding: 15px; border: 1px solid #30363d; border-radius: 6px;">
+                                <h5 style="color: var(--text-secondary); margin-top: 0;">Auto-Detected Location</h5>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                    <div>
+                                        <label style="font-size: 11px; color: #888;">Machine ID</label>
+                                        <input type="text" id="target-machine" readonly
+                                               style="color: var(--glow-green); font-weight: bold; border: none; background: transparent; padding: 0; width: 100%;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #888;">Target Slot</label>
+                                        <input type="text" id="target-slot" readonly
+                                               style="color: var(--glow-green); font-weight: bold; font-size: 18px; border: none; background: transparent; padding: 0; width: 100%;">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #888;">Work Order</label>
+                                        <input type="text" id="reload-wo-display" readonly style="color: #ccc; border: none; background: transparent; padding: 0; width: 100%;">
+                                        <input type="hidden" id="reload-wo-id">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 11px; color: #888;">Description</label>
+                                        <input type="text" id="reload-description" readonly style="color: #ccc; border: none; background: transparent; padding: 0; width: 100%;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label style="color: var(--text-secondary);">2. Verify Quantity</label>
+                                <input type="number" id="reload-qty" class="form-control" placeholder="e.g. 5000">
+                            </div>
+
+                            <div style="background: #0d1117; padding: 10px; border: 1px solid #30363d; border-radius: 4px;">
+                                <label style="color: #888; font-size: 12px;">Jig Check Result</label>
+                                <input type="text" id="reload-measured-value" readonly
+                                       style="width: 100%; background: transparent; border: none; color: #39ff14; font-weight: bold; font-family: monospace;"
+                                       placeholder="Waiting for test...">
+                            </div>
+
+                            <button onclick="submitComponentReload()" class="btn btn-success" style="width: 100%; height: 42px;">
+                                CONFIRM LOAD
+                            </button>
+                        </div>
+
+                        <div class="instruction-panel">
+                            <div id="instr-text" class="instruction-text">Waiting for Scan...</div>
+
+                            <div class="fixture-surface">
+
+                                <div class="fixture-name">LCR FIXTURE</div>
+
+                                <div class="pads-group">
+                                    <div class="fp-resistor">
+                                        <div class="pad-gold"></div>
+                                        <div class="pad-gold"></div>
+                                    </div>
+                                    <div class="fp-sot">
+                                        <div class="sot-top">
+                                            <div class="pad-gold"></div>
+                                            <div class="pad-gold"></div>
+                                        </div>
+                                        <div class="pad-gold"></div>
+                                    </div>
+                                </div>
+
+                                <div id="comp-static" class="comp-static"></div>
+
+                                <div id="anim-hand" class="hand-group">
+                                    <div class="glove-body"></div>
+                                    <div class="tool-tweezer"></div>
+                                    <div id="comp-moving" class="comp-moving"></div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
+                        <div id="traceability-section" class="main-section" style="display: none;">
+                            <div class="header-box">
+                                <h2>Component Traceability History</h2>
+                            </div>
+
+                            <div class="content-card">
+                                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+                                    <div>
+                                        <label>Start Date</label>
+                                        <input type="date" id="report-start-date" class="form-control">
+                                    </div>
+                                    <div>
+                                        <label>End Date</label>
+                                        <input type="date" id="report-end-date" class="form-control">
+                                    </div>
+                                    <div>
+                                        <label>Search Filter</label>
+                                        <input type="text" id="report-search-term" class="form-control" placeholder="WO / Part / User">
+                                    </div>
+                                    <div style="display: flex; align-items: flex-end;">
+                                        <button onclick="generateTraceabilityReport()" class="btn btn-primary" style="width: 100%;">Search Logs</button>
+                                    </div>
+                                </div>
+
+                                <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+                                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                        <thead style="background: #161b22;">
+                                            <tr style="text-align: left; color: var(--text-secondary);">
+                                                <th style="padding: 12px;">Timestamp</th>
+                                                <th style="padding: 12px;">Side</th>
+                                                <th style="padding: 12px;">WO Number</th>
+                                                <th style="padding: 12px;">Model</th>
+                                                <th style="padding: 12px;">Machine / Slot</th>
+                                                <th style="padding: 12px;">Part Number</th>
+                                                <th style="padding: 12px;">Description</th>
+                                                <th style="padding: 12px;">Qty</th>
+                                                <th style="padding: 12px;">User (Emp ID)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="report-table-body">
+                                            <tr><td colspan="8" style="padding: 20px; text-align: center;">Select dates to view history.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div style="margin-top: 15px; text-align: right;">
+                                    <button onclick="exportReportToCSV()" class="btn btn-light">⬇️ Export to CSV</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="employee-management-section" class="main-section content-card">
+                            <h4>Employee Management</h4>
+                            <div class="form-grid">
+                                <input type="text" id="newEmpId" placeholder="Employee ID">
+                                <input type="password" id="newPassword" placeholder="Password">
+                                <select id="newStages" multiple>
+                                    <option>SERIAL NUMBER SCANNING</option>
+                                    <option>AOI-BOT</option>
+                                    <option>AOI-TOP</option>
+                                    <option>REWORK</option>
+                                    <option>MANUAL SOLDERING</option>
+                                    <option>TESTING</option>
+                                    <option>PACKING</option>
+                                    <option>SMT-FQC</option>
+                                    <option>TH-FQC</option>
+                                </select>
+                                <button id="createEmployee" class="btn btn-primary" style="width: auto;">Add Employee</button>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead><tr><th>Emp ID</th><th>Role</th><th>Stages</th><th>Actions</th></tr></thead>
+                                    <tbody id="employee-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div id="admin-section" class="main-section">
+                            <div id="upload-csv-section" class="content-card">
+                                <h4>Upload CSV for Assignment</h4>
+                                <input type="file" id="csvFile" style="margin-bottom: 8px;">
+                                <button id="uploadCSV" class="btn btn-light" style="width: auto;">Upload CSV</button>
+
+                                <p style="margin: 20px 0 10px; font-size: 14px; color: var(--text-secondary);">After CSV Upload, select Work Order and save:</p>
+
+                                <select id="bulk-wo-select">
+                                    <option value="">Select an Active Work Order...</option>
+                                </select>
+
+                                <select id="bulkStages" multiple>
+                                    <option>SERIAL NUMBER SCANNING</option>
+                                    <option>AOI-BOT</option>
+                                    <option>AOI-TOP</option>
+                                    <option>SMT-FQC</option>
+                                    <option>MANUAL SOLDERING</option>
+                                    <option>TH-FQC</option>
+                                    <option>TESTING</option>
+                                    <option>PACKING</option>
+                                    <option>REWORK</option>
+                                </select>
+                                <button id="saveBulkSerials" class="btn btn-primary">Save All Serials to WO</button>
+                            </div>
+                        </div>
+
+                        <div id="history-section" class="main-section content-card">
+                            <h4>Scan History</h4>
+                            <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                                <select id="filterType" style="width: auto; padding: 8px;">
+                                    <option value="all">All</option>
+                                    <option value="pass">Pass</option>
+                                    <option value="fail">Fail</option>
+                                </select>
+                                <button id="exportHistory" class="btn btn-light" style="width: auto; padding: 8px 12px;">Export History</button>
+                                <input type="text" id="searchInput" placeholder="Search by Serial, WO, Product, or Customer..." style="flex-grow: 1; margin: 0;">
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Serial</th>
+                                            <th>Work Order</th>
+                                            <th>Customer</th>
+                                            <th>Product</th>
+                                            <th>Last Stage</th>
+                                            <th>Last Status</th>
+                                            <th>Emp ID</th>
+                                            <th>Remarks</th>
+                                            <th>Details</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="history">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-controls" id="history-pagination">
+                                <span class="page-info" id="history-page-info">Page 1 of 1</span>
+                                <button id="history-prev" class="btn btn-light">Previous</button>
+                                <button id="history-next" class="btn btn-light">Next</button>
+                            </div>
+                        </div>
+
+                        <div id="rework-section" class="main-section content-card">
+                            <h4>Rework Queue</h4>
+                            <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">Showing all items that have failed and are awaiting a successful 'REWORK' scan.</p>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Serial</th>
+                                            <th>Work Order</th>
+                                            <th>Customer</th>
+                                            <th>Product</th>
+                                            <th>Failed At Stage</th>
+                                            <th>Failure Remark</th>
+                                            <th>Failed On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rework-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="downtime-view-section" class="main-section content-card">
+                            <h4>Downtime History</h4>
+
+                            <div id="downtime-analytics-chart-container" class="chart-widget" style="min-height: 250px; max-height: 300px; margin-bottom: 20px;">
+                                <h5>Downtime Analysis (Last 30 Days)</h5>
+                                <div id="downtimeParetoChart"></div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Reason</th>
+                                            <th>Machine</th>
+                                            <th>Started</th>
+                                            <th>Ended</th>
+                                            <th>Duration</th>
+                                            <th>Attended By</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="downtime-history">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="pagination-controls" id="downtime-pagination">
+                                <span class="page-info" id="downtime-page-info">Page 1 of 1</span>
+                                <button id="downtime-prev" class="btn btn-light">Previous</button>
+                                <button id="downtime-next" class="btn btn-light">Next</button>
+                            </div>
+                        </div>
+                        <div id="car-management-section" class="main-section content-card">
+                            <h4>Quality Corrective Action Reports (CARs)</h4>
+                            <p style="color: var(--text-secondary); margin-top: -10px; margin-bottom: 15px; font-size: 14px;">
+                                Review open non-conformances, perform root cause analysis, and close reports.
+                            </p>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>NCR ID</th>
+                                            <th>Status</th>
+                                            <th>Serial</th>
+                                            <th>Failed At</th>
+                                            <th>Reason</th>
+                                            <th>Raised By</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="car-table-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="modal" class="modal">
+                            <div class="modal-content">
+                                <span class="close" onclick="closeModal()">×</span>
+                                <h3>Serial History</h3>
+                                <div id="modal-body"></div>
+                            </div>
+                        </div>
+                        <div id="remarks-modal" class="modal">
+                            <div class="modal-content">
+                                <span class="close" onclick="closeRemarksModal()">×</span>
+                                <h3>Enter Failure Remarks</h3>
+
+                                <label for="remarks-classification"
+                                       style="display:block; margin-top: 5px; color: var(--text-secondary);">
+                                    Classification
+                                </label>
+                                <select id="remarks-classification">
+                                    <option value="">Select Classification</option>
+                                    <option>Workmanship</option>
+                                    <option>Manufacturing</option>
+                                    <option>Design</option>
+                                    <option>Material</option>
+                                    <option>Damage</option>
+                                    <option>Quality</option>
+                                    <option>Contractual</option>
+                                    <option>Construction</option>
+                                    <option>Other</option>
+                                </select>
+
+                                <label for="remarks-input"
+                                       style="display:block; margin-top: 10px; color: var(--text-secondary);">
+                                    Failure Reason
+                                </label>
+                                <select id="remarks-input">
+                                    <option value="">Select Reason</option>
+                                    <option>Tombstoning</option>
+                                    <option>Billboarding</option>
+                                    <option>Component Missing</option>
+                                    <option>Wrong Polarity</option>
+                                    <option>Solder Issue</option>
+                                    <option>Component Misalignment</option>
+                                    <option>Other</option>
+                                </select>
+
+                                <input type="text" id="other-remarks" placeholder="Specify if Other" style="display:none;">
+                                <button id="submit-remarks" class="btn btn-danger">Submit</button>
+                            </div>
+                        </div>
+                        <div id="analytics-section" class="main-section">
+
+                            <div class="content-card">
+                                <h4>OEE (Overall Equipment Effectiveness) Report</h4>
+                                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; align-items: end; margin-bottom: 20px;">
+                                    <div>
+                                        <label for="oee-analytics-start" style="font-size: 13px; color: var(--text-secondary);">Start Time & Date</label>
+                                        <input type="datetime-local" id="oee-analytics-start">
+                                    </div>
+                                    <div>
+                                        <label for="oee-analytics-end" style="font-size: 13px; color: var(--text-secondary);">End Time & Date</label>
+                                        <input type="datetime-local" id="oee-analytics-end">
+                                    </div>
+                                    <div>
+                                        <label for="oee-analytics-wo" style="font-size: 13px; color: var(--text-secondary);">Filter by Work Order</label>
+                                        <select id="oee-analytics-wo">
+                                            <option value="all">Select Start/End Date First...</option>
+                                        </select>
+                                    </div>
+                                    <button id="load-oee-analytics-btn" class="btn btn-primary" style="width: auto;">Load Report</button>
+                                </div>
+
+                                <div id="oee-charts-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+
+                                    <div>
+                                        <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                            <h5>Availability</h5>
+                                            <div id="oee-availability-chart"></div>
+                                        </div>
+                                        <div id="oee-data-availability" class="oee-data-box">
+                                            <p><span>A. Planned Time:</span> <span id="oee-planned-time">-- min</span></p>
+                                            <p><span>B. Total Downtime:</span> <span id="oee-downtime">-- min</span></p>
+                                            <p><span><b>Run Time (A - B):</b></span> <span id="oee-run-time">-- min</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                            <h5>Performance</h5>
+                                            <div id="oee-performance-chart"></div>
+                                        </div>
+                                        <div id="oee-data-performance" class="oee-data-box">
+                                            <p><span>C. Run Time:</span> <span id="oee-perf-run-time">-- min</span></p>
+                                            <p><span>D. Total Parts:</span> <span id="oee-perf-total-parts">--</span></p>
+                                            <p><span><b>Target Time:</b></span> <span id="oee-target-time">-- min</span></p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <div class="chart-widget" style="min-height: 220px; max-height: 300px;">
+                                            <h5>Quality</h5>
+                                            <div id="oee-quality-chart"></div>
+                                        </div>
+                                        <div id="oee-data-quality" class="oee-data-box">
+                                            <p><span>E. Total Parts:</span> <span id="oee-qual-total-parts">--</span></p>
+                                            <p><span>F. Good Parts:</span> <span id="oee-good-parts">--</span></p>
+                                            <p><span><b>Rejected Parts (E - F):</b></span> <span id="oee-reject-parts">--</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="oee-final-score">
+                                    <h4>Overall OEE (Availability × Performance × Quality)</h4>
+                                    <h2 id="oee-final-value">--%</h2>
+                                </div>
+                                <p id="oee-analytics-message" class="message-box" style="margin-top: 15px;"></p>
+                            </div> <div class="content-card">
+                                <h4>Operator Performance</h4>
+                                <div style="margin-bottom: 16px;">
+                                    <label for="operator-performance-range" style="font-size: 14px; color: var(--text-secondary);">Select Period:</label>
+                                    <select id="operator-performance-range" class="btn" style="width: auto; padding: 6px 10px; margin: 0 0 0 10px;">
+                                        <option value="24">Last 24 Hours</option>
+                                        <option value="168">Last 7 Days</option>
+                                        <option value="720">Last 30 Days</option>
+                                    </select>
+                                    <button id="refresh-operator-performance" class="btn btn-light" style="width: auto; padding: 8px 12px; margin-left: 10px;">Load</button>
+                                </div>
+                                <div class="table-wrapper" style="max-height: 60vh;">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Employee ID</th>
+                                                <th>Total Scans</th>
+                                                <th>Pass</th>
+                                                <th>Fail</th>
+                                                <th>Pass Rate (Yield)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="operator-performance-table-body">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
         <div id="downtime-modal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="closeDowntimeModal()">×</span>
@@ -1811,13 +2056,13 @@
     </div>
 
     <div id="part-selection-modal" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8);">
-    <div class="modal-content" style="background: #161b22; margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 600px; color: var(--text-primary);">
-        <h4 style="color: var(--warning-color);">⚠️ Multiple Locations Found</h4>
-        <p>This part is used in multiple places. Select the correct one:</p>
-        <div id="part-conflict-list" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
-        <button onclick="document.getElementById('part-selection-modal').style.display='none'" class="btn btn-danger" style="margin-top: 15px;">Cancel</button>
+        <div class="modal-content" style="background: #161b22; margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 600px; color: var(--text-primary);">
+            <h4 style="color: var(--warning-color);">⚠️ Multiple Locations Found</h4>
+            <p>This part is used in multiple places. Select the correct one:</p>
+            <div id="part-conflict-list" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
+            <button onclick="document.getElementById('part-selection-modal').style.display='none'" class="btn btn-danger" style="margin-top: 15px;">Cancel</button>
+        </div>
     </div>
-</div>
 
     <div id="quality-bot" class="bot-closed">
         <div id="bot-header">
@@ -1836,6 +2081,36 @@
                 <button id="bot-send-btn" onclick="sendBotMessage()">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="jig-simulation-overlay">
+        <h3 style="color: #fff; margin-bottom: 20px;">Verifying Component...</h3>
+
+        <div class="fixture-base">
+            <div id="jig-readout-text" class="fixture-readout">READY</div>
+
+            <div class="pcb-pads">
+                <div class="footprint-res">
+                    <div class="gold-pad"></div>
+                    <div class="gold-pad"></div>
+                </div>
+                <div class="footprint-sot23">
+                    <div class="sot-top">
+                        <div class="gold-pad"></div>
+                        <div class="gold-pad"></div>
+                    </div>
+                    <div class="gold-pad"></div>
+                </div>
+            </div>
+
+            <div id="board-comp" class="board-component"></div>
+
+            <div id="anim-hand" class="hand-assembly">
+                <div class="operator-glove"></div>
+                <div class="tweezer-tool"></div>
+                <div id="held-comp" class="held-component"></div>
             </div>
         </div>
     </div>
@@ -2136,51 +2411,51 @@
             // --- Sidebar & Section Management ---
             let parsedFeederData = []; // Store CSV data globally
 
-// Add this Listener for the CSV file input
-document.getElementById('feeder-csv-upload')?.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(event) { processCSV(event.target.result); };
-    reader.readAsText(file);
-});
+            // Add this Listener for the CSV file input
+            document.getElementById('feeder-csv-upload')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function (event) { processCSV(event.target.result); };
+                reader.readAsText(file);
+            });
 
-function processCSV(csvText) {
-    const lines = csvText.split('\n');
-    parsedFeederData = []; 
-    const previewBody = document.getElementById('csv-preview-body');
-    if(previewBody) previewBody.innerHTML = ''; 
+            function processCSV(csvText) {
+                const lines = csvText.split('\n');
+                parsedFeederData = [];
+                const previewBody = document.getElementById('csv-preview-body');
+                if (previewBody) previewBody.innerHTML = '';
 
-    // Skip header (i=1). Expects: Side, Machine, Slot, Part, Desc
-    for (let i = 1; i < lines.length; i++) {
-        const line = lines[i].trim();
-        if (!line) continue;
-        const cols = line.split(',');
-        
-        const rowData = {
-            side: cols[0]?.trim().toUpperCase() || 'TOP',
-            machine: cols[1]?.trim() || 'N/A',
-            slot: cols[2]?.trim() || 'N/A',
-            part_number: cols[3]?.trim() || 'N/A',
-            description: cols[4]?.trim() || 'N/A'
-        };
-        parsedFeederData.push(rowData);
+                // Skip header (i=1). Expects: Side, Machine, Slot, Part, Desc
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    const cols = line.split(',');
 
-        // Preview (First 50 rows)
-        if (i < 50 && previewBody) {
-            const tr = `<tr>
-                <td style="color: var(--glow-green)">${rowData.side}</td>
-                <td>${rowData.machine}</td>
-                <td>${rowData.slot}</td>
-                <td>${rowData.part_number}</td>
-            </tr>`;
-            previewBody.insertAdjacentHTML('beforeend', tr);
-        }
-    }
-    const container = document.getElementById('csv-preview-container');
-    if(container) container.style.display = 'block';
-    showMessage(`Parsed ${parsedFeederData.length} rows.`, 'success');
-}
+                    const rowData = {
+                        side: cols[0]?.trim().toUpperCase() || 'TOP',
+                        machine: cols[1]?.trim() || 'N/A',
+                        slot: cols[2]?.trim() || 'N/A',
+                        part_number: cols[3]?.trim() || 'N/A',
+                        description: cols[4]?.trim() || 'N/A'
+                    };
+                    parsedFeederData.push(rowData);
+
+                    // Preview (First 50 rows)
+                    if (i < 50 && previewBody) {
+                        const tr = `<tr>
+                    <td style="color: var(--glow-green)">${rowData.side}</td>
+                    <td>${rowData.machine}</td>
+                    <td>${rowData.slot}</td>
+                    <td>${rowData.part_number}</td>
+                </tr>`;
+                        previewBody.insertAdjacentHTML('beforeend', tr);
+                    }
+                }
+                const container = document.getElementById('csv-preview-container');
+                if (container) container.style.display = 'block';
+                showMessage(`Parsed ${parsedFeederData.length} rows.`, 'success');
+            }
             // Make functions available globally IF they are called by inline HTML onclick
             // REPLACE your old window.showSection function with this one
             window.showSection = function (id) {
@@ -2247,44 +2522,44 @@ function processCSV(csvText) {
             }
 
             // REPLACE your old setupSidebar function with this one
-function setupSidebar(isAdmin) {
-    console.log("Setting up sidebar, isAdmin:", isAdmin); 
-    if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
-    
-    const icons = {
-        dashboard: '📊', scan: '📠', downtime: '⏱️',
-        downtimeView: '📜', employee: '👥',
-        admin: '⚙️', history: '📚', rework: '🛠️',
-        wo: '📦', logout: '🚪',
-        car: '📋', 
-        analytics: '📈',
-        reload: '🔄',      // <--- NEW ICON for Reload
-        traceability: '🔍' // <--- NEW ICON for History
-    };
+            function setupSidebar(isAdmin) {
+                console.log("Setting up sidebar, isAdmin:", isAdmin);
+                if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
 
-    sidebarOptions.innerHTML = `
-        <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-        <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
-        
-        <button onclick="window.showSection('reload-section')">${icons.reload} Reload Component</button>
+                const icons = {
+                    dashboard: '📊', scan: '📠', downtime: '⏱️',
+                    downtimeView: '📜', employee: '👥',
+                    admin: '⚙️', history: '📚', rework: '🛠️',
+                    wo: '📦', logout: '🚪',
+                    car: '📋',
+                    analytics: '📈',
+                    reload: '🔄',      // <--- NEW ICON for Reload
+                    traceability: '🔍' // <--- NEW ICON for History
+                };
 
-        <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-        <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-        <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
-        
-        ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
-        ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
+                sidebarOptions.innerHTML = `
+            <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
 
-        <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
+            <button onclick="window.showSection('reload-section')">${icons.reload} Reload Component</button>
 
-        ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-        ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
-        ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
 
-        <button onclick="window.showSection('history-section')">${icons.history} History</button>
-        <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
-    `;
-}
+            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
+            ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
+
+            <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
+
+            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
+            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
+            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
+
+            <button onclick="window.showSection('history-section')">${icons.history} History</button>
+            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+        `;
+            }
 
             async function loadActiveWOsForAdmin() {
                 // Find both select elements
@@ -2418,27 +2693,27 @@ function setupSidebar(isAdmin) {
             }
 
 
-            window.resetTraceabilityTab = function() {
-    // 1. Get today's date
-    const today = new Date().toISOString().split('T')[0];
+            window.resetTraceabilityTab = function () {
+                // 1. Get today's date
+                const today = new Date().toISOString().split('T')[0];
 
-    // 2. Find the inputs
-    const startDate = document.getElementById("report-start-date");
-    const endDate = document.getElementById("report-end-date");
+                // 2. Find the inputs
+                const startDate = document.getElementById("report-start-date");
+                const endDate = document.getElementById("report-end-date");
 
-    // 3. Reset values and refresh report
-    if (startDate && endDate) {
-        startDate.value = today;
-        endDate.value = today;
-        
-        // Slight delay to ensure the tab is active before rendering
-        setTimeout(() => {
-            if (typeof generateTraceabilityReport === "function") {
-                generateTraceabilityReport();
-            }
-        }, 50);
-    }
-};
+                // 3. Reset values and refresh report
+                if (startDate && endDate) {
+                    startDate.value = today;
+                    endDate.value = today;
+
+                    // Slight delay to ensure the tab is active before rendering
+                    setTimeout(() => {
+                        if (typeof generateTraceabilityReport === "function") {
+                            generateTraceabilityReport();
+                        }
+                    }, 50);
+                }
+            };
             // --- Work Order Management ---
             // (LoadWorkOrders, RenderWorkOrders, CreateWorkOrder, showWoDetails, closeWoDetailsModal, isSerialFullyCompleted)
             // ... Paste the definitions for these 6 functions here (from the previous response) ...
@@ -2601,16 +2876,16 @@ function setupSidebar(isAdmin) {
 
                         // Use data-wo-id attribute instead of inline onclick for better practice
                         return `
-                                                                                                  <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
-                                                                                                    <td>${wo.wo_number}</td>
-                                                                                                    <td>${wo.customer_name || '---'}</td>
-                                                                                                    <td>${wo.product_name}</td>
-                                                                                                    <td>${progressText}</td>
-                                                                                                    <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
-                                                                                                    <td>${new Date(wo.created_at).toLocaleDateString()}</td>
-                                                                                                    <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
-                                                                                                  </tr>
-                                                                                                `;
+                                                                                                      <tr data-wo-id="${wo.id}" class="wo-row" style="cursor: pointer;">
+                                                                                                        <td>${wo.wo_number}</td>
+                                                                                                        <td>${wo.customer_name || '---'}</td>
+                                                                                                        <td>${wo.product_name}</td>
+                                                                                                        <td>${progressText}</td>
+                                                                                                        <td style="color: ${statusColor}; font-weight: 600;">${displayStatus}</td>
+                                                                                                        <td>${new Date(wo.created_at).toLocaleDateString()}</td>
+                                                                                                        <td>${wo.completed_at ? new Date(wo.completed_at).toLocaleDateString() : '---'}</td>
+                                                                                                      </tr>
+                                                                                                    `;
                     }).join('');
 
                     // Add event listener to the table body for delegation
@@ -2643,36 +2918,36 @@ function setupSidebar(isAdmin) {
             if (woNextBtn) woNextBtn.onclick = () => { if ((woCurrentPage + 1) * ROWS_PER_PAGE < woTotalRows) loadWorkOrders(woCurrentPage + 1); };
 
             async function createWorkOrder() {
-    const woNumber = document.getElementById('new-wo-number').value.trim();
-    const customer = document.getElementById('new-wo-customer').value.trim();
-    const product = document.getElementById('new-wo-product').value.trim();
-    const quantity = parseInt(document.getElementById('new-wo-quantity').value);
-    const idealCycleTime = parseFloat(document.getElementById('new-wo-cycle-time').value);
+                const woNumber = document.getElementById('new-wo-number').value.trim();
+                const customer = document.getElementById('new-wo-customer').value.trim();
+                const product = document.getElementById('new-wo-product').value.trim();
+                const quantity = parseInt(document.getElementById('new-wo-quantity').value);
+                const idealCycleTime = parseFloat(document.getElementById('new-wo-cycle-time').value);
 
-    if (!woNumber || !product || !quantity) return showMessage('Fill required fields.', 'error');
+                if (!woNumber || !product || !quantity) return showMessage('Fill required fields.', 'error');
 
-    if (parsedFeederData.length === 0) {
-        if(!confirm("No Feeder Setup CSV uploaded. Create empty WO?")) return;
-    }
+                if (parsedFeederData.length === 0) {
+                    if (!confirm("No Feeder Setup CSV uploaded. Create empty WO?")) return;
+                }
 
-    const { error } = await supabaseClient.from('work_orders').insert({
-        wo_number: woNumber,
-        customer_name: customer,
-        product_name: product,
-        target_quantity: quantity,
-        status: 'Active',
-        ideal_cycle_time: idealCycleTime,
-        feeder_setup: parsedFeederData // <--- This saves the CSV data!
-    });
+                const { error } = await supabaseClient.from('work_orders').insert({
+                    wo_number: woNumber,
+                    customer_name: customer,
+                    product_name: product,
+                    target_quantity: quantity,
+                    status: 'Active',
+                    ideal_cycle_time: idealCycleTime,
+                    feeder_setup: parsedFeederData // <--- This saves the CSV data!
+                });
 
-    if (error) showMessage(`Error: ${error.message}`, 'error');
-    else {
-        showMessage('Work Order Created!', 'success');
-        document.getElementById('csv-preview-container').style.display = 'none';
-        parsedFeederData = [];
-        loadWorkOrders(0);
-    }
-}
+                if (error) showMessage(`Error: ${error.message}`, 'error');
+                else {
+                    showMessage('Work Order Created!', 'success');
+                    document.getElementById('csv-preview-container').style.display = 'none';
+                    parsedFeederData = [];
+                    loadWorkOrders(0);
+                }
+            }
             if (createWoBtn) createWoBtn.onclick = createWorkOrder;
 
             // NEW, RE-WRITTEN FUNCTION 1
@@ -2735,10 +3010,10 @@ function setupSidebar(isAdmin) {
                 const { data: serials, error, count } = await supabaseClient
                     .from('serial_master')
                     .select(`
-                                                    serial_number,
-                                                    stages,
-                                                    scans(stages)
-                                                `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
+                                                        serial_number,
+                                                        stages,
+                                                        scans(stages)
+                                                    `, { count: 'exact' }) // 'exact' gets us the TOTAL count of all serials for this WO
                     .eq('work_order_id', woDetailsCurrentWOId)
                     .order('serial_number', { ascending: true }) // Sort them consistently
                     .range(from, to);
@@ -2772,14 +3047,14 @@ function setupSidebar(isAdmin) {
                         const statusColor = lastStatus === 'PASS' ? 'var(--success-color)' : (lastStatus === 'FAIL' ? 'var(--danger-color)' : 'var(--text-secondary)');
 
                         return `
-                                                        <tr>
-                                                            <td>${serial.serial_number}</td>
-                                                            <td>${lastStage}</td>
-                                                            <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
-                                                            <td>${lastTimestamp}</td>
-                                                            <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
-                                                        </tr>
-                                                    `;
+                                                            <tr>
+                                                                <td>${serial.serial_number}</td>
+                                                                <td>${lastStage}</td>
+                                                                <td style="font-weight: 600; color:${statusColor}">${lastStatus}</td>
+                                                                <td>${lastTimestamp}</td>
+                                                                <td title="${lastRemarks}">${lastRemarks.length > 30 ? lastRemarks.substring(0, 30) + '...' : lastRemarks || '---'}</td>
+                                                            </tr>
+                                                        `;
                     }).join('');
                 }
 
@@ -2819,16 +3094,16 @@ function setupSidebar(isAdmin) {
                     return;
                 }
                 employeeTableBody.innerHTML = allEmployees.map(emp => `
-                                                                                               <tr>
-                                                                                                 <td>${emp.emp_id}</td>
-                                                                                                 <td>${emp.role || 'operator'}</td>
-                                                                                                 <td>${(emp.stages || []).join(', ')}</td>
-                                                                                                 <td class="employee-actions">
-                                                                                                   <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
-                                                                                                   <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
-                                                                                                 </td>
-                                                                                               </tr>
-                                                                                             `).join('');
+                                                                                                   <tr>
+                                                                                                     <td>${emp.emp_id}</td>
+                                                                                                     <td>${emp.role || 'operator'}</td>
+                                                                                                     <td>${(emp.stages || []).join(', ')}</td>
+                                                                                                     <td class="employee-actions">
+                                                                                                       <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
+                                                                                                       <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
+                                                                                                     </td>
+                                                                                                   </tr>
+                                                                                                 `).join('');
             }
 
             if (createEmployeeBtn) {
@@ -3263,16 +3538,16 @@ function setupSidebar(isAdmin) {
                             ? `<button onclick="window.clearDowntime(${row.id})" class="btn btn-success" style="width:auto;padding:8px 12px;">Clear</button>`
                             : (row.action_taken || 'Resolved');
                         return `
-                                                                                                    <tr>
-                                                                                                        <td>${row.reason}</td>
-                                                                                                        <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
-                                                                                                        <td>${startTime.toLocaleString()}</td>
-                                                                                                        <td>${endTime ? endTime.toLocaleString() : '---'}</td>
-                                                                                                        <td>${duration}</td>
-                                                                                                        <td>${row.attending_person}</td>
-                                                                                                        <td>${actionCellContent}</td>
-                                                                                                    </tr>
-                                                                                                `;
+                                                                                                        <tr>
+                                                                                                            <td>${row.reason}</td>
+                                                                                                            <td>${row.machine_name} ${row.machine_model ? `(${row.machine_model})` : ''}</td>
+                                                                                                            <td>${startTime.toLocaleString()}</td>
+                                                                                                            <td>${endTime ? endTime.toLocaleString() : '---'}</td>
+                                                                                                            <td>${duration}</td>
+                                                                                                            <td>${row.attending_person}</td>
+                                                                                                            <td>${actionCellContent}</td>
+                                                                                                        </tr>
+                                                                                                    `;
                     }).join('');
                 }
 
@@ -3523,17 +3798,17 @@ function setupSidebar(isAdmin) {
                         const remarks = row.lastRemarks || '';
                         const truncatedRemarks = remarks.length > 20 ? remarks.substring(0, 20) + '...' : remarks;
                         return `
-                                                                                               <tr>
-                                                                                                 <td>${row.serial}</td>
-                                                                                                 <td>${row.po}</td>
-                                                                                                 <td>${row.customer}</td>
-                                                                                                 <td>${row.product}</td>
-                                                                                                 <td>${row.lastStage || ''}</td>
-                                                                                                 <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
-                                                                                                 <td>${row.lastEmpId || ''}</td>
-                                                                                                 <td title="${remarks}">${truncatedRemarks || '---'}</td>
-                                                                                                 <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
-                                                                                               </tr>`
+                                                                                                   <tr>
+                                                                                                     <td>${row.serial}</td>
+                                                                                                     <td>${row.po}</td>
+                                                                                                     <td>${row.customer}</td>
+                                                                                                     <td>${row.product}</td>
+                                                                                                     <td>${row.lastStage || ''}</td>
+                                                                                                     <td style="font-weight: 600; color:${row.lastStatus === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${row.lastStatus || ''}</td>
+                                                                                                     <td>${row.lastEmpId || ''}</td>
+                                                                                                     <td title="${remarks}">${truncatedRemarks || '---'}</td>
+                                                                                                     <td><button onclick="window.viewDetails('${row.serial}')" class="btn btn-light" style="width:auto;padding:8px 12px;">View</button></td>
+                                                                                                   </tr>`
                     }).join('');
                 }
 
@@ -3577,22 +3852,22 @@ function setupSidebar(isAdmin) {
 
                 if (modalBody) {
                     modalBody.innerHTML = `
-                                                                                                   <div class="table-wrapper">
-                                                                                                     <table>
-                                                                                                       <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
-                                                                                                       <tbody>
-                                                                                                         ${sortedStages.map(s => `
-                                                                                                           <tr>
-                                                                                                             <td>${s.stage || ''}</td>
-                                                                                                             <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
-                                                                                                             <td>${s.emp_id || ''}</td>
-                                                                                                             <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
-                                                                                                             <td>${s.remarks || ''}</td>
-                                                                                                           </tr>`).join('')}
-                                                                                                          ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
-                                                                                                       </tbody>
-                                                                                                     </table>
-                                                                                                   </div>`;
+                                                                                                       <div class="table-wrapper">
+                                                                                                         <table>
+                                                                                                           <thead><tr><th>Stage</th><th>Status</th><th>Emp ID</th><th>Timestamp</th><th>Remarks</th></tr></thead>
+                                                                                                           <tbody>
+                                                                                                             ${sortedStages.map(s => `
+                                                                                                               <tr>
+                                                                                                                 <td>${s.stage || ''}</td>
+                                                                                                                 <td style="font-weight: 600; color:${s.status === 'PASS' ? 'var(--success-color)' : 'var(--danger-color)'}">${s.status || ''}</td>
+                                                                                                                 <td>${s.emp_id || ''}</td>
+                                                                                                                 <td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : ''}</td>
+                                                                                                                 <td>${s.remarks || ''}</td>
+                                                                                                               </tr>`).join('')}
+                                                                                                              ${sortedStages.length === 0 ? '<tr><td colspan="5" class="loading-cell">No scan history found for this serial.</td></tr>' : ''}
+                                                                                                           </tbody>
+                                                                                                         </table>
+                                                                                                       </div>`;
                     if (modal) modal.classList.add('active');
                 } else {
                     console.error("Modal body not found!");
@@ -3684,16 +3959,16 @@ function setupSidebar(isAdmin) {
 
                 // Use the new field names from the database function
                 reworkTableBody.innerHTML = data.map(item => `
-                                    <tr>
-                                        <td>${item.serial}</td>
-                                        <td>${item.wo}</td>
-                                        <td>${item.customer}</td>
-                                        <td>${item.product}</td>
-                                        <td>${item.failedstage}</td>
-                                        <td>${item.remarks || '---'}</td>
-                                        <td>${new Date(item.timestamp).toLocaleString()}</td>
-                                    </tr>
-                                `).join('');
+                                        <tr>
+                                            <td>${item.serial}</td>
+                                            <td>${item.wo}</td>
+                                            <td>${item.customer}</td>
+                                            <td>${item.product}</td>
+                                            <td>${item.failedstage}</td>
+                                            <td>${item.remarks || '---'}</td>
+                                            <td>${new Date(item.timestamp).toLocaleString()}</td>
+                                        </tr>
+                                    `).join('');
             }
 
             // --- Inside your serial scan/detail handling (merged fragments) ---
@@ -3726,26 +4001,26 @@ function setupSidebar(isAdmin) {
 
                     // Render NCR details in UI
                     document.getElementById('ncr-details').innerHTML = `
-                                        <table class="ncr-table">
-                                            <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
-                                            <tr>
-                                                <td class="field-label">Root Cause:</td>
-                                                <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="field-label">Proposed correction (long-term):</td>
-                                                <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="field-label">Immediate correction:</td>
-                                                <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="field-label">Action By:</td>
-                                                <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
-                                            </tr>
-                                        </table>
-                                    `;
+                                            <table class="ncr-table">
+                                                <tr><td class="section-title" colspan="4">Details of Non-conformance</td></tr>
+                                                <tr>
+                                                    <td class="field-label">Root Cause:</td>
+                                                    <td colspan="3" class="content-box">${ncr?.root_cause || 'Pending analysis...'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="field-label">Proposed correction (long-term):</td>
+                                                    <td colspan="3" class="content-box">${ncr?.corrective_action_plan || 'Pending analysis...'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="field-label">Immediate correction:</td>
+                                                    <td colspan="3" class="content-box">${ncr?.correction_notes || 'Pending...'}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="field-label">Action By:</td>
+                                                    <td colspan="3" class="content-box">${ncr?.action_by || '---'}</td>
+                                                </tr>
+                                            </table>
+                                        `;
                 }
 
                 // Update completion flag if needed
@@ -4256,14 +4531,14 @@ function setupSidebar(isAdmin) {
                     return;
                 }
                 body.innerHTML = statsArray.map(([product, data]) => `
-                                                <tr>
-                                                    <td>${product}</td>
-                                                    <td>${data.wo}</td>
-                                                    <td>${data.cust}</td>
-                                                    <td>${data.pass}</td>
-                                                    <td>${data.fail}</td>
-                                                </tr>
-                                            `).join('');
+                                                    <tr>
+                                                        <td>${product}</td>
+                                                        <td>${data.wo}</td>
+                                                        <td>${data.cust}</td>
+                                                        <td>${data.pass}</td>
+                                                        <td>${data.fail}</td>
+                                                    </tr>
+                                                `).join('');
             }
             window.closeChartDetailsModal = function () {
                 const modal = document.getElementById('chart-details-modal');
@@ -4298,21 +4573,21 @@ function setupSidebar(isAdmin) {
                 }
 
                 tableBody.innerHTML = data.map(ncr => `
-                                    <tr>
-                                        <td>${ncr.id}</td>
-                                        <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
-                                            ${ncr.status}
-                                        </td>
-                                        <td>${ncr.serial_number}</td>
-                                        <td>${ncr.failure_stage}</td>
-                                        <td>${ncr.failure_remark}</td>
-                                        <td>${ncr.raised_by_emp_id}</td>
-                                        <td class="employee-actions">
-                                            <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
-                                            <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
-                                        </td>
-                                    </tr>
-                                `).join('');
+                                        <tr>
+                                            <td>${ncr.id}</td>
+                                            <td style="font-weight: 600; color: ${ncr.status === 'Closed' ? 'var(--text-secondary)' : 'var(--warning-color)'};">
+                                                ${ncr.status}
+                                            </td>
+                                            <td>${ncr.serial_number}</td>
+                                            <td>${ncr.failure_stage}</td>
+                                            <td>${ncr.failure_remark}</td>
+                                            <td>${ncr.raised_by_emp_id}</td>
+                                            <td class="employee-actions">
+                                                <button onclick="window.editNcrReport(${ncr.id})" class="btn btn-light">View/Edit</button>
+                                                <button onclick="window.printNcrReport(${ncr.id})" class="btn btn-primary" style="background: var(--glow-red);">Print PDF</button>
+                                            </td>
+                                        </tr>
+                                    `).join('');
             }
 
             /**
@@ -4430,16 +4705,16 @@ function setupSidebar(isAdmin) {
                 const { data: ncr, error } = await supabaseClient
                     .from('non_conformance_reports')
                     .select(`
-                                            *,
-                                            serial_master (
-                                                serial_number,
-                                                work_orders (
-                                                    wo_number,
-                                                    customer_name,
-                                                    product_name
+                                                *,
+                                                serial_master (
+                                                    serial_number,
+                                                    work_orders (
+                                                        wo_number,
+                                                        customer_name,
+                                                        product_name
+                                                    )
                                                 )
-                                            )
-                                        `)
+                                            `)
                     .eq('id', ncrId)
                     .single();
 
@@ -4454,150 +4729,150 @@ function setupSidebar(isAdmin) {
                 const div = document.createElement('div');
                 div.innerHTML = `
 <style>
-                            @page { size: A4; margin: 0; }
-                            * { box-sizing: border-box; margin: 0; padding: 0; }
-                            body, html { margin: 0; padding: 0; }
+                                @page { size: A4; margin: 0; }
+                                * { box-sizing: border-box; margin: 0; padding: 0; }
+                                body, html { margin: 0; padding: 0; }
 
-                            .page {
-                                width: 210mm;
-                                /* VVV --- THIS LINE IS THE FIX --- VVV */
-                                /* REMOVED height: 297mm; to prevent blank second page */
-                                padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
-                                font-family: Arial, Helvetica, sans-serif;
-                                font-size: 7.4pt;
-                                line-height: 1.32;
-                                color: #000;
-                                background: #fff;
-                            }
+                                .page {
+                                    width: 210mm;
+                                    /* VVV --- THIS LINE IS THE FIX --- VVV */
+                                    /* REMOVED height: 297mm; to prevent blank second page */
+                                    padding: 8mm 8mm 10mm 8mm;     /* T:8, R:8, B:10, L:8 */
+                                    font-family: Arial, Helvetica, sans-serif;
+                                    font-size: 7.4pt;
+                                    line-height: 1.32;
+                                    color: #000;
+                                    background: #fff;
+                                }
 
-                            table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
-                            td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
+                                table { width: 100%; border-collapse: collapse; margin-bottom: 1.2mm; }
+                                td { border: 1px solid #000; padding: 1.4mm 1.6mm; vertical-align: top; font-size: 7.4pt; word-wrap: break-word; }
 
-                            .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
-                            .logo { max-height: 18mm; object-fit: contain; }
-                            .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
+                                .hdr td { background: #e0e0e0; font-weight: bold; text-align: center; }
+                                .logo { max-height: 18mm; object-fit: contain; }
+                                .title { font-size: 14.5pt; font-weight: bold; vertical-align: middle; }
 
-                            .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
-                            .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
+                                .lbl { font-weight: bold; background: #f0f0f0; width: 19%; white-space: nowrap; }
+                                .sect { background: #333 !important; color: #fff !important; text-align: center; font-weight: bold; font-size: 7.8pt; padding: 1.5mm; -webkit-print-color-adjust: exact; color-adjust: exact; }
 
-                            .box { min-height: 6mm; line-height: 1.35; }
-                            .chk span { margin-right: 2px; }
-                            .avoid { page-break-inside: avoid; }
+                                .box { min-height: 6mm; line-height: 1.35; }
+                                .chk span { margin-right: 2px; }
+                                .avoid { page-break-inside: avoid; }
 </style>
 
 <div class="page">
-                            <table class="hdr">
-                                <tr>
-                                    <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
-                                    <td style="width:54%;" class="title">Non-Conformance Report</td>
-                                    <td style="width:24%; text-align:left; padding-left:4px;">
-                                        <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
-                                        <b>NCR No.:</b> ${ncr.id}
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <table>
-                                <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
-                                <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
-                            </table>
-
-                            <table>
-                                <tr>
-                                    <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
-                                    <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
-                                </tr>
-                                <tr>
-                                    <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
-                                    <td class="lbl">Priority:</td>
-                                    <td class="chk">
-                                        ${boolCb(ncr.priority === 'Low')} Low
-                                        ${boolCb(ncr.priority === 'Medium')} Medium
-                                        ${boolCb(ncr.priority === 'High')} High
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <table>
-                                <tr>
-                                    <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
-                                    <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
-                                </tr>
-                            </table>
-
-                            <table>
-                                <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
-                                <tr>
-                                    <td class="chk">${cb('Design', ncr.classification)} Design</td>
-                                    <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
-                                    <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
-                                </tr>
-                                <tr>
-                                    <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
-                                    <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
-                                    <td class="chk">${cb('Material', ncr.classification)} Material</td>
-                                </tr>
-                                <tr>
-                                    <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
-                                    <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
-                                    <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
-                                </tr>
-                            </table>
-
-                            <table>
-                                <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
-                                <tr><td class="lbl">Cause of NCR determined:</td>
-                                    <td class="box">
-                                        ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
-                                        ${ncr.root_cause || '...'}
-                                    </td>
-                                </tr>
-                            </table>
-
-                            <table>
-                                <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
-                                <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
-                                <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
-                            </table>
-
-                            <table>
-                                <tr>
-                                    <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
-                                    <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
-                                </tr>
-                                <tr>
-                                    <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
-                                    <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
-                                </tr>
-                            </table>
-
-                            <div class="avoid">
-                                <table>
-                                    <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
-                                    <tr><td class="box">
-                                        The implementation and effectiveness of corrective measures were checked and found to be:<br>
-                                        ${boolCb(ncr.status === 'Closed')} Acceptable<br>
-                                        ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
-                                        <b>Comments:</b> ${ncr.follow_up_comments || '...'}
-                                    </td></tr>
+                                <table class="hdr">
+                                    <tr>
+                                        <td style="width:28%;"><img src="${companyLogoUrl}" class="logo"></td>
+                                        <td style="width:54%;" class="title">Non-Conformance Report</td>
+                                        <td style="width:24%; text-align:left; padding-left:4px;">
+                                            <b>Date:</b> ${fmt(ncr.created_at)}<br><br>
+                                            <b>NCR No.:</b> ${ncr.id}
+                                        </td>
+                                    </tr>
                                 </table>
 
                                 <table>
-                                    <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+                                    <tr><td class="lbl">Project:</td><td colspan="3">${ncr.serial_master?.work_orders?.product_name || 'N/A'}</td></tr>
+                                    <tr><td class="lbl">Customer:</td><td colspan="3">${ncr.serial_master?.work_orders?.customer_name || 'N/A'}</td></tr>
+                                </table>
+
+                                <table>
                                     <tr>
-                                        <td class="lbl" style="width:26%;">NCR correction checked by:</td>
-                                        <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
-                                        <td class="lbl" style="width:14%;">Date:</td>
-                                        <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+                                        <td class="lbl">Work Order No.:</td><td style="width:31%;">${ncr.serial_master?.work_orders?.wo_number || 'N/A'}</td>
+                                        <td class="lbl">Failed at Stage:</td><td style="width:31%;">${ncr.failure_stage || 'N/A'}</td>
                                     </tr>
                                     <tr>
-                                        <td class="lbl">NCR correction approved by:</td>
-                                        <td>${ncr.verified_by_emp_id || '...'}</td>
-                                        <td class="lbl">Date:</td>
-                                        <td>${fmt(ncr.closure_date)}</td>
+                                        <td class="lbl">Serial No.:</td><td>${ncr.serial_number || 'N/A'}</td>
+                                        <td class="lbl">Priority:</td>
+                                        <td class="chk">
+                                            ${boolCb(ncr.priority === 'Low')} Low
+                                            ${boolCb(ncr.priority === 'Medium')} Medium
+                                            ${boolCb(ncr.priority === 'High')} High
+                                        </td>
                                     </tr>
                                 </table>
-                            </div>
+
+                                <table>
+                                    <tr>
+                                        <td class="lbl">NCR raised by:</td><td style="width:35%;">${ncr.raised_by_emp_id || 'N/A'}</td>
+                                        <td class="lbl">NCR issued to:</td><td>Production / Quality</td>
+                                    </tr>
+                                </table>
+
+                                <table>
+                                    <tr><td colspan="3" class="sect">Classification of Non-conformance</td></tr>
+                                    <tr>
+                                        <td class="chk">${cb('Design', ncr.classification)} Design</td>
+                                        <td class="chk">${cb('Manufacturing', ncr.classification)} Manufacturing</td>
+                                        <td class="chk">${cb('Damage', ncr.classification)} Damage</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="chk">${cb('Workmanship', ncr.classification)} Workmanship</td>
+                                        <td class="chk">${cb('Quality', ncr.classification)} Quality</td>
+                                        <td class="chk">${cb('Material', ncr.classification)} Material</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="chk">${cb('Other', ncr.classification)} Other (specify)</td>
+                                        <td class="chk">${cb('Contractual', ncr.classification)} Contractual</td>
+                                        <td class="chk">${cb('Construction', ncr.classification)} Construction</td>
+                                    </tr>
+                                </table>
+
+                                <table>
+                                    <tr><td class="lbl">Details of Non-conformance:</td><td class="box">${ncr.failure_remark || 'N/A'}</td></tr>
+                                    <tr><td class="lbl">Cause of NCR determined:</td>
+                                        <td class="box">
+                                            ${boolCb(!!ncr.root_cause)} Yes ${boolCb(!ncr.root_cause)} No (if yes describe)<br>
+                                            ${ncr.root_cause || '...'}
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <table>
+                                    <tr><td colspan="2" class="sect">Correction of NCR</td></tr>
+                                    <tr><td class="lbl">Correction / Short-term action:</td><td class="box">${ncr.correction_notes || 'Pending...'}</td></tr>
+                                    <tr><td class="lbl">Proposed correction (long-term action and prevention):</td><td class="box">${ncr.corrective_action_plan || 'Pending analysis...'}</td></tr>
+                                </table>
+
+                                <table>
+                                    <tr>
+                                        <td class="lbl">Action By:</td><td style="width:34%;">${ncr.correction_by_emp_id || '...'}</td>
+                                        <td class="lbl">Completion Date:</td><td style="width:34%;">${fmt(ncr.correction_date)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="lbl">Approved by:</td><td>${ncr.verified_by_emp_id || '...'}</td>
+                                        <td class="lbl">Date:</td><td>${fmt(ncr.closure_date)}</td>
+                                    </tr>
+                                </table>
+
+                                <div class="avoid">
+                                    <table>
+                                        <tr><td class="sect">Follow-up of Non-conformity correction</td></tr>
+                                        <tr><td class="box">
+                                            The implementation and effectiveness of corrective measures were checked and found to be:<br>
+                                            ${boolCb(ncr.status === 'Closed')} Acceptable<br>
+                                            ${boolCb(ncr.status !== 'Closed' && ncr.status !== 'Open (Awaiting Correction)')} Not acceptable & further remedial action required<br>
+                                            <b>Comments:</b> ${ncr.follow_up_comments || '...'}
+                                        </td></tr>
+                                    </table>
+
+                                    <table>
+                                        <tr><td colspan="4" class="sect">Non-conformity closure</td></tr>
+                                        <tr>
+                                            <td class="lbl" style="width:26%;">NCR correction checked by:</td>
+                                            <td style="width:24%;">${ncr.verified_by_emp_id || '...'}</td>
+                                            <td class="lbl" style="width:14%;">Date:</td>
+                                            <td style="width:36%;">${fmt(ncr.closure_date)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="lbl">NCR correction approved by:</td>
+                                            <td>${ncr.verified_by_emp_id || '...'}</td>
+                                            <td class="lbl">Date:</td>
+                                            <td>${fmt(ncr.closure_date)}</td>
+                                        </tr>
+                                    </table>
+                                </div>
 </div>`;
 
                 document.body.appendChild(div);
@@ -4768,178 +5043,287 @@ function setupSidebar(isAdmin) {
                     const total = op.pass_count + op.fail_count;
                     const yield = total > 0 ? ((op.pass_count / total) * 100).toFixed(1) : "0.0";
                     return `
-                                        <tr>
-                                            <td>${op.emp_id}</td>
-                                            <td>${total}</td>
-                                            <td>${op.pass_count}</td>
-                                            <td>${op.fail_count}</td>
-                                            <td style="font-weight: 600; color: ${yield >= 95 ? 'var(--glow-green)' : 'var(--warning-color)'}">${yield}%</td>
-                                        </tr>
-                                    `;
+                                            <tr>
+                                                <td>${op.emp_id}</td>
+                                                <td>${total}</td>
+                                                <td>${op.pass_count}</td>
+                                                <td>${op.fail_count}</td>
+                                                <td style="font-weight: 600; color: ${yield >= 95 ? 'var(--glow-green)' : 'var(--warning-color)'}">${yield}%</td>
+                                            </tr>
+                                        `;
                 }).join('');
             }
             // --- ^^^ END OF NEW CODE BLOCK ^^^ ---
             // --- NEW: OEE Analytics Page Functions ---
+            // --- Updated Handler: Realistic Measurement Simulation ---
+            window.handleReloadScan = async function (scannedValue) {
+                if (!scannedValue) return;
+                scannedValue = scannedValue.trim();
 
-            // --- OPERATOR RELOAD FUNCTIONS ---
+                // 1. Start Animation
+                const animController = startJigAnimation();
 
-// --- COMPONENT RELOADING LOGIC (Attached to Window) ---
+                // 2. Fetch Data
+                const partData = await processReloadDbCheck(scannedValue);
 
-window.handleReloadScan = async function(scannedValue) {
-    if (!scannedValue) return;
-    scannedValue = scannedValue.trim();
-    
-    const currentSide = document.getElementById('reload-process-side').value;
+                // 3. Generate a "Real" Measured Value
+                let measuredValue = "VERIFIED"; // Default if no value found
 
-    // Reset UI
-    document.getElementById('target-machine').value = "...";
-    document.getElementById('target-slot').value = "...";
-    document.getElementById('reload-description').value = "";
-    document.getElementById('reload-wo-display').value = "Searching...";
+                if (partData.found && partData.description) {
+                    // Generates e.g. "9.98 kΩ" from "10k"
+                    measuredValue = simulateRealMeasurement(partData.description);
+                } else if (!partData.found) {
+                    measuredValue = "FAIL";
+                }
 
-    try {
-        const { data: activeWOs, error } = await supabaseClient
-            .from('work_orders')
-            .select('id, wo_number, feeder_setup')
-            .eq('status', 'Active');
+                // 4. Finish Animation
+                finishJigAnimation(animController, measuredValue, partData.found);
+            };
 
-        if (error) throw error;
+            // --- Helper: Realistic Resistor & Capacitor Formatting ---
+            function simulateRealMeasurement(description) {
+                // 1. Extract number and unit
+                const match = description.match(/(\d+(\.\d+)?)\s*([kKmMuUnNpP])?[fFoO\u03A9R]?/);
+                if (!match) return "VERIFIED";
 
-        let allMatches = [];
+                let val = parseFloat(match[1]);
+                let unitPrefix = match[3] || "";
 
-        // Search logic
-        activeWOs.forEach(wo => {
-            if (wo.feeder_setup && Array.isArray(wo.feeder_setup)) {
-                const matchingRows = wo.feeder_setup.filter(row => 
-                    row.part_number && 
-                    row.part_number.toLowerCase() === scannedValue.toLowerCase() &&
-                    row.side === currentSide
-                );
-                matchingRows.forEach(row => allMatches.push({ wo: wo, setup: row }));
+                // Normalize prefix case
+                if (["U", "N", "P"].includes(unitPrefix)) unitPrefix = unitPrefix.toLowerCase();
+
+                // 2. Add Variance (+/- 2%)
+                const variance = 1 + (Math.random() * 0.04 - 0.02);
+                val = val * variance;
+
+                // 3. AUTO-RANGE (For Capacitors < 1)
+                let finalUnit = unitPrefix;
+                if (val < 1 && ["u", "n", "k", "M"].includes(unitPrefix)) {
+                    if (unitPrefix === "u") { val *= 1000; finalUnit = "n"; }
+                    else if (unitPrefix === "n") { val *= 1000; finalUnit = "p"; }
+                    else if (unitPrefix === "k") { val *= 1000; finalUnit = ""; }
+                    else if (unitPrefix === "M") { val *= 1000; finalUnit = "k"; }
+                }
+
+                // 4. Clean Format (Remove trailing zeros)
+                // toPrecision(3) turns 9.8812 -> "9.88", 10.023 -> "10.0"
+                let formattedVal = parseFloat(val.toPrecision(3)).toString();
+
+                // 5. Append Suffix (F or Ω)
+                let suffix = "Ω";
+                // If unit is u, n, p OR description has 'F'/'Cap', use F
+                if (["u", "n", "p"].includes(finalUnit) || description.toLowerCase().includes("f")) {
+                    suffix = "F";
+                }
+
+                // Combine: "9.88 kΩ"
+                return `${formattedVal} ${finalUnit}${suffix}`;
             }
-        });
 
-        if (allMatches.length === 0) {
-            document.getElementById('reload-wo-display').value = "Not Found";
-            showMessage(`Part not found on ${currentSide} side.`, "error");
-        } else if (allMatches.length === 1) {
-            selectPartMatch(allMatches[0]);
-        } else {
-            showPartConflictModal(allMatches);
-        }
+            // --- Animation Starter (No changes needed here, just ensuring connection) ---
+            function startJigAnimation() {
+                const hand = document.getElementById('anim-hand');
+                const compMoving = document.getElementById('comp-moving');
+                const compStatic = document.getElementById('comp-static');
+                const instrText = document.getElementById('instr-text');
+                const resultInput = document.getElementById('reload-measured-value');
 
-    } catch (err) {
-        console.error(err);
-        showMessage("Error: " + err.message, "error");
-    }
-};
+                hand.classList.remove('anim-place-slow');
+                compMoving.style.opacity = '1';
+                compStatic.style.opacity = '0';
+                resultInput.value = "Testing...";
+                resultInput.style.color = "#ffcc00";
+                instrText.innerText = "PLACING COMPONENT...";
+                instrText.style.color = "#00aaff";
 
-window.submitComponentReload = async function() {
-    const woId = document.getElementById('reload-wo-id').value;
-    const partNo = document.getElementById('reload-part-scan').value;
-    const qty = document.getElementById('reload-qty').value;
-    const side = document.getElementById('reload-process-side').value;
+                void hand.offsetWidth;
+                hand.classList.add('anim-place-slow');
 
-    if (!woId || !partNo || !qty) {
-        showMessage("Please complete scan and quantity.", "error");
-        return;
-    }
+                return { hand, compMoving, compStatic, instrText, resultInput };
+            }
 
-    const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+            // --- Animation Finisher ---
+            function finishJigAnimation(elements, finalValue, isSuccess) {
+                const { compMoving, compStatic, instrText, resultInput } = elements;
 
-    const { error } = await supabaseClient.from('component_logs').insert([{
-        wo_id: woId,
-        part_number: partNo,
-        description: document.getElementById('reload-description').value,
-        reel_qty: qty,
-        machine_id: document.getElementById('target-machine').value,
-        target_slot: document.getElementById('target-slot').value,
-        process_side: side,
-        emp_id: userId,
-        created_at: new Date().toISOString()
-    }]);
+                // Release Component at 1.2s
+                setTimeout(() => {
+                    compMoving.style.opacity = '0';
+                    compStatic.style.opacity = '1';
+                    instrText.innerText = "MEASURING...";
+                }, 1200);
 
-    if (error) {
-        showMessage("Save Failed: " + error.message, "error");
-    } else {
-        showMessage("Reload Recorded Successfully!", "success");
-        document.getElementById('reload-part-scan').value = '';
-        document.getElementById('reload-qty').value = '';
-        document.getElementById('target-machine').value = '';
-        document.getElementById('target-slot').value = '';
-        document.getElementById('reload-wo-display').value = '';
-        document.getElementById('reload-part-scan').focus();
-    }
-};
+                // Show Result at 2.4s
+                setTimeout(() => {
+                    if (isSuccess) {
+                        instrText.innerText = "TEST PASSED";
+                        instrText.style.color = "#39ff14";
+                        resultInput.style.color = "#39ff14";
+                    } else {
+                        instrText.innerText = "TEST FAILED";
+                        instrText.style.color = "#ff3131";
+                        resultInput.style.color = "#ff3131";
+                    }
+                    resultInput.value = finalValue;
+                }, 2400);
+            }
 
-// --- Helpers for the modal ---
-window.selectPartMatch = function(match) {
-    document.getElementById('reload-wo-display').value = match.wo.wo_number;
-    document.getElementById('reload-wo-id').value = match.wo.id;
-    document.getElementById('target-machine').value = match.setup.machine;
-    document.getElementById('target-slot').value = match.setup.slot;
-    document.getElementById('reload-description').value = match.setup.description;
-    
-    document.getElementById('part-selection-modal').style.display = 'none';
-    showMessage("Part Found! Please verify Qty.", "success");
-    document.getElementById('reload-qty').focus();
-};
+            // --- Database Logic (Unchanged) ---
+            async function processReloadDbCheck(scannedValue) {
+                const currentSide = document.getElementById('reload-process-side').value;
 
-window.showPartConflictModal = function(matches) {
-    const container = document.getElementById('part-conflict-list');
-    if(!container) return;
-    container.innerHTML = '';
-    
-    matches.forEach(match => {
-        const div = document.createElement('div');
-        div.style.cssText = "padding: 10px; border: 1px solid #444; margin-bottom: 5px; cursor: pointer; background: #0d1117;";
-        div.innerHTML = `<div style="color:var(--primary-blue)">${match.wo.wo_number}</div><div>${match.setup.machine} - Slot: <b style="color:var(--glow-green)">${match.setup.slot}</b></div>`;
-        div.onclick = () => window.selectPartMatch(match);
-        container.appendChild(div);
-    });
-    
-    document.getElementById('part-selection-modal').style.display = 'block';
-};
+                document.getElementById('target-machine').value = "...";
+                document.getElementById('target-slot').value = "...";
+                document.getElementById('reload-description').value = "";
+                document.getElementById('reload-wo-display').value = "Searching...";
 
-async function submitComponentReload() {
-    const woId = document.getElementById('reload-wo-id').value;
-    const partNo = document.getElementById('reload-part-scan').value;
-    const qty = document.getElementById('reload-qty').value;
-    const side = document.getElementById('reload-process-side').value;
+                try {
+                    const { data: activeWOs, error } = await supabaseClient
+                        .from('work_orders')
+                        .select('id, wo_number, feeder_setup')
+                        .eq('status', 'Active');
 
-    if (!woId || !partNo || !qty) {
-        showMessage("Please complete scan and quantity.", "error");
-        return;
-    }
+                    if (error) throw error;
 
-    // Auto-Capture User ID
-    const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+                    let allMatches = [];
+                    activeWOs.forEach(wo => {
+                        if (wo.feeder_setup && Array.isArray(wo.feeder_setup)) {
+                            const matchingRows = wo.feeder_setup.filter(row =>
+                                row.part_number &&
+                                row.part_number.toLowerCase() === scannedValue.toLowerCase() &&
+                                row.side === currentSide
+                            );
+                            matchingRows.forEach(row => allMatches.push({ wo: wo, setup: row }));
+                        }
+                    });
 
-    const { error } = await supabaseClient.from('component_logs').insert([{
-        wo_id: woId,
-        part_number: partNo,
-        description: document.getElementById('reload-description').value,
-        reel_qty: qty,
-        machine_id: document.getElementById('target-machine').value,
-        target_slot: document.getElementById('target-slot').value,
-        process_side: side,
-        emp_id: userId,
-        created_at: new Date().toISOString()
-    }]);
+                    if (allMatches.length === 0) {
+                        document.getElementById('reload-wo-display').value = "Not Found";
+                        showMessage(`Part not found on ${currentSide} side.`, "error");
+                        return { found: false, description: null };
+                    }
+                    else if (allMatches.length === 1) {
+                        const match = allMatches[0];
+                        selectPartMatch(match);
+                        return { found: true, description: match.setup.description };
+                    }
+                    else {
+                        showPartConflictModal(allMatches);
+                        return { found: true, description: "SELECT PART" };
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showMessage("Error: " + err.message, "error");
+                    return { found: false, description: null };
+                }
+            }
 
-    if (error) {
-        showMessage("Save Failed: " + error.message, "error");
-    } else {
-        showMessage("Reload Recorded Successfully!", "success");
-        // Clear Scan Fields
-        document.getElementById('reload-part-scan').value = '';
-        document.getElementById('reload-qty').value = '';
-        document.getElementById('target-machine').value = '';
-        document.getElementById('target-slot').value = '';
-        document.getElementById('reload-wo-display').value = '';
-        document.getElementById('reload-part-scan').focus();
-    }
-}
+            window.submitComponentReload = async function () {
+                const woId = document.getElementById('reload-wo-id').value;
+                const partNo = document.getElementById('reload-part-scan').value;
+                const qty = document.getElementById('reload-qty').value;
+                const side = document.getElementById('reload-process-side').value;
+
+                if (!woId || !partNo || !qty) {
+                    showMessage("Please complete scan and quantity.", "error");
+                    return;
+                }
+
+                const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+
+                const { error } = await supabaseClient.from('component_logs').insert([{
+                    wo_id: woId,
+                    part_number: partNo,
+                    description: document.getElementById('reload-description').value,
+                    reel_qty: qty,
+                    machine_id: document.getElementById('target-machine').value,
+                    target_slot: document.getElementById('target-slot').value,
+                    process_side: side,
+                    emp_id: userId,
+                    created_at: new Date().toISOString()
+                }]);
+
+                if (error) {
+                    showMessage("Save Failed: " + error.message, "error");
+                } else {
+                    showMessage("Reload Recorded Successfully!", "success");
+                    document.getElementById('reload-part-scan').value = '';
+                    document.getElementById('reload-qty').value = '';
+                    document.getElementById('target-machine').value = '';
+                    document.getElementById('target-slot').value = '';
+                    document.getElementById('reload-wo-display').value = '';
+                    document.getElementById('reload-part-scan').focus();
+                }
+            };
+
+            // --- Helpers for the modal ---
+            window.selectPartMatch = function (match) {
+                document.getElementById('reload-wo-display').value = match.wo.wo_number;
+                document.getElementById('reload-wo-id').value = match.wo.id;
+                document.getElementById('target-machine').value = match.setup.machine;
+                document.getElementById('target-slot').value = match.setup.slot;
+                document.getElementById('reload-description').value = match.setup.description;
+
+                document.getElementById('part-selection-modal').style.display = 'none';
+                showMessage("Part Found! Please verify Qty.", "success");
+                document.getElementById('reload-qty').focus();
+            };
+
+            window.showPartConflictModal = function (matches) {
+                const container = document.getElementById('part-conflict-list');
+                if (!container) return;
+                container.innerHTML = '';
+
+                matches.forEach(match => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "padding: 10px; border: 1px solid #444; margin-bottom: 5px; cursor: pointer; background: #0d1117;";
+                    div.innerHTML = `<div style="color:var(--primary-blue)">${match.wo.wo_number}</div><div>${match.setup.machine} - Slot: <b style="color:var(--glow-green)">${match.setup.slot}</b></div>`;
+                    div.onclick = () => window.selectPartMatch(match);
+                    container.appendChild(div);
+                });
+
+                document.getElementById('part-selection-modal').style.display = 'block';
+            };
+
+            async function submitComponentReload() {
+                const woId = document.getElementById('reload-wo-id').value;
+                const partNo = document.getElementById('reload-part-scan').value;
+                const qty = document.getElementById('reload-qty').value;
+                const side = document.getElementById('reload-process-side').value;
+
+                if (!woId || !partNo || !qty) {
+                    showMessage("Please complete scan and quantity.", "error");
+                    return;
+                }
+
+                // Auto-Capture User ID
+                const userId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.empId : 'Unknown';
+
+                const { error } = await supabaseClient.from('component_logs').insert([{
+                    wo_id: woId,
+                    part_number: partNo,
+                    description: document.getElementById('reload-description').value,
+                    reel_qty: qty,
+                    machine_id: document.getElementById('target-machine').value,
+                    target_slot: document.getElementById('target-slot').value,
+                    process_side: side,
+                    emp_id: userId,
+                    created_at: new Date().toISOString()
+                }]);
+
+                if (error) {
+                    showMessage("Save Failed: " + error.message, "error");
+                } else {
+                    showMessage("Reload Recorded Successfully!", "success");
+                    // Clear Scan Fields
+                    document.getElementById('reload-part-scan').value = '';
+                    document.getElementById('reload-qty').value = '';
+                    document.getElementById('target-machine').value = '';
+                    document.getElementById('target-slot').value = '';
+                    document.getElementById('reload-wo-display').value = '';
+                    document.getElementById('reload-part-scan').focus();
+                }
+            }
             // Populates the "Filter by Work Order" dropdown
             // Populates the "Filter by Work Order" dropdown BASED ON DATE
             async function loadOeeAnalyticsWOs(startTime, endTime) {
@@ -5196,8 +5580,8 @@ async function submitComponentReload() {
                 chart.render();
                 return chart;
             }
-           
-           
+
+
             // --- AI CHATBOT – v4 (GenAI Powered) ---
             const botMessages = document.getElementById('bot-messages');
             const botInput = document.getElementById('bot-input');
@@ -5330,7 +5714,7 @@ async function submitComponentReload() {
                     active = false;
                     document.body.style.userSelect = 'auto'; // Re-enable text selection
 
-                    // If the mouse didn't move significantly (isDragging is false), 
+                    // If the mouse didn't move significantly (isDragging is false),
                     // treat this as a Click to toggle the bot.
                     if (!isDragging) {
                         // Ensure toggleBot is defined in your main script
@@ -5374,65 +5758,65 @@ async function submitComponentReload() {
                 }
             }
             // --- END OF AI CHATBOT CODE ---
-// --- ADMIN TRACEABILITY REPORT FUNCTIONS ---
-let reportDataExport = [];
+            // --- ADMIN TRACEABILITY REPORT FUNCTIONS ---
+            let reportDataExport = [];
 
-window.generateTraceabilityReport = async function() {
-    const start = document.getElementById('report-start-date').value;
-    const end = document.getElementById('report-end-date').value;
-    const filter = document.getElementById('report-search-term').value.toLowerCase();
-    const tbody = document.getElementById('report-table-body');
+            window.generateTraceabilityReport = async function () {
+                const start = document.getElementById('report-start-date').value;
+                const end = document.getElementById('report-end-date').value;
+                const filter = document.getElementById('report-search-term').value.toLowerCase();
+                const tbody = document.getElementById('report-table-body');
 
-    if (!start || !end) return showMessage("Select Start and End dates.", "error");
+                if (!start || !end) return showMessage("Select Start and End dates.", "error");
 
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
 
-    const { data, error } = await supabaseClient
-        .from('component_logs')
-        .select(`*, work_orders(wo_number, product_name)`)
-        .gte('created_at', start + 'T00:00:00')
-        .lte('created_at', end + 'T23:59:59')
-        .order('created_at', { ascending: false });
+                const { data, error } = await supabaseClient
+                    .from('component_logs')
+                    .select(`*, work_orders(wo_number, product_name)`)
+                    .gte('created_at', start + 'T00:00:00')
+                    .lte('created_at', end + 'T23:59:59')
+                    .order('created_at', { ascending: false });
 
-    if (error) {
-        showMessage("Fetch Error: " + error.message, "error");
-        return;
-    }
+                if (error) {
+                    showMessage("Fetch Error: " + error.message, "error");
+                    return;
+                }
 
-    reportDataExport = data; // Store for CSV
-    tbody.innerHTML = '';
+                reportDataExport = data; // Store for CSV
+                tbody.innerHTML = '';
 
-    const filtered = data.filter(row => {
-        const text = JSON.stringify(row).toLowerCase();
-        return !filter || text.includes(filter);
-    });
+                const filtered = data.filter(row => {
+                    const text = JSON.stringify(row).toLowerCase();
+                    return !filter || text.includes(filter);
+                });
 
-    if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found.</td></tr>';
-        return;
-    }
+                if (filtered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found.</td></tr>';
+                    return;
+                }
 
-    filtered.forEach(row => {
-        const sideBadge = row.process_side === 'BOT' 
-            ? '<span style="color:#ff7b72; border:1px solid #ff7b72; padding:2px 4px; border-radius:3px;">BOT</span>' 
-            : '<span style="color:#79c0ff; border:1px solid #79c0ff; padding:2px 4px; border-radius:3px;">TOP</span>';
+                filtered.forEach(row => {
+                    const sideBadge = row.process_side === 'BOT'
+                        ? '<span style="color:#ff7b72; border:1px solid #ff7b72; padding:2px 4px; border-radius:3px;">BOT</span>'
+                        : '<span style="color:#79c0ff; border:1px solid #79c0ff; padding:2px 4px; border-radius:3px;">TOP</span>';
 
-        const tr = `
-            <tr style="border-bottom: 1px solid #333;">
-                <td style="padding:10px;">${new Date(row.created_at).toLocaleString()}</td>
-                <td style="padding:10px;">${sideBadge}</td>
-                <td style="padding:10px; font-weight:bold;">${row.work_orders?.wo_number}</td>
-                <td style="padding:10px;">${row.work_orders?.product_name}</td>
-                <td style="padding:10px; color: var(--glow-green);">${row.machine_id} <small>(${row.target_slot})</small></td>
-                <td style="padding:10px;">${row.part_number}</td>
-                <td style="padding:10px;">${row.description || 'N/A'}</td>
-                <td style="padding:10px;">${row.reel_qty}</td>
-                <td style="padding:10px; color:#888;">${row.emp_id}</td>
-            </tr>
-        `;
-        tbody.insertAdjacentHTML('beforeend', tr);
-    });
-};
+                    const tr = `
+                <tr style="border-bottom: 1px solid #333;">
+                    <td style="padding:10px;">${new Date(row.created_at).toLocaleString()}</td>
+                    <td style="padding:10px;">${sideBadge}</td>
+                    <td style="padding:10px; font-weight:bold;">${row.work_orders?.wo_number}</td>
+                    <td style="padding:10px;">${row.work_orders?.product_name}</td>
+                    <td style="padding:10px; color: var(--glow-green);">${row.machine_id} <small>(${row.target_slot})</small></td>
+                    <td style="padding:10px;">${row.part_number}</td>
+                    <td style="padding:10px;">${row.description || 'N/A'}</td>
+                    <td style="padding:10px;">${row.reel_qty}</td>
+                    <td style="padding:10px; color:#888;">${row.emp_id}</td>
+                </tr>
+            `;
+                    tbody.insertAdjacentHTML('beforeend', tr);
+                });
+            };
 
             window.exportReportToCSV = function () {
                 if (!reportDataExport || !reportDataExport.length) return showMessage("No data to export", "error");
@@ -5474,27 +5858,27 @@ window.generateTraceabilityReport = async function() {
                 link.click();
             };
 
-// --- FIX STARTS HERE: Removed the "document.addEventListener" wrapper ---
+            // --- FIX STARTS HERE: Removed the "document.addEventListener" wrapper ---
 
-// 1. Get today's date in YYYY-MM-DD format
-const today = new Date().toISOString().split('T')[0];
+            // 1. Get today's date in YYYY-MM-DD format
+            const today = new Date().toISOString().split('T')[0];
 
-// 2. Find the date inputs
-const startDate = document.getElementById("report-start-date");
-const endDate = document.getElementById("report-end-date");
+            // 2. Find the date inputs
+            const startDate = document.getElementById("report-start-date");
+            const endDate = document.getElementById("report-end-date");
 
-// 3. Set them to today and run the report
-if (startDate && endDate) {
-    startDate.value = today;
-    endDate.value = today;
-    
-    // Automatically fetch data for today
-    if (typeof generateTraceabilityReport === "function") {
-        generateTraceabilityReport();
-    }
-}
+            // 3. Set them to today and run the report
+            if (startDate && endDate) {
+                startDate.value = today;
+                endDate.value = today;
 
-// --- END FIX ---
+                // Automatically fetch data for today
+                if (typeof generateTraceabilityReport === "function") {
+                    generateTraceabilityReport();
+                }
+            }
+
+            // --- END FIX ---
             // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
