@@ -2393,20 +2393,33 @@
                 const now = new Date();
                 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-                // Add "This Month" (e.g., October)
-                let thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-                let thisMonthValue = `${thisMonth.getFullYear()}-${String(thisMonth.getMonth() + 1).padStart(2, '0')}`;
-                dashboardRangeSelect.innerHTML += `<option value="${thisMonthValue}">This Month (${months[thisMonth.getMonth()]})</option>`;
+                // We create a string buffer to append new options
+                let optionsHtml = '';
 
-                // Add "Last Month" (e.g., September)
-                let lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                let lastMonthValue = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
-                dashboardRangeSelect.innerHTML += `<option value="${lastMonthValue}">${months[lastMonth.getMonth()]} ${lastMonth.getFullYear()}</option>`;
+                // --- 1. Add "This Year" Option ---
+                const currentYear = now.getFullYear();
+                optionsHtml += `<option value="YEAR-${currentYear}">This Year (${currentYear})</option>`;
 
-                // Add "Two Months Ago" (e.g., August)
-                let twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-                let twoMonthsAgoValue = `${twoMonthsAgo.getFullYear()}-${String(twoMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
-                dashboardRangeSelect.innerHTML += `<option value="${twoMonthsAgoValue}">${months[twoMonthsAgo.getMonth()]} ${twoMonthsAgo.getFullYear()}</option>`;
+                // --- 2. Add Last 12 Months (Loop) ---
+                for (let i = 0; i < 12; i++) {
+                    // Create date for 1st of month, going back 'i' months
+                    let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                    let y = d.getFullYear();
+                    let m = d.getMonth();
+
+                    // Format: YYYY-MM
+                    let value = `${y}-${String(m + 1).padStart(2, '0')}`;
+                    let label = `${months[m]} ${y}`;
+
+                    // Friendly labels for current/past months
+                    if (i === 0) label = `This Month (${months[m]})`;
+                    else if (i === 1) label = `Last Month (${months[m]})`;
+
+                    optionsHtml += `<option value="${value}">${label}</option>`;
+                }
+
+                // Append these new options to the existing ones (like "Last 24 Hours", "Last 7 Days")
+                dashboardRangeSelect.innerHTML += optionsHtml;
             }
             // --- Sidebar & Section Management ---
             let parsedFeederData = []; // Store CSV data globally
@@ -4220,239 +4233,285 @@
             }
 
             async function updateDashboardData() {
-                console.log("Updating dashboard data...");
-                try {
-                    const rangeValue = dashboardRangeSelect?.value || "168";
-                    let startTime, endTime;
-                    let binCount = 7;
-                    const now = new Date();
-                    const nowTimestamp = now.getTime();
-                    let firstDayOfRange;
-                    if (rangeValue.includes('-')) {
-                        // This is a YYYY-MM month selection
-                        const [year, month] = rangeValue.split('-').map(Number);
-                        startTime = new Date(year, month - 1, 1, 0, 0, 0, 0);
-                        endTime = new Date(year, month, 0, 23, 59, 59, 999);
-                        binCount = endTime.getDate();
-                        firstDayOfRange = startTime;
-                    } else {
-                        // "Last X Days" date logic
-                        const days = parseInt(rangeValue) / 24; // e.g., 168 / 24 = 7
-                        endTime = now; // e.g., Nov 5, 11:30 AM
-                        // Get the start of the first day in the range
-                        firstDayOfRange = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
-                        firstDayOfRange.setHours(0, 0, 0, 0); // e.g., Oct 30, 12:00 AM
-                        startTime = firstDayOfRange; // The filter starts at midnight of the first day
-                        binCount = days; // e.g., 7
-                    }
-                    const startTimeMs = startTime.getTime();
-                    const endTimeMs = endTime.getTime();
-                    // Fetch ALL data using our helper
-                    const [scansRes, masterRes, downtimeRes, activeWORes] = await Promise.all([
-                        fetchAllData('scans', 'serial_number, stages, updated_at'),
-                        fetchAllData('serial_master', 'serial_number, work_orders(wo_number, product_name, customer_name)'),
-                        supabaseClient.from('downtime_logs').select('id', { count: 'exact' }).is('end_time', null),
-                        supabaseClient.from('work_orders').select('id, wo_number, target_quantity, serial_master(serial_number, stages, scans(stages))').eq('status', 'Active')
-                    ]);
-                    if (scansRes.error || masterRes.error || downtimeRes.error || activeWORes.error) {
-                        console.error("Error fetching dashboard data:", scansRes.error || masterRes.error || downtimeRes.error || activeWORes.error);
-                        showMessage('Error fetching dashboard data. Check console.');
-                        return;
-                    }
-                    globalScans = scansRes.data || [];
-                    const serialToWoMap = new Map((masterRes.data || []).map(item => [
-                        item.serial_number,
-                        item.work_orders
-                    ]));
-                    let failCount = 0;
-                    const chartProductStats = {}; // For the Yield KPI AND Ticker
-                    const failureReasons = {};
-                    const allScansOverall = [];
-                    // --- BINNING LOGIC ---
-                    const bins = {};
-                    for (let i = 0; i < binCount; i++) {
-                        let binStart = new Date(firstDayOfRange.getTime() + i * 24 * 3600 * 1000);
-                        const y = binStart.getFullYear();
-                        const m = String(binStart.getMonth() + 1).padStart(2, '0');
-                        const d = String(binStart.getDate()).padStart(2, '0');
-                        const key = `${y}-${m}-${d}`;
-                        // Add 'MULTI PROD' and 'firstProduct' tracker
-                        bins[key] = { 'AOI-BOT': 0, 'AOI-TOP': 0, 'MULTI PROD': 0, 'FAIL': 0, timestamp: binStart.getTime(), firstProduct: null };
-                    }
-                    // --- MAIN DATA PROCESSING LOOP ---
-                    for (const scan of scansRes.data || []) {
-                        if (!scan.stages || scan.stages.length === 0) continue;
-                        const woDetails = serialToWoMap.get(scan.serial_number);
-                        const product = woDetails?.product_name || 'Unknown';
-                        // This map stops us from double-counting a serial/stage in the same day
-                        const dailyChartScans = new Map();
-                        for (const stage of scan.stages) {
-                            const stageTimestamp = new Date(stage.timestamp);
-                            const stageTimeMs = stageTimestamp.getTime();
-                            const stageStatus = stage.status;
-                            const stageName = stage.stage;
-                            const uniqueScanKey = `${scan.serial_number}-${stageName}`;
-                            // --- CHART, KPI, AND TICKER Logic (all use main date filter) ---
-                            if (stageTimeMs >= startTimeMs && stageTimeMs <= endTimeMs) {
+    console.log("Updating dashboard data...");
+    try {
+        const rangeValue = dashboardRangeSelect?.value || "168";
+        let startTime, endTime;
+        let binCount = 7;
+        const now = new Date();
+        const nowTimestamp = now.getTime();
+        let firstDayOfRange;
+        let isYearView = false; // Flag to track if we are in Year mode
 
-                                // --- THIS IS THE FIX ---
-                                // Initialize the product stats *inside* the date filter
-                                // This ensures we only track products that have scans in the selected period
-                                if (!chartProductStats[product]) {
-                                    chartProductStats[product] = { pass: 0, fail: 0 };
-                                }
-                                // --- END FIX ---
+        if (rangeValue.startsWith('YEAR-')) {
+            // --- 1. Handle Full Year (Monthly View) ---
+            isYearView = true; // Set flag
+            const year = parseInt(rangeValue.split('-')[1]);
 
-                                const y_s = stageTimestamp.getFullYear();
-                                const m_s = String(stageTimestamp.getMonth() + 1).padStart(2, '0');
-                                const d_s = String(stageTimestamp.getDate()).padStart(2, '0');
-                                let binKey = `${y_s}-${m_s}-${d_s}`;
-                                if (bins[binKey]) {
-                                    // Only count the *latest* scan for a specific serial/stage in this bin
-                                    const existingScanTime = dailyChartScans.get(uniqueScanKey);
-                                    if (!existingScanTime || stageTimeMs > existingScanTime) {
-                                        dailyChartScans.set(uniqueScanKey, stageTimeMs);
-                                        // Binning Logic
-                                        if (stageStatus === 'FAIL') {
-                                            bins[binKey]['FAIL']++;
-                                            failCount++; // For KPI
-                                            if (stage.remarks) failureReasons[stage.remarks] = (failureReasons[stage.remarks] || 0) + 1;
-                                            chartProductStats[product].fail++; // For KPI/Ticker
-                                        } else if (stageStatus === 'PASS') {
-                                            chartProductStats[product].pass++; // For KPI/Ticker
+            // Start: Jan 1st
+            startTime = new Date(year, 0, 1, 0, 0, 0, 0);
+            // End: Dec 31st
+            endTime = new Date(year, 11, 31, 23, 59, 59, 999);
 
-                                            // --- NEW LOGIC TO SORT BY 'MULTI PROD' ---
-                                            // If this is the first scan of the day, set the first product
-                                            if (bins[binKey].firstProduct === null) {
-                                                bins[binKey].firstProduct = product;
-                                            }
+            firstDayOfRange = startTime;
+            binCount = 12; // FIXED: Only 12 bins for the year (Months)
 
-                                            // Check if the current scan's product is the first product
-                                            if (product === bins[binKey].firstProduct) {
-                                                // This is Product 1. Use Green/Blue.
-                                                if (stageName === 'AOI-TOP') {
-                                                    bins[binKey]['AOI-TOP']++;
-                                                } else {
-                                                    // Stack AOI-BOT and all other passes (TESTING, PACKING etc) as Green
-                                                    bins[binKey]['AOI-BOT']++;
-                                                }
-                                            } else {
-                                                // This is a *different* product. Stack ALL its passes as ORANGE.
-                                                bins[binKey]['MULTI PROD']++;
-                                            }
-                                            // --- END NEW LOGIC ---
-                                        }
-                                    }
-                                }
-                            }
-                            // Live feed (uses all scans, regardless of date filter)
-                            allScansOverall.push({
-                                timestamp: stage.timestamp,
-                                serial: scan.serial_number,
-                                product: product,
-                                stage: stageName,
-                                status: stageStatus
-                            });
-                        }
-                    }
-                    // --- PROCESS LIVE FEED ---
-                    const liveFeedItems = allScansOverall
-                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-                        .slice(0, 10);
-                    // Update KPIs (using the chart's date-filtered stats)
-                    const totalUnitsYieldCalc = Object.values(chartProductStats).reduce((sum, stats) => sum + stats.pass + stats.fail, 0);
-                    const totalPassYieldCalc = Object.values(chartProductStats).reduce((sum, stats) => sum + stats.pass, 0);
-                    const yieldRate = totalUnitsYieldCalc > 0 ? ((totalPassYieldCalc / totalUnitsYieldCalc) * 100).toFixed(1) : "0.0";
-                    const kpiPassRateEl = document.querySelector('#kpi-pass-rate .value');
-                    const kpiFailsEl = document.querySelector('#kpi-fails .value');
-                    const kpiDowntimeEl = document.getElementById('kpi-downtime');
-                    const kpiWOEl = document.getElementById('kpi-wo-progress');
-                    if (kpiPassRateEl) kpiPassRateEl.textContent = `${yieldRate}%`;
-                    if (kpiFailsEl) kpiFailsEl.textContent = failCount;
-                    const activeDowntimeCount = downtimeRes.count || 0;
-                    if (kpiDowntimeEl) {
-                        kpiDowntimeEl.querySelector('.value').textContent = activeDowntimeCount;
-                        kpiDowntimeEl.classList.toggle('danger', activeDowntimeCount > 0);
-                    }
-                    const activeWO = activeWORes.data && activeWORes.data.length > 0 ? activeWORes.data[0] : null;
-                    if (kpiWOEl) {
-                        if (activeWO) {
-                            let completedCount = 0;
-                            if (activeWO.serial_master && Array.isArray(activeWO.serial_master)) {
-                                for (const serial of activeWO.serial_master) {
-                                    if (isSerialFullyCompleted(serial)) completedCount++;
-                                }
-                            }
-                            kpiWOEl.querySelector('.title').textContent = activeWO.wo_number;
-                            kpiWOEl.querySelector('.value').textContent = `${completedCount} / ${activeWO.target_quantity}`;
-                        } else {
-                            kpiWOEl.querySelector('.title').textContent = 'Active WO';
-                            kpiWOEl.querySelector('.value').textContent = '-- / --';
-                        }
-                    }
-                    // --- FIX: Update ticker using chartProductStats ---
-                    const tickerTrack = document.getElementById('ticker-track');
-                    if (tickerTrack) {
-                        tickerTrack.innerHTML = Object.entries(chartProductStats).map(([product, stats]) => {
-                            const total = stats.pass + stats.fail;
-                            // This check is now redundant because of the new logic, but it's safe to keep
-                            const yieldRate = total > 0 ? ((stats.pass / total) * 100).toFixed(1) : "N/A";
-                            const color = yieldRate === "N/A" || parseFloat(yieldRate) >= 95 ? 'var(--glow-green)' : 'var(--glow-red)';
-                            return `<div class="ticker-item"><span class="product-name">${product}:</span><span class="yield-rate" style="color: ${color};">${yieldRate}%</span></div>`;
-                        }).join('');
-                        if (tickerTrack.innerHTML) {
-                            tickerTrack.innerHTML += tickerTrack.innerHTML; // Double up for smooth scroll
-                        }
-                    }
-                    // Bar chart
-                    // Bar chart
-                    chartBins = Object.values(bins)
-                        .filter(bin => bin.timestamp <= nowTimestamp)
-                        .sort((a, b) => a.timestamp - b.timestamp);
-                    let categories = chartBins.map(bin => new Date(bin.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        } else if (rangeValue.includes('-')) {
+            // 2. Handle Month Selection (Daily View)
+            const [year, month] = rangeValue.split('-').map(Number);
+            startTime = new Date(year, month - 1, 1, 0, 0, 0, 0);
+            endTime = new Date(year, month, 0, 23, 59, 59, 999);
+            binCount = endTime.getDate(); 
+            firstDayOfRange = startTime;
 
-                    // --- NEW: Create 4 data arrays ---
-                    const botData = chartBins.map(bin => bin['AOI-BOT']);
-                    const topData = chartBins.map(bin => bin['AOI-TOP']);
-                    const multiProdData = chartBins.map(bin => bin['MULTI PROD']);
-                    const failData = chartBins.map(bin => bin['FAIL']);
+        } else {
+            // 3. Handle "Last X Hours"
+            const hours = parseInt(rangeValue);
+            const days = hours / 24;
+            endTime = new Date();
+            firstDayOfRange = new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() - (days - 1));
+            firstDayOfRange.setHours(0, 0, 0, 0);
+            startTime = firstDayOfRange;
+            binCount = days;
+        }
 
-                    if (throughputChart) {
-                        try {
-                            // --- NEW: Update chart with 4 series ---
-                            throughputChart.updateOptions({
-                                series: [
-                                    { name: 'AOI-BOT', data: botData },
-                                    { name: 'AOI-TOP', data: topData },
-                                    { name: 'MULTI PROD', data: multiProdData },
-                                    { name: 'FAIL', data: failData }
-                                ],
-                                xaxis: { categories },
-                                // Re-set the colors to be safe
-                                colors: ['var(--glow-green)', 'var(--primary-blue)', '#FFA500', 'var(--glow-red)']
-                            });
-                        } catch (e) { console.error('Error updating bar chart:', e); }
-                    }
-                    // Failure chart
-                    const failureSeries = Object.values(failureReasons);
-                    const failureLabels = Object.keys(failureReasons);
-                    if (failureChart) {
-                        try { failureChart.updateOptions({ series: failureSeries, labels: failureLabels }); }
-                        catch (e) { console.error('Error updating failure chart:', e); }
-                    }
-                    // Live feed DOM
-                    const liveFeedList = document.getElementById('live-feed-list');
-                    if (liveFeedList) {
-                        liveFeedList.innerHTML = liveFeedItems
-                            .map(item => `<li><span>${new Date(item.timestamp).toLocaleTimeString()} - ${item.serial} (${item.product || 'N/A'})</span><span class="feed-status-${item.status.toLowerCase()}">${item.stage} -> ${item.status}</span></li>`)
-                            .join('');
-                        liveFeedList.scrollTop = 0;
-                    }
-                } catch (error) {
-                    console.error('Error in updateDashboardData:', error);
-                    showMessage('Error updating dashboard data. Check console.');
-                }
+        const startTimeMs = startTime.getTime();
+        const endTimeMs = endTime.getTime();
+
+        // Fetch ALL data
+        const [scansRes, masterRes, downtimeRes, activeWORes] = await Promise.all([
+            fetchAllData('scans', 'serial_number, stages, updated_at'),
+            fetchAllData('serial_master', 'serial_number, work_orders(wo_number, product_name, customer_name)'),
+            supabaseClient.from('downtime_logs').select('id', { count: 'exact' }).is('end_time', null),
+            supabaseClient.from('work_orders').select('id, wo_number, target_quantity, serial_master(serial_number, stages, scans(stages))').eq('status', 'Active')
+        ]);
+
+        if (scansRes.error || masterRes.error || downtimeRes.error || activeWORes.error) {
+            console.error("Error fetching dashboard data:", scansRes.error || masterRes.error || downtimeRes.error || activeWORes.error);
+            showMessage('Error fetching dashboard data. Check console.');
+            return;
+        }
+
+        globalScans = scansRes.data || [];
+        const serialToWoMap = new Map((masterRes.data || []).map(item => [
+            item.serial_number,
+            item.work_orders
+        ]));
+
+        let failCount = 0;
+        const chartProductStats = {}; 
+        const failureReasons = {};
+        const allScansOverall = [];
+
+        // --- BINNING LOGIC (Modified for Year View) ---
+        const bins = {};
+        for (let i = 0; i < binCount; i++) {
+            let binStart;
+            
+            if (isYearView) {
+                // FIXED: Increment by MONTH for Year View
+                binStart = new Date(firstDayOfRange.getFullYear(), firstDayOfRange.getMonth() + i, 1);
+            } else {
+                // Existing: Increment by DAY
+                binStart = new Date(firstDayOfRange.getTime() + i * 24 * 3600 * 1000);
             }
+
+            const y = binStart.getFullYear();
+            const m = String(binStart.getMonth() + 1).padStart(2, '0');
+            // For Year view, we fix day to '01' to align keys
+            const d = isYearView ? '01' : String(binStart.getDate()).padStart(2, '0');
+            
+            const key = `${y}-${m}-${d}`;
+            
+            // Your exact bin structure
+            bins[key] = { 'AOI-BOT': 0, 'AOI-TOP': 0, 'MULTI PROD': 0, 'FAIL': 0, timestamp: binStart.getTime(), firstProduct: null };
+        }
+
+        // --- MAIN DATA PROCESSING LOOP ---
+        for (const scan of scansRes.data || []) {
+            if (!scan.stages || scan.stages.length === 0) continue;
+            const woDetails = serialToWoMap.get(scan.serial_number);
+            const product = woDetails?.product_name || 'Unknown';
+            const dailyChartScans = new Map();
+
+            for (const stage of scan.stages) {
+                const stageTimestamp = new Date(stage.timestamp);
+                const stageTimeMs = stageTimestamp.getTime();
+                const stageStatus = stage.status;
+                const stageName = stage.stage;
+                const uniqueScanKey = `${scan.serial_number}-${stageName}`;
+
+                if (stageTimeMs >= startTimeMs && stageTimeMs <= endTimeMs) {
+
+                    if (!chartProductStats[product]) {
+                        chartProductStats[product] = { pass: 0, fail: 0 };
+                    }
+
+                    const y_s = stageTimestamp.getFullYear();
+                    const m_s = String(stageTimestamp.getMonth() + 1).padStart(2, '0');
+                    // FIXED: If Year View, force day to '01' to match the monthly bin key
+                    const d_s = isYearView ? '01' : String(stageTimestamp.getDate()).padStart(2, '0');
+                    
+                    let binKey = `${y_s}-${m_s}-${d_s}`;
+
+                    if (bins[binKey]) {
+                        const existingScanTime = dailyChartScans.get(uniqueScanKey);
+                        if (!existingScanTime || stageTimeMs > existingScanTime) {
+                            dailyChartScans.set(uniqueScanKey, stageTimeMs);
+
+                            // --- YOUR ORIGINAL LOGIC PRESERVED BELOW ---
+                            if (stageStatus === 'FAIL') {
+                                bins[binKey]['FAIL']++;
+                                failCount++; 
+                                if (stage.remarks) failureReasons[stage.remarks] = (failureReasons[stage.remarks] || 0) + 1;
+                                chartProductStats[product].fail++; 
+                            } else if (stageStatus === 'PASS') {
+                                chartProductStats[product].pass++; 
+
+                                if (bins[binKey].firstProduct === null) {
+                                    bins[binKey].firstProduct = product;
+                                }
+
+                                if (product === bins[binKey].firstProduct) {
+                                    if (stageName === 'AOI-TOP') {
+                                        bins[binKey]['AOI-TOP']++;
+                                    } else {
+                                        bins[binKey]['AOI-BOT']++;
+                                    }
+                                } else {
+                                    bins[binKey]['MULTI PROD']++;
+                                }
+                            }
+                        }
+                    }
+                }
+                // Live feed Logic
+                allScansOverall.push({
+                    timestamp: stage.timestamp,
+                    serial: scan.serial_number,
+                    product: product,
+                    stage: stageName,
+                    status: stageStatus
+                });
+            }
+        }
+
+        // --- PROCESS LIVE FEED (Original Logic) ---
+        const liveFeedItems = allScansOverall
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 10);
+
+        // --- UPDATE KPIs (Original Logic) ---
+        const totalUnitsYieldCalc = Object.values(chartProductStats).reduce((sum, stats) => sum + stats.pass + stats.fail, 0);
+        const totalPassYieldCalc = Object.values(chartProductStats).reduce((sum, stats) => sum + stats.pass, 0);
+        const yieldRate = totalUnitsYieldCalc > 0 ? ((totalPassYieldCalc / totalUnitsYieldCalc) * 100).toFixed(1) : "0.0";
+        
+        const kpiPassRateEl = document.querySelector('#kpi-pass-rate .value');
+        const kpiFailsEl = document.querySelector('#kpi-fails .value');
+        const kpiDowntimeEl = document.getElementById('kpi-downtime');
+        const kpiWOEl = document.getElementById('kpi-wo-progress');
+
+        if (kpiPassRateEl) kpiPassRateEl.textContent = `${yieldRate}%`;
+        if (kpiFailsEl) kpiFailsEl.textContent = failCount;
+        
+        const activeDowntimeCount = downtimeRes.count || 0;
+        if (kpiDowntimeEl) {
+            kpiDowntimeEl.querySelector('.value').textContent = activeDowntimeCount;
+            kpiDowntimeEl.classList.toggle('danger', activeDowntimeCount > 0);
+        }
+
+        const activeWO = activeWORes.data && activeWORes.data.length > 0 ? activeWORes.data[0] : null;
+        if (kpiWOEl) {
+            if (activeWO) {
+                let completedCount = 0;
+                if (activeWO.serial_master && Array.isArray(activeWO.serial_master)) {
+                    // Function isSerialFullyCompleted needs to exist in your scope or be removed if not needed here
+                    // Assuming it exists as per "original" context
+                    if (typeof isSerialFullyCompleted === 'function') {
+                         for (const serial of activeWO.serial_master) {
+                            if (isSerialFullyCompleted(serial)) completedCount++;
+                        }
+                    }
+                }
+                kpiWOEl.querySelector('.title').textContent = activeWO.wo_number;
+                kpiWOEl.querySelector('.value').textContent = `${completedCount} / ${activeWO.target_quantity}`;
+            } else {
+                kpiWOEl.querySelector('.title').textContent = 'Active WO';
+                kpiWOEl.querySelector('.value').textContent = '-- / --';
+            }
+        }
+
+        // --- TICKER UPDATE (Original Logic) ---
+        const tickerTrack = document.getElementById('ticker-track');
+        if (tickerTrack) {
+            tickerTrack.innerHTML = Object.entries(chartProductStats).map(([product, stats]) => {
+                const total = stats.pass + stats.fail;
+                const yieldRate = total > 0 ? ((stats.pass / total) * 100).toFixed(1) : "N/A";
+                const color = yieldRate === "N/A" || parseFloat(yieldRate) >= 95 ? 'var(--glow-green)' : 'var(--glow-red)';
+                return `<div class="ticker-item"><span class="product-name">${product}:</span><span class="yield-rate" style="color: ${color};">${yieldRate}%</span></div>`;
+            }).join('');
+            if (tickerTrack.innerHTML) {
+                tickerTrack.innerHTML += tickerTrack.innerHTML;
+            }
+        }
+
+        // --- BAR CHART PREP ---
+        chartBins = Object.values(bins)
+            .filter(bin => bin.timestamp <= nowTimestamp || isYearView) // Allow future months in view if desired, or restrict
+            .sort((a, b) => a.timestamp - b.timestamp);
+
+        // FIXED: Categories formatting
+        let categories;
+        if (isYearView) {
+            // Show Months (Jan, Feb...)
+            categories = chartBins.map(bin => new Date(bin.timestamp).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        } else {
+            // Show Dates (Existing)
+            categories = chartBins.map(bin => new Date(bin.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+        }
+
+        // --- DATA ARRAYS (Original Logic) ---
+        const botData = chartBins.map(bin => bin['AOI-BOT']);
+        const topData = chartBins.map(bin => bin['AOI-TOP']);
+        const multiProdData = chartBins.map(bin => bin['MULTI PROD']);
+        const failData = chartBins.map(bin => bin['FAIL']);
+
+        if (throughputChart) {
+            try {
+                throughputChart.updateOptions({
+                    series: [
+                        { name: 'AOI-BOT', data: botData },
+                        { name: 'AOI-TOP', data: topData },
+                        { name: 'MULTI PROD', data: multiProdData },
+                        { name: 'FAIL', data: failData }
+                    ],
+                    xaxis: { categories },
+                    colors: ['var(--glow-green)', 'var(--primary-blue)', '#FFA500', 'var(--glow-red)']
+                });
+            } catch (e) { console.error('Error updating bar chart:', e); }
+        }
+
+        // --- FAILURE CHART (Original Logic) ---
+        const failureSeries = Object.values(failureReasons);
+        const failureLabels = Object.keys(failureReasons);
+        if (failureChart) {
+            try { failureChart.updateOptions({ series: failureSeries, labels: failureLabels }); }
+            catch (e) { console.error('Error updating failure chart:', e); }
+        }
+
+        // --- LIVE FEED DOM (Original Logic) ---
+        const liveFeedList = document.getElementById('live-feed-list');
+        if (liveFeedList) {
+            liveFeedList.innerHTML = liveFeedItems
+                .map(item => `<li><span>${new Date(item.timestamp).toLocaleTimeString()} - ${item.serial} (${item.product || 'N/A'})</span><span class="feed-status-${item.status.toLowerCase()}">${item.stage} -> ${item.status}</span></li>`)
+                .join('');
+            liveFeedList.scrollTop = 0;
+        }
+    } catch (error) {
+        console.error('Error in updateDashboardData:', error);
+        showMessage('Error updating dashboard data. Check console.');
+    }
+}
             populateDateRangeSelect();
             // --- Initial Check ---
             if (!loginBtn || !sidebar || !contentArea) {
