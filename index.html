@@ -4672,75 +4672,88 @@
             bins[key] = { 'AOI-BOT': 0, 'AOI-TOP': 0, 'MULTI PROD': 0, 'FAIL': 0, timestamp: binStart.getTime(), firstProduct: null };
         }
 
-        // --- MAIN DATA PROCESSING LOOP ---
-        for (const scan of scansRes.data || []) {
-            if (!scan.stages || scan.stages.length === 0) continue;
-            const woDetails = serialToWoMap.get(scan.serial_number);
-            const product = woDetails?.product_name || 'Unknown';
-            const dailyChartScans = new Map();
+        // --- RESET STATS (Ensures old counts are cleared) ---
+failCount = 0; 
+for (let key in chartProductStats) delete chartProductStats[key];
+allScansOverall.length = 0; 
 
-            for (const stage of scan.stages) {
-                const stageTimestamp = new Date(stage.timestamp);
-                const stageTimeMs = stageTimestamp.getTime();
-                const stageStatus = stage.status;
-                const stageName = stage.stage;
-                const uniqueScanKey = `${scan.serial_number}-${stageName}`;
+// Trackers to prevent double counting same serial on same stage
+const countedPasses = new Set(); 
+const countedFails = new Set(); 
 
-                if (stageTimeMs >= startTimeMs && stageTimeMs <= endTimeMs) {
+// --- MAIN DATA PROCESSING LOOP ---
+for (const scan of (scansRes.data || [])) {
+    if (!scan.stages || scan.stages.length === 0) continue;
+    
+    const woDetails = serialToWoMap.get(scan.serial_number);
+    const product = woDetails?.product_name || 'Unknown';
+    const dailyChartScans = new Map();
 
-                    if (!chartProductStats[product]) {
-                        chartProductStats[product] = { pass: 0, fail: 0 };
-                    }
+    for (const stage of scan.stages) {
+        const stageName = stage.stage;
+        const stageStatus = stage.status;
+        const stageTimestamp = new Date(stage.timestamp);
+        const stageTimeMs = stageTimestamp.getTime();
+        const uniqueScanKey = `${scan.serial_number}-${stageName}`;
 
-                    const y_s = stageTimestamp.getFullYear();
-                    const m_s = String(stageTimestamp.getMonth() + 1).padStart(2, '0');
-                    // FIXED: If Year View, force day to '01' to match the monthly bin key
-                    const d_s = isYearView ? '01' : String(stageTimestamp.getDate()).padStart(2, '0');
+        // Live feed (shows all activity)
+        allScansOverall.push({
+            timestamp: stage.timestamp,
+            serial: scan.serial_number,
+            product: product,
+            stage: stageName,
+            status: stageStatus
+        });
+
+        // DASHBOARD & POPUP FILTER: Only process AOI stages
+        if (stageTimeMs >= startTimeMs && stageTimeMs <= endTimeMs) {
+            
+            // This condition is the key to fixing your "5" count
+            if (stageName === 'AOI-TOP' || stageName === 'AOI-BOT') {
+
+                if (!chartProductStats[product]) {
+                    chartProductStats[product] = { pass: 0, fail: 0 };
+                }
+
+                // Re-calculating binKey manually
+                const y_s = stageTimestamp.getFullYear();
+                const m_s = String(stageTimestamp.getMonth() + 1).padStart(2, '0');
+                const d_s = isYearView ? '01' : String(stageTimestamp.getDate()).padStart(2, '0');
+                let binKey = `${y_s}-${m_s}-${d_s}`;
+
+                if (bins[binKey]) {
+                    const existingScanTime = dailyChartScans.get(uniqueScanKey);
                     
-                    let binKey = `${y_s}-${m_s}-${d_s}`;
+                    if (!existingScanTime || stageTimeMs > existingScanTime) {
+                        dailyChartScans.set(uniqueScanKey, stageTimeMs);
+                        const dedupeKey = `${scan.serial_number}-${stageName}`;
 
-                    if (bins[binKey]) {
-                        const existingScanTime = dailyChartScans.get(uniqueScanKey);
-                        if (!existingScanTime || stageTimeMs > existingScanTime) {
-                            dailyChartScans.set(uniqueScanKey, stageTimeMs);
+                        if (stageStatus === 'FAIL' && !countedFails.has(dedupeKey)) {
+                            countedFails.add(dedupeKey);
+                            bins[binKey]['FAIL']++;
+                            failCount++;
+                            chartProductStats[product].fail++;
+                        } 
+                        else if (stageStatus === 'PASS' && !countedPasses.has(dedupeKey)) {
+                            // Deduplication ensures unique count
+                            countedPasses.add(dedupeKey);
+                            
+                            // This is the specific line that controls your popup table count
+                            chartProductStats[product].pass++; 
 
-                            // --- YOUR ORIGINAL LOGIC PRESERVED BELOW ---
-                            if (stageStatus === 'FAIL') {
-                                bins[binKey]['FAIL']++;
-                                failCount++; 
-                                if (stage.remarks) failureReasons[stage.remarks] = (failureReasons[stage.remarks] || 0) + 1;
-                                chartProductStats[product].fail++; 
-                            } else if (stageStatus === 'PASS') {
-                                chartProductStats[product].pass++; 
-
-                                if (bins[binKey].firstProduct === null) {
-                                    bins[binKey].firstProduct = product;
-                                }
-
-                                if (product === bins[binKey].firstProduct) {
-                                    if (stageName === 'AOI-TOP') {
-                                        bins[binKey]['AOI-TOP']++;
-                                    } else {
-                                        bins[binKey]['AOI-BOT']++;
-                                    }
-                                } else {
-                                    bins[binKey]['MULTI PROD']++;
-                                }
+                            if (bins[binKey].firstProduct === null) bins[binKey].firstProduct = product;
+                            if (product === bins[binKey].firstProduct) {
+                                bins[binKey][stageName]++; 
+                            } else {
+                                bins[binKey]['MULTI PROD']++;
                             }
                         }
                     }
                 }
-                // Live feed Logic
-                allScansOverall.push({
-                    timestamp: stage.timestamp,
-                    serial: scan.serial_number,
-                    product: product,
-                    stage: stageName,
-                    status: stageStatus
-                });
             }
         }
-
+    }
+}
         // --- PROCESS LIVE FEED (Original Logic) ---
         const liveFeedItems = allScansOverall
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -4865,54 +4878,71 @@
             } else {
                 console.log("Essential elements found. Attaching login listener.");
             }
-            // --- Chart Details Modal ---
+            // --- Chart Details Modal (FIXED) ---
             async function showChartDetails(binTimestamp, dateLabel) {
                 const modal = document.getElementById('chart-details-modal');
                 const title = document.getElementById('chart-details-title');
                 const body = document.getElementById('chart-details-table-body');
                 if (!modal || !title || !body) return console.error("Chart details modal elements not found");
-                title.textContent = `Scan Details for ${dateLabel}`;
+
+                title.textContent = `Scan Details for ${dateLabel} (AOI Only)`;
                 body.innerHTML = `<tr><td colspan="5" class="loading-cell">Loading details...</td></tr>`;
                 modal.classList.add('active');
-                // Calculate start and end of the clicked day
+
                 const dayStart = new Date(binTimestamp);
                 dayStart.setHours(0, 0, 0, 0);
                 const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
                 const dayStartTime = dayStart.getTime();
                 const dayEndTime = dayEnd.getTime();
+
                 // 1. Filter the globally stored scans
-                const scansForThisDay = []; // This will hold {serial_number, stage} objects
-                for (const scan of globalScans) { // Use the global variable
+                const scansForThisDay = [];
+                // Tracker to ensure we only count a serial ONCE per stage for the popup
+                const modalDedupe = new Set(); 
+
+                for (const scan of globalScans) {
                     const serial = scan.serial_number;
+                    
+                    // Filter stages: Must be AOI and must be within the selected day
                     const stagesThisDay = (scan.stages || []).filter(s => {
                         const ts = new Date(s.timestamp).getTime();
-                        return ts >= dayStartTime && ts <= dayEndTime;
+                        const isAOI = (s.stage === 'AOI-TOP' || s.stage === 'AOI-BOT');
+                        return ts >= dayStartTime && ts <= dayEndTime && isAOI;
                     });
-                    // Add each individual stage scan to our list
+
                     for (const stage of stagesThisDay) {
-                        scansForThisDay.push({ serial_number: serial, stage: stage });
+                        const dedupeKey = `${serial}-${stage.stage}`;
+                        if (!modalDedupe.has(dedupeKey)) {
+                            modalDedupe.add(dedupeKey);
+                            scansForThisDay.push({ serial_number: serial, stage: stage });
+                        }
                     }
                 }
-                // 2. Get master data for all found serials
-                const serials = [...new Set(scansForThisDay.map(s => s.serial_number))]; // Get unique serial numbers
+
+                // 2. Get master data for unique serials found
+                const serials = [...new Set(scansForThisDay.map(s => s.serial_number))];
                 if (serials.length === 0) {
-                    body.innerHTML = `<tr><td colspan="5" class="loading-cell">No scan data found for this day.</td></tr>`;
+                    body.innerHTML = `<tr><td colspan="5" class="loading-cell">No AOI scan data found for this day.</td></tr>`;
                     return;
                 }
+
                 const { data: masters, error: masterError } = await supabaseClient.from('serial_master')
                     .select('serial_number, work_orders(wo_number, product_name, customer_name)')
                     .in('serial_number', serials);
+
                 if (masterError) {
                     body.innerHTML = `<tr><td colspan="5" class="loading-cell">Error: ${masterError.message}</td></tr>`;
                     return;
                 }
+
                 const masterMap = new Map(masters.map(m => [m.serial_number, m.work_orders]));
-                // 3. Aggregate the data by product
-                const productStats = {}; // { "Product A": { pass: 0, fail: 0, wo: '...', cust: '...' } }
-                // Iterate over the scans *we found for this day*
+
+                // 3. Aggregate results specifically for the table rows
+                const productStats = {}; 
                 for (const scan of scansForThisDay) {
                     const master = masterMap.get(scan.serial_number);
                     const productName = master?.product_name || 'Unknown Product';
+                    
                     if (!productStats[productName]) {
                         productStats[productName] = {
                             pass: 0,
@@ -4921,28 +4951,29 @@
                             cust: master?.customer_name || 'N/A'
                         };
                     }
-                    // The scan *is* from this day, so just check its status
+
                     if (scan.stage.status === 'PASS') {
                         productStats[productName].pass++;
                     } else if (scan.stage.status === 'FAIL') {
                         productStats[productName].fail++;
                     }
                 }
+
                 // 4. Render the table
                 const statsArray = Object.entries(productStats);
                 if (statsArray.length === 0) {
-                    body.innerHTML = `<tr><td colspan="5" class="loading-cell">No scan data found for this day.</td></tr>`;
+                    body.innerHTML = `<tr><td colspan="5" class="loading-cell">No AOI data for this day.</td></tr>`;
                     return;
                 }
                 body.innerHTML = statsArray.map(([product, data]) => `
-                                                    <tr>
-                                                        <td>${product}</td>
-                                                        <td>${data.wo}</td>
-                                                        <td>${data.cust}</td>
-                                                        <td>${data.pass}</td>
-                                                        <td>${data.fail}</td>
-                                                    </tr>
-                                                `).join('');
+                    <tr>
+                        <td>${product}</td>
+                        <td>${data.wo}</td>
+                        <td>${data.cust}</td>
+                        <td style="color: var(--glow-green); font-weight: bold;">${data.pass}</td>
+                        <td style="color: var(--glow-red);">${data.fail}</td>
+                    </tr>
+                `).join('');
             }
             window.closeChartDetailsModal = function () {
                 const modal = document.getElementById('chart-details-modal');
