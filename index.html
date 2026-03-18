@@ -96,6 +96,29 @@
             height: 100%;
         }
 
+        /* Container for the video header */
+.header-video-container {
+    width: 320px; /* Adjust this width to match your video's content */
+    margin-bottom: 20px;
+    border-radius: 8px; /* Optional: adds a slight curve to the video corners */
+    overflow: hidden;
+    /* This ensures it aligns with your left padding of 50px */
+    display: block; 
+}
+
+.header-video {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    /* Optional: Glow effect to match your lime green brand color */
+    filter: drop-shadow(0 0 10px rgba(162, 240, 18, 0.3));
+}
+
+/* Ensure the Welcome text doesn't move too far up */
+.left-content h1 {
+    margin-top: 10px;
+}
         /* Left Panel: Green Gradient + Animation */
         .left-panel {
             position: relative;
@@ -517,56 +540,76 @@
                 display: block;
             }
 
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            background: var(--bg-surface);
-            padding: 16px 24px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
+        /* 1. Header Layout Fix */
+.content-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center;
+}
 
-        /* Add this to ensure the unused simulation overlay doesn't block clicks */
-        #jig-simulation-overlay {
-            display: none !important;
-        }
-        
-        #welcome {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
+/* 2. Remove ONLY the duplicate Dashboard H4 */
+#dashboard-section > h4 {
+    display: none !important;
+}
 
-        #stage-display {
-            margin: 0;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
+/* 3. Section Transitions */
+.main-section {
+    display: none !important;
+}
 
-        .main-section {
-            display: none !important;
-        }
+.main-section.active {
+    display: block !important;
+}
 
-            .main-section.active {
-                display: block !important;
-            }
+/* 4. Correct Layout for Task/Admin Boards */
+#admin-section.active, 
+#employee-management-section.active, 
+#wo-management-section.active,
+#task-management-section.active {
+    display: flex !important;
+    flex-direction: column;
+    gap: 20px;
+}
 
-        #admin-section.active, #employee-management-section.active, #wo-management-section.active {
-            display: flex !important;
-            flex-direction: column;
-            gap: 20px;
-        }
+/* 5. Keep all Card Titles visible */
+.content-card h4 {
+    display: block !important;
+    margin: 0 0 15px 0;
+    color: var(--primary-blue);
+    font-weight: 600;
+}
 
-        .content-card {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 24px;
-            box-sizing: border-box;
-        }
-        /* Toast Notification System */
+        .notification-wrapper:hover svg {
+    stroke: var(--primary-blue);
+    transform: rotate(15deg);
+    transition: 0.2s;
+}
+
+.notif-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--glow-red);
+    border-radius: 50%;
+    border: 2px solid var(--bg-surface);
+    display: none; /* Hidden by default */
+}
+
+/* Optional: Make it pulse if there are critical tasks */
+.notif-dot.active {
+    display: block;
+    box-shadow: 0 0 8px var(--glow-red);
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 49, 49, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 49, 49, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 49, 49, 0); }
+}
+/* Toast Notification System */
         #toast-container {
             position: fixed;
             bottom: 20px;
@@ -965,7 +1008,33 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-            /* --- AI CHATBOT STYLES --- */
+        /* Full-screen Image Overlay */
+.image-viewer-modal {
+    display: none;
+    position: fixed;
+    z-index: 100000; /* Higher than everything else */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+
+.image-viewer-modal img {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    border: 3px solid #fff;
+}
+
+.image-viewer-modal.active {
+    display: flex;
+}    
+        /* --- AI CHATBOT STYLES --- */
         #quality-bot {
             display: none;
             position: fixed;
@@ -1570,13 +1639,36 @@
         </div>
 
         <div class="content-area" id="content-area">
-            <div class="content-header">
-                <div id="welcome-info">
-                    <p id="welcome"></p>
-                    <p id="stage-display"></p>
-                </div>
-                <button id="logout-top-btn" class="btn" style="background: #30363d; color: white; width: auto;">Logout</button>
+            <div class="content-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 20px; box-sizing: border-box;">
+    
+    <h2 id="current-section-title" style="margin: 0; color: var(--primary-blue); font-size: 18px; font-weight: 700;">Mission Control</h2>
+
+    <div style="display: flex; align-items: center; gap: 20px;">
+        
+        <div id="welcome-info" style="display: flex; align-items: center; gap: 12px; text-align: right;">
+            
+            <div class="notification-wrapper" onclick="window.showSection('task-management-section')" style="cursor: pointer; position: relative;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span id="notif-dot" class="notif-dot"></span>
             </div>
+
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <p id="welcome" style="margin: 0; font-weight: 700; font-size: 14px; color: #fff; line-height: 1.2;"></p>
+                <p id="designation-display" style="margin: 0; font-size: 10px; font-weight: 700; color: var(--primary-blue); text-transform: uppercase;"></p>
+                <p id="stage-display" style="margin: 0; font-size: 10px; color: var(--text-secondary);"></p>
+            </div>
+            
+            <img id="user-profile-img" src="" alt="" 
+                 style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary-blue); display: none; cursor: pointer;"
+                 onclick="window.viewFullImage(this.src)">
+        </div>
+
+        <button id="logout-top-btn" class="btn" onclick="window.logout()" style="background: #30363d; color: white; width: auto; padding: 6px 15px; font-size: 11px; margin: 0;">Logout</button>
+    </div>
+</div>
 
             <div id="dashboard-section" class="main-section content-card">
                 <div class="dashboard-header">
@@ -1784,7 +1876,11 @@
                 </div>
             </div>
 
-                        <div id="traceability-section" class="main-section" style="display: none;">
+            <div id="image-viewer" class="image-viewer-modal" onclick="this.classList.remove('active')">
+                <img id="full-res-image" src="" alt="Enlarged Profile">
+                   </div>
+
+                <div id="traceability-section" class="main-section" style="display: none;">
                             <div class="header-box">
                                 <h2>Component Traceability History</h2>
                             </div>
@@ -1836,31 +1932,89 @@
                         </div>
 
                         <div id="employee-management-section" class="main-section content-card">
-                            <h4>Employee Management</h4>
-                            <div class="form-grid">
-                                <input type="text" id="newEmpId" placeholder="Employee ID">
-                                <input type="password" id="newPassword" placeholder="Password">
-                                <select id="newStages" multiple>
-                                    <option>SERIAL NUMBER SCANNING</option>
-                                    <option>AOI-BOT</option>
-                                    <option>AOI-TOP</option>
-                                    <option>REWORK</option>
-                                    <option>MANUAL SOLDERING</option>
-                                    <option>TESTING</option>
-                                    <option>PACKING</option>
-                                    <option>SMT-FQC</option>
-                                    <option>TH-FQC</option>
-                                </select>
-                                <button id="createEmployee" class="btn btn-primary" style="width: auto;">Add Employee</button>
-                            </div>
-                            <div class="table-wrapper">
-                                <table>
-                                    <thead><tr><th>Emp ID</th><th>Role</th><th>Stages</th><th>Actions</th></tr></thead>
-                                    <tbody id="employee-table-body">
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+    <h4>Staff & Hierarchy Management</h4>
+    <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+        <input type="text" id="newEmpId" placeholder="Employee ID">
+        <input type="password" id="newPassword" placeholder="Password">
+        
+        <select id="newDesignation">
+            <option value="">Select Designation</option>
+            <option value="Manager">Manager</option>
+            <option value="Assistant Manager">Assistant Manager</option>
+            <option value="Engineer">Engineer</option>
+            <option value="Junior Engineer">Junior Engineer</option>
+            <option value="Supervisor">Supervisor</option>
+            <option value="Operator">Operator</option>
+        </select>
+
+        <select id="newReportingTo"><option value="">Reporting To...</option></select>
+        
+        <div class="input-group">
+            <label style="font-size:11px; color: var(--text-secondary);">Profile Photo</label>
+            <input type="file" id="newPhotoFile" accept="image/*" style="padding: 5px;">
+        </div>
+
+        <select id="newStages" multiple>
+            <option>SERIAL NUMBER SCANNING</option>
+            <option>AOI-BOT</option>
+            <option>AOI-TOP</option>
+            <option>REWORK</option>
+            <option>MANUAL SOLDERING</option>
+            <option>TESTING</option>
+            <option>PACKING</option>
+            <option>SMT-FQC</option>
+            <option>TH-FQC</option>
+        </select>
+        <button id="createEmployee" class="btn btn-primary">Add Employee</button>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Emp ID</th>
+                    <th>Designation</th>
+                    <th>Reports To</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="employee-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+                        <div id="task-management-section" class="main-section content-card">
+    <h4>Task Board</h4>
+    
+    <div id="admin-task-dispatch-form" class="form-grid" style="border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;">
+        <select id="task-assignee-select"><option value="">Loading staff...</option></select>
+        <select id="task-priority-select">
+            <option>Normal</option>
+            <option>Urgent</option>
+            <option>Critical</option>
+        </select>
+        <input type="text" id="task-desc-input" placeholder="What needs to be done?">
+        <button id="assign-task-btn" class="btn btn-primary" onclick="assignTask()">Dispatch Task</button>
+        <button onclick="exportTaskAnalytics()" class="btn btn-light" style="width: auto;">Download Task Analytics</button>
+    </div>
+    
+    <div class="table-wrapper">
+        <table id="task-tracker-table">
+            <thead>
+    <tr>
+        <th>Assigned By</th>
+        <th>Staff</th>
+        <th>Task Details</th>
+        <th>Status</th>
+        <th>Time Taken</th>
+        <th>Remarks</th>
+        <th>Action</th>
+    </tr>
+</thead>
+            <tbody id="task-table-body"></tbody>
+        </table>
+    </div>
+</div>
 
                         <div id="admin-section" class="main-section">
                             <div id="upload-csv-section" class="content-card">
@@ -2182,7 +2336,7 @@
         </div>
         <div id="employee-edit-modal" class="modal">
             <div class="modal-content">
-                <span class="close" id="close-employee-modal">×</span>
+                <span class="close" id="close-employee-modal" onclick="window.closeEmployeeModal()">×</span>
                 <h3>Edit Employee</h3>
                 <input type="hidden" id="employee-id-to-edit">
                 <div>
@@ -2401,6 +2555,8 @@
             const stageSelect = document.getElementById('stage');
             const welcome = document.getElementById('welcome');
             const stageDisplay = document.getElementById('stage-display');
+            const desigDisplay = document.getElementById('designation-display');
+            const profileImg = document.getElementById('user-profile-img');
             const logoutTopBtn = document.getElementById('logout-top-btn');
             const fullscreenBtn = document.getElementById('fullscreen-btn');
             const dashboardRangeSelect = document.getElementById('dashboard-range');
@@ -2577,6 +2733,21 @@
 
             // --- Helper Functions ---
 
+            function formatReadableTime(isoString) {
+                if (!isoString) return "---";
+                const date = new Date(isoString);
+                if (isNaN(date.getTime())) return "---";
+
+                // Formats to: 18-Mar 06:31 AM
+                return date.toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }).replace(',', '');
+            }
+            
             function showMessage(text, type = 'error') {
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
@@ -2707,41 +2878,131 @@
                 showMessage(`Parsed ${parsedFeederData.length} rows.`, 'success');
             }
             // Make functions available globally IF they are called by inline HTML onclick
-            // REPLACE your old window.showSection function with this one
-            window.showSection = function (id) {
-                console.log(`showSection called for: ${id}`);
-                document.querySelectorAll('.main-section').forEach(section => section.classList.remove('active'));
-                const section = document.getElementById(id);
-                if (section) {
-                    section.classList.add('active');
-                } else {
-                    console.error(`Section with ID '${id}' not found.`);
-                    return;
-                }
+            window.viewFullImage = function(url) {
+    const viewer = document.getElementById('image-viewer');
+    const fullImg = document.getElementById('full-res-image');
+    if (viewer && fullImg) {
+        fullImg.src = url;
+        viewer.classList.add('active');
+    }
+};
 
-                try {
-                    if (id === 'dashboard-section') initializeDashboard();
-                    else if (id === 'history-section') loadHistory(0);
-                    else if (id === 'scan-section' && serialInput) serialInput.focus();
-                    else if (id === 'downtime-view-section') loadDowntimeHistory(0);
-                    else if (id === 'employee-management-section') loadEmployees();
-                    else if (id === 'rework-section') loadReworkQueue();
-                    else if (id === 'wo-management-section') loadWorkOrders(0);
+     window.showSection = async function (id) {
+    console.log(`showSection called for: ${id}`);
+    
+    // 1. DYNAMIC TITLE MAPPING
+    const titleMap = {
+        'dashboard-section': 'NEXT GENERATION MANUFACTURING PRIVATE LIMITED,PUNE',
+        'task-management-section': 'Task Management Board',
+        'scan-section': 'Production Scanning',
+        'employee-management-section': 'Staff & Hierarchy',
+        'wo-management-section': 'Work Order Control',
+        'analytics-section': 'Intelligence Reports',
+        'history-section': 'Archives & History',
+        'reload-section': 'Component Reload',
+        'car-management-section': 'Quality CAR Reports'
+    };
 
-                    // --- ADD THIS LINE ---
-                    else if (id === 'analytics-section') {
-                        loadOperatorPerformance(); // Load operator stats by default
-                    }
+    // Update the main header title
+    const headerTitle = document.getElementById('current-section-title');
+    if (headerTitle) {
+        headerTitle.textContent = titleMap[id] || 'System Control';
+    }
 
-                    // VVV THIS IS THE NEW LINE VVV
-                    else if (id === 'car-management-section') loadCarReports();
+    // 2. UI: Toggle visibility
+    document.querySelectorAll('.main-section').forEach(section => section.classList.remove('active'));
+    const section = document.getElementById(id);
+    if (section) {
+        section.classList.add('active');
+        
+        // FIX: Hide any hardcoded <h4> or <h2> inside the section if it duplicates the header
+        const internalTitle = section.querySelector('h4, h2');
+        if (internalTitle && internalTitle.id !== 'current-section-title') {
+            internalTitle.style.display = 'none'; 
+        }
+    } else {
+        console.error(`Section with ID '${id}' not found.`);
+        return;
+    }
 
-                    else if (id === 'admin-section') loadActiveWOsForAdmin();
-                } catch (err) {
-                    console.error(`Error loading data for section ${id}:`, err);
-                    showMessage(`Error loading data for ${id}. Check console.`);
-                }
-            }
+    // 3. Data Loading
+    try {
+        if (id === 'dashboard-section') {
+            initializeDashboard();
+        } 
+        else if (id === 'task-management-section') {
+            await loadEmployees(); // Ensures photos and ranks are ready
+            loadTaskAssignees();
+            loadTasks();
+        }
+        else if (id === 'history-section') {
+            loadHistory(0);
+        }
+        else if (id === 'scan-section' && typeof serialInput !== 'undefined') {
+            serialInput.focus();
+        }
+        else if (id === 'downtime-view-section') {
+            loadDowntimeHistory(0);
+        }
+        else if (id === 'employee-management-section') {
+            loadEmployees();
+        }
+        else if (id === 'rework-section') {
+            loadReworkQueue();
+        }
+        else if (id === 'wo-management-section') {
+            loadWorkOrders(0);
+        }
+        else if (id === 'analytics-section') {
+            loadOperatorPerformance();
+        }
+        else if (id === 'car-management-section') {
+            loadCarReports();
+        }
+        else if (id === 'admin-section') {
+            loadActiveWOsForAdmin();
+        }
+    } catch (err) {
+        console.error(`Error loading data for section ${id}:`, err);
+        if (typeof showMessage === 'function') {
+            showMessage(`Error loading data for ${id}. Check console.`, 'error');
+        }
+    }
+};
+
+window.exportTaskAnalytics = async () => {
+    // Fetch completed tasks
+    const { data: tasks, error } = await supabaseClient
+        .from('tasks')
+        .select('*')
+        .eq('status', 'Completed');
+
+    if (error || !tasks.length) return showMessage("No completed tasks to export.");
+
+    // Header now includes Designation
+    let csv = "Staff ID,Designation,Task,Priority,Started,Completed,Duration (Mins),Remarks,Assigned By\n";
+    
+    tasks.forEach(t => {
+        // Find designation from our global employee list
+        const staff = (window.allEmployees || []).find(e => e.emp_id === t.assigned_to) || {};
+        const rank = staff.designation || 'Staff';
+        
+        const start = new Date(t.started_at);
+        const end = new Date(t.completed_at);
+        const duration = ((end - start) / 60000).toFixed(2);
+        
+        // Clean text fields for CSV safety
+        const desc = t.task_description.replace(/"/g, '""');
+        const rem = (t.remarks || '').replace(/"/g, '""');
+        
+        csv += `"${t.assigned_to}","${rank}","${desc}","${t.priority}","${t.started_at}","${t.completed_at}","${duration}","${rem}","${t.assigned_by}"\n`;
+    });
+
+    const link = document.createElement("a");
+    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    link.download = `Task_Analytics_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+};
 
             window.showDowntimeModal = function () {
                 console.log("showDowntimeModal called"); // <-- Logging
@@ -2773,43 +3034,45 @@
 
             // REPLACE your old setupSidebar function with this one
             function setupSidebar(isAdmin) {
-                console.log("Setting up sidebar, isAdmin:", isAdmin);
-                if (!sidebarOptions) { console.error("Sidebar options container not found!"); return; }
+    // 1. IMPROVED PERMISSIONS
+    // Power Admin (sees Employee Mgmt) = user has role 'admin' in database
+    const isPowerAdmin = (currentUser.role === 'admin'); 
+    
+    // Leadership (sees Dispatcher) = user has specific designation
+    const leadershipRoles = ['Manager', 'Assistant Manager', 'Engineer', 'Supervisor'];
+    const canDispatch = leadershipRoles.includes(currentUser.designation) || isPowerAdmin;
 
-                const icons = {
-                    dashboard: '📊', scan: '📠', downtime: '⏱️',
-                    downtimeView: '📜', employee: '👥',
-                    admin: '⚙️', history: '📚', rework: '🛠️',
-                    wo: '📦', logout: '🚪',
-                    car: '📋',
-                    analytics: '📈',
-                    reload: '🔄',      // <--- NEW ICON for Reload
-                    traceability: '🔍' // <--- NEW ICON for History
-                };
+    const icons = {
+        dashboard: '📊', scan: '📠', downtime: '⏱️', downtimeView: '📜', 
+        employee: '👥', admin: '⚙️', history: '📚', rework: '🛠️', wo: '📦', 
+        logout: '🚪', car: '📋', analytics: '📈', reload: '🔄', 
+        traceability: '🔍', tasks: '📋'
+    };
 
-                sidebarOptions.innerHTML = `
-            <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
-            <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+    sidebarOptions.innerHTML = `
+        <button onclick="window.showSection('dashboard-section')">${icons.dashboard} Dashboard</button>
+        <button onclick="window.showSection('task-management-section')">${icons.tasks} Task Board</button>
+        <button onclick="window.showSection('scan-section')">${icons.scan} Scan PCB</button>
+        <button onclick="window.showSection('reload-section')">${icons.reload} Reload Component</button>
+        <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
+        <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
+        <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
 
-            <button onclick="window.showSection('reload-section')">${icons.reload} Reload Component</button>
+        
 
-            <button onclick="window.showDowntimeModal()">${icons.downtime} Log Downtime</button>
-            <button onclick="window.showSection('downtime-view-section')">${icons.downtimeView} View Downtime</button>
-            <button onclick="window.showSection('rework-section')">${icons.rework} Rework Queue</button>
+        ${isPowerAdmin ? `
+            <button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>
+            <button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>
+            <button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>
+            <button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>
+            <button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>
+        ` : ''}
 
-            ${isAdmin ? `<button onclick="window.showSection('wo-management-section')">${icons.wo} Work Order Mgmt</button>` : ''}
-            ${isAdmin ? `<button onclick="window.showSection('analytics-section')">${icons.analytics} Analytics & Reports</button>` : ''}
-
-            <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
-
-            ${isAdmin ? `<button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>` : ''}
-            ${isAdmin ? `<button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>` : ''}
-            ${isAdmin ? `<button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>` : ''}
-
-            <button onclick="window.showSection('history-section')">${icons.history} History</button>
-            <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
-        `;
-            }
+        <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
+        <button onclick="window.showSection('history-section')">${icons.history} History</button>
+        <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
+    `;
+}
 
             async function loadActiveWOsForAdmin() {
                 // Find both select elements
@@ -2856,122 +3119,153 @@
 
             // --- Login/Logout (UPDATED LOGIC) ---
             if (loginBtn) {
-                loginBtn.addEventListener('click', async () => {
-                    console.log("Login button clicked");
-                    const empId = empIdInput.value.trim();
-                    const password = passwordInput.value.trim();
-                    const stage = stageSelect.value;
+    loginBtn.addEventListener('click', async () => {
+        console.log("Login button clicked");
+        const empId = empIdInput.value.trim();
+        const password = passwordInput.value.trim();
+        const stage = stageSelect.value;
 
-                    if (!empId || !password) {
-                        showMessage('Please enter Employee ID and Password.');
-                        return;
-                    }
+        if (!empId || !password) {
+            showMessage('Please enter Employee ID and Password.');
+            return;
+        }
 
-                    // 1. Authenticate
-                    const { data, error } = await supabaseClient
-                        .from('profiles')
-                        .select('*')
-                        .eq('emp_id', empId);
+        // 1. Authenticate
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select('*')
+            .eq('emp_id', empId);
 
-                    if (error) {
-                        showMessage(`Error fetching profile: ${error.message}`);
-                        return;
-                    }
-                    if (!data || data.length === 0) {
-                        showMessage('Employee not found.');
-                        return;
-                    }
+        if (error) {
+            showMessage(`Error fetching profile: ${error.message}`);
+            return;
+        }
+        if (!data || data.length === 0) {
+            showMessage('Employee not found.');
+            return;
+        }
 
-                    const matchingEmployee = data.find(profile => profile.password === password);
+        const matchingEmployee = data.find(profile => profile.password === password);
 
-                    if (!matchingEmployee) {
-                        showMessage('Incorrect password.');
-                        return;
-                    }
+        if (!matchingEmployee) {
+            showMessage('Incorrect password.');
+            return;
+        }
 
-                    // 2. Check Permissions
-                    const isAdmin = matchingEmployee.role === 'admin';
-                    const userRole = matchingEmployee.role || 'operator';
-
-                    if (!isAdmin) {
-                        if (!stage) {
-                            showMessage('Please select your current Stage.');
-                            return;
-                        }
-                        if (!matchingEmployee.stages || !matchingEmployee.stages.includes(stage)) {
-                            showMessage(`You are not authorized for the ${stage} stage.`);
-                            return;
-                        }
-                    }
-
-                    // 3. Set User State & Prepare UI
-                    currentUser = { empId: matchingEmployee.emp_id, stage: isAdmin ? 'Admin' : stage, role: userRole };
-                    
-                    // Critical: Add class to body/mainContainer to un-hide the dashboard (based on the CSS fix)
-                    document.body.classList.add('logged-in');
-                    if (mainContainer) mainContainer.classList.add('logged-in');
-
-                    // 4. Initialize Components BEFORE showing them
-                    setupSidebar(isAdmin); 
-
-                    if (welcome) welcome.textContent = `Welcome, ${empId}`;
-                    if (stageDisplay) stageDisplay.textContent = isAdmin ? 'Admin Dashboard' : `Current Stage: ${stage}`;
-
-                    // 5. Smooth Transition: Fade out Login, Show Dashboard
-                    if (loginWrapper) {
-                        loginWrapper.style.opacity = '0';
-                        loginWrapper.style.transition = 'opacity 0.5s ease';
-                        
-                        // Wait for fade out, then remove from DOM
-                        setTimeout(() => {
-                            loginWrapper.style.display = 'none';
-                        }, 500);
-                    }
-
-                    // Activate Dashboard Views
-                    if (sidebar) sidebar.classList.add('active');
-                    if (contentArea) contentArea.classList.add('active');
-                    
-                    // Stop background animation to save performance
-                    if (typeof slideshowInterval !== 'undefined') clearInterval(slideshowInterval);
-
-                    // Finally, load the data
-                    window.showSection('dashboard-section'); 
-                });
-            } else {
-                console.error("Login button not found!");
+        // 2. Check Permissions
+        const isAdminRole = matchingEmployee.role === 'admin';
+        
+        // Non-admins MUST select a valid authorized stage
+        if (!isAdminRole) {
+            if (!stage) {
+                showMessage('Please select your current Stage.');
+                return;
             }
+            if (!matchingEmployee.stages || !matchingEmployee.stages.includes(stage)) {
+                showMessage(`You are not authorized for the ${stage} stage.`);
+                return;
+            }
+        }
+
+        // 3. SET USER STATE (Critical Fix: Capture designation and photo)
+        currentUser = { 
+            empId: matchingEmployee.emp_id, 
+            role: matchingEmployee.role, 
+            designation: matchingEmployee.designation, // Needed for Task Dispatcher visibility
+            photoUrl: matchingEmployee.photo_url,      // For profile display
+            stage: isAdminRole ? 'Management' : stage
+        };
+        
+        // Update UI Classes
+        document.body.classList.add('logged-in');
+        if (mainContainer) mainContainer.classList.add('logged-in');
+
+        // 4. Initialize Sidebar with the Admin Status
+        setupSidebar(isAdminRole); 
+
+        // Inside your login success block:
+if (welcome) welcome.textContent = `Welcome, ${empId}`;
+
+// 1. Set the Designation
+const desigEl = document.getElementById('designation-display');
+if (desigEl) desigEl.textContent = matchingEmployee.designation || 'Staff';
+
+// 2. Set the Stage
+if (stageDisplay) {
+    stageDisplay.textContent = isAdminRole ? 'System Management' : `Stage: ${stage}`;
+}
+
+// 3. Reveal and Set the Photo
+const profileImgEl = document.getElementById('user-profile-img');
+if (profileImgEl) {
+    const fallbackAvatar = `https://ui-avatars.com/api/?name=${empId}&background=random&color=fff`;
+    profileImgEl.src = matchingEmployee.photo_url || fallbackAvatar;
+    profileImgEl.style.display = 'block'; // CRITICAL: Makes the photo appear
+}
+
+        // 5. Smooth Transition
+        if (loginWrapper) {
+            loginWrapper.style.opacity = '0';
+            loginWrapper.style.transition = 'opacity 0.5s ease';
+            setTimeout(() => {
+                loginWrapper.style.display = 'none';
+            }, 500);
+        }
+
+        // Activate Views
+        if (sidebar) sidebar.classList.add('active');
+        if (contentArea) contentArea.classList.add('active');
+        
+        if (typeof slideshowInterval !== 'undefined') clearInterval(slideshowInterval);
+
+        // Load the initial view
+        window.showSection('dashboard-section'); 
+    });
+}
 
             // Make logout global
             window.logout = function () {
-                console.log("Logout called");
-                document.body.classList.remove('logged-in');
-                if (mainContainer) mainContainer.classList.remove('logged-in');
-                
-                // Bring back login wrapper if it was hidden
-                if (loginWrapper) {
-                    loginWrapper.style.display = 'flex';
-                    setTimeout(() => loginWrapper.style.opacity = '1', 10);
-                }
+    console.log("Logout called");
 
-                if (scanChannel) {
-                    supabaseClient.removeChannel(scanChannel).then(() => console.log("Realtime channel removed."));
-                    scanChannel = null;
-                }
-                if (throughputChart) { throughputChart.destroy(); throughputChart = null; }
-                if (failureChart) { failureChart.destroy(); failureChart = null; }
-                clearTimeout(updateTimeout); updateTimeout = null;
-                
-                // Hard reload to clear all states
-                window.location.reload();
-            }
+    // 1. Clear Header UI Elements
+    const profileImgEl = document.getElementById('user-profile-img');
+    const desigEl = document.getElementById('designation-display');
+    const stageDisplayEl = document.getElementById('stage-display');
+    const notifDot = document.getElementById('notif-dot');
 
-            if (logoutTopBtn) {
-                logoutTopBtn.addEventListener('click', window.logout);
-            }
+    if (profileImgEl) {
+        profileImgEl.src = '';
+        profileImgEl.style.display = 'none';
+    }
+    if (desigEl) desigEl.textContent = '';
+    if (stageDisplayEl) stageDisplayEl.textContent = '';
+    if (notifDot) notifDot.classList.remove('active');
+
+    // 2. Original Logout Logic
+    document.body.classList.remove('logged-in');
+    if (mainContainer) mainContainer.classList.remove('logged-in');
+    
+    if (loginWrapper) {
+        loginWrapper.style.display = 'flex';
+        setTimeout(() => loginWrapper.style.opacity = '1', 10);
+    }
+
+    // 3. Cleanup Resources
+    if (scanChannel) {
+        supabaseClient.removeChannel(scanChannel).then(() => console.log("Realtime channel removed."));
+        scanChannel = null;
+    }
+    if (throughputChart) { throughputChart.destroy(); throughputChart = null; }
+    if (failureChart) { failureChart.destroy(); failureChart = null; }
+    
+    // Clear intervals
+    if (typeof updateTimeout !== 'undefined') clearInterval(updateTimeout); 
+    if (typeof slideshowInterval !== 'undefined') clearInterval(slideshowInterval);
+
+    // 4. Hard reload to clear all global JS variables/states
+    window.location.reload();
+}
             // --- Work Order Management ---
-            // (LoadWorkOrders, RenderWorkOrders, CreateWorkOrder, showWoDetails, closeWoDetailsModal, isSerialFullyCompleted)
-            // ... Paste the definitions for these 6 functions here (from the previous response) ...
             function initLoginAnimation() {
                 const canvas = document.getElementById('networkCanvas');
                 if (!canvas) return;
@@ -3430,146 +3724,176 @@
             if (woDetailsCloseBtn) { woDetailsCloseBtn.addEventListener('click', closeWoDetailsModal); }
 
             // --- Employee Management ---
-            // ... Paste loadEmployees, renderEmployeeTable, createEmployeeBtn.onclick, editEmployee, closeEmployeeModal, submitEmployeeUpdate, deleteEmployee here ...
-            async function loadEmployees() {
-                if (!employeeTableBody) { console.error("Employee table body not found!"); return; }
-                employeeTableBody.innerHTML = `<tr><td colspan="4" class="loading-cell">Loading employees...</td></tr>`;
 
-                const { data, error } = await supabaseClient.from('profiles').select('*');
-                if (error) {
-                    showMessage(`Error loading employees: ${error.message}`);
-                    employeeTableBody.innerHTML = `<tr><td colspan="4" class="loading-cell">Error loading employees.</td></tr>`;
-                    return;
-                }
-                allEmployees = data || [];
-                renderEmployeeTable();
+async function loadEmployees() {
+    if (!employeeTableBody) { console.error("Employee table body not found!"); return; }
+    employeeTableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">Syncing staff database...</td></tr>`;
+
+    const { data, error } = await supabaseClient.from('profiles').select('*').order('designation');
+    if (error) {
+        showMessage(`Error: ${error.message}`);
+        return;
+    }
+    allEmployees = data || [];
+    renderEmployeeTable();
+    
+    // Populate the "Reporting To" dropdown in the creation form
+    const reportingSelect = document.getElementById('newReportingTo');
+    if (reportingSelect) {
+        // Only show Managers/Engineers as potential supervisors
+        const leaders = allEmployees.filter(e => ['Manager', 'Assistant Manager', 'Engineer', 'Supervisor'].includes(e.designation));
+        reportingSelect.innerHTML = '<option value="">Reporting To...</option>' + 
+            leaders.map(l => `<option value="${l.emp_id}">${l.emp_id} (${l.designation})</option>`).join('');
+    }
+}
+
+function renderEmployeeTable() {
+    if (!employeeTableBody) return;
+    employeeTableBody.innerHTML = allEmployees.map(emp => {
+        // Fallback to a UI Avatar if photo is missing or fails to load
+        const photo = emp.photo_url || `https://ui-avatars.com/api/?name=${emp.emp_id}&background=random`;
+        return `
+            <tr>
+                <td><img src="${photo}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:1px solid var(--border-color);"></td>
+                <td style="font-weight:600;">${emp.emp_id}</td>
+                <td><span class="badge" style="background:var(--bg-dark)">${emp.designation || 'Staff'}</span></td>
+                <td style="font-size:12px; color:var(--text-secondary)">${emp.reporting_to || '---'}</td>
+                <td class="employee-actions">
+                    <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
+                    <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+if (createEmployeeBtn) {
+    createEmployeeBtn.onclick = async () => {
+        const empId = newEmpIdInput.value.trim();
+        const password = newPasswordInput.value.trim();
+        const desig = document.getElementById('newDesignation').value;
+        const reportsTo = document.getElementById('newReportingTo').value;
+        const stages = Array.from(newStagesSelect.selectedOptions).map(o => o.value);
+        const photoFile = document.getElementById('newPhotoFile').files[0];
+
+        if (!empId || !password || !desig) {
+            showMessage('ID, Password, and Designation are required.');
+            return;
+        }
+
+        let photoUrl = null;
+
+        // 1. Upload Photo to Storage
+        if (photoFile) {
+            const fileExt = photoFile.name.split('.').pop();
+            const filePath = `${empId}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+            const { error: uploadError } = await supabaseClient.storage
+                .from('avatars') 
+                .upload(filePath, photoFile); 
+
+            if (!uploadError) {
+                const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+                photoUrl = data.publicUrl;
+            } else {
+                return showMessage("Photo upload failed: " + uploadError.message);
             }
+        }
 
-            function renderEmployeeTable() {
-                if (!employeeTableBody) return;
-                if (allEmployees.length === 0) {
-                    employeeTableBody.innerHTML = `<tr><td colspan="4" class="loading-cell">No employees found.</td></tr>`;
-                    return;
-                }
-                employeeTableBody.innerHTML = allEmployees.map(emp => `
-                                                                                                   <tr>
-                                                                                                     <td>${emp.emp_id}</td>
-                                                                                                     <td>${emp.role || 'operator'}</td>
-                                                                                                     <td>${(emp.stages || []).join(', ')}</td>
-                                                                                                     <td class="employee-actions">
-                                                                                                       <button onclick="window.editEmployee('${emp.emp_id}')" class="btn btn-light">Edit</button>
-                                                                                                       <button onclick="window.deleteEmployee('${emp.emp_id}')" class="btn btn-danger">Delete</button>
-                                                                                                     </td>
-                                                                                                   </tr>
-                                                                                                 `).join('');
-            }
+        // 2. Insert Profile
+        const { error } = await supabaseClient.from('profiles').insert([{ 
+            emp_id: empId, 
+            password: password, 
+            stages: stages, 
+            role: (desig === 'Operator' ? 'operator' : 'admin'),
+            designation: desig,
+            reporting_to: reportsTo || null,
+            photo_url: photoUrl
+        }]);
 
-            if (createEmployeeBtn) {
-                createEmployeeBtn.onclick = async () => {
-                    const empId = newEmpIdInput.value.trim();
-                    const password = newPasswordInput.value.trim();
-                    const stages = Array.from(newStagesSelect.selectedOptions).map(o => o.value);
+        if (error) {
+            showMessage(`Error: ${error.message}`);
+        } else {
+            showMessage('Employee added successfully!', 'success');
+            // Reset form
+            newEmpIdInput.value = '';
+            newPasswordInput.value = '';
+            document.getElementById('newPhotoFile').value = '';
+            document.getElementById('newDesignation').value = '';
+            loadEmployees();
+        }
+    };
+}
 
-                    if (!empId || !password || stages.length === 0) {
-                        showMessage('Fill all fields.');
-                        return;
-                    }
+window.editEmployee = (empId) => {
+    if (!employeeEditModal) return;
+    const emp = allEmployees.find(e => e.emp_id === empId);
+    if (!emp) return;
 
-                    const { data: existing, error: checkError } = await supabaseClient
-                        .from('profiles')
-                        .select('emp_id')
-                        .eq('emp_id', empId);
+    if (employeeIdToEditInput) employeeIdToEditInput.value = emp.emp_id;
+    if (editEmpIdInput) editEmpIdInput.value = emp.emp_id;
+    if (editPasswordInput) editPasswordInput.value = '';
+    if (editRoleSelect) editRoleSelect.value = emp.role || 'operator';
 
-                    if (checkError) {
-                        showMessage(`Error checking employee: ${checkError.message}`);
-                        return;
-                    }
+    // Populate stages
+    const empStages = emp.stages || [];
+    if (editStagesSelect) {
+        Array.from(editStagesSelect.options).forEach(opt => opt.selected = empStages.includes(opt.value));
+    }
 
-                    if (existing && existing.length > 0) {
-                        showMessage('An employee with this ID already exists.');
-                        return;
-                    }
+    employeeEditModal.classList.add('active');
+};
 
-                    const { error } = await supabaseClient.from('profiles').insert([{ emp_id: empId, password, stages, role: 'operator' }]);
-                    if (error) {
-                        showMessage(`Error adding employee: ${error.message}`);
-                    } else {
-                        showMessage('Employee added!', 'success');
-                        if (newEmpIdInput) newEmpIdInput.value = '';
-                        if (newPasswordInput) newPasswordInput.value = '';
-                        if (newStagesSelect) newStagesSelect.selectedIndex = -1;
-                        loadEmployees();
-                    }
-                };
-            } else { console.warn("Create employee button not found."); }
+// Global function to close the edit modal
+window.closeEmployeeModal = function() {
+    const modal = document.getElementById('employee-edit-modal');
+    if (modal) modal.classList.remove('active');
+    if (editEmployeeMessage) editEmployeeMessage.classList.remove('visible');
+};
 
-            // Make edit/delete global for onclick
-            window.editEmployee = (empId) => {
-                if (!employeeEditModal) { console.error("Edit employee modal not found!"); return; }
-                const emp = allEmployees.find(e => e.emp_id === empId);
-                if (!emp) { showMessage("Employee not found for editing."); return; }
+async function submitEmployeeUpdate() {
+    const empId = document.getElementById('employee-id-to-edit').value;
+    const newPassword = document.getElementById('edit-newPassword').value.trim();
+    const newRole = document.getElementById('edit-role').value;
+    const selectedStages = Array.from(document.getElementById('edit-stages').selectedOptions).map(o => o.value);
 
-                if (editEmployeeMessage) editEmployeeMessage.classList.remove('visible');
-                if (employeeIdToEditInput) employeeIdToEditInput.value = emp.emp_id;
-                if (editEmpIdInput) editEmpIdInput.value = emp.emp_id;
-                if (editPasswordInput) editPasswordInput.value = '';
-                if (editRoleSelect) editRoleSelect.value = emp.role || 'operator';
+    const updates = {
+        role: newRole,
+        stages: selectedStages
+    };
 
-                const empStages = emp.stages || [];
-                if (editStagesSelect) {
-                    Array.from(editStagesSelect.options).forEach(option => {
-                        option.selected = empStages.includes(option.value);
-                    });
-                }
+    // Only update password if something was typed
+    if (newPassword) {
+        updates.password = newPassword;
+    }
 
-                employeeEditModal.classList.add('active');
-            };
+    const { error } = await supabaseClient
+        .from('profiles')
+        .update(updates)
+        .eq('emp_id', empId);
 
-            window.closeEmployeeModal = function () {
-                if (employeeEditModal) employeeEditModal.classList.remove('active');
-            }
-            if (closeEmployeeModalBtn) closeEmployeeModalBtn.onclick = closeEmployeeModal;
+    if (error) {
+        showMessage(`Update failed: ${error.message}`, 'error');
+    } else {
+        showMessage('Employee updated successfully!', 'success');
+        loadEmployees(); // Refresh the table
+        setTimeout(window.closeEmployeeModal, 1000); // Close after 1 second
+    }
+}
 
-            async function submitEmployeeUpdate() {
-                const empId = employeeIdToEditInput.value;
-                const newPassword = editPasswordInput.value.trim();
-                const stages = Array.from(editStagesSelect.selectedOptions).map(o => o.value);
-                const role = editRoleSelect.value;
+window.deleteEmployee = async (empId) => {
+    if (!confirm(`Delete employee ${empId}? This will also remove their photo.`)) return;
 
-                if (!empId || stages.length === 0) {
-                    if (editEmployeeMessage) showMessage(editEmployeeMessage, 'Employee ID and Stages are required.', 'error');
-                    else showMessage('Employee ID and Stages are required.', 'error');
-                    return;
-                }
+    const emp = allEmployees.find(e => e.emp_id === empId);
+    if (emp && emp.photo_url) {
+        const fileName = emp.photo_url.split('/').pop();
+        await supabaseClient.storage.from('avatars').remove([fileName]);
+    }
 
-                const updates = { stages, role };
-                if (newPassword) {
-                    updates.password = newPassword;
-                }
-
-                const { error } = await supabaseClient.from('profiles').update(updates).eq('emp_id', empId);
-                if (error) {
-                    if (editEmployeeMessage) showMessage(editEmployeeMessage, `Error updating employee: ${error.message}`, 'error');
-                    else showMessage(`Error updating employee: ${error.message}`, 'error');
-                } else {
-                    if (editEmployeeMessage) showMessage(editEmployeeMessage, 'Employee updated!', 'success');
-                    else showMessage('Employee updated!', 'success');
-                    await loadEmployees();
-                    setTimeout(closeEmployeeModal, 1500);
-                }
-            }
-            if (submitEmployeeUpdateBtn) submitEmployeeUpdateBtn.onclick = submitEmployeeUpdate;
-
-            window.deleteEmployee = async (empId) => {
-                if (!confirm(`Are you sure you want to delete employee ${empId}? This cannot be undone.`)) return;
-
-                const { error } = await supabaseClient.from('profiles').delete().eq('emp_id', empId);
-                if (error) showMessage(`Error deleting employee: ${error.message}`);
-                else {
-                    showMessage('Employee deleted!', 'success');
-                    loadEmployees();
-                }
-            };
+    const { error } = await supabaseClient.from('profiles').delete().eq('emp_id', empId);
+    if (error) showMessage(error.message);
+    else loadEmployees();
+};
 
             // --- Scan Logic ---
             if (serialInput) {
@@ -4505,37 +4829,82 @@
             }
 
 
+            function calculateLiveTakt(scans) {
+    if (scans.length < 2) return;
+    
+    // Get last 5 scans for the active WO
+    const recentScans = scans
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 5);
+
+    if (recentScans.length < 2) return;
+
+    let totalGap = 0;
+    for (let i = 0; i < recentScans.length - 1; i++) {
+        totalGap += (new Date(recentScans[i].timestamp) - new Date(recentScans[i+1].timestamp));
+    }
+
+    const avgTakt = (totalGap / (recentScans.length - 1)) / 1000 / 60; // in minutes
+    const taktEl = document.getElementById('takt-value');
+    const statusEl = document.getElementById('takt-status');
+    
+    if (taktEl) {
+        taktEl.textContent = `${avgTakt.toFixed(2)} min`;
+        // Compare against ideal_cycle_time if available
+        const ideal = activeWO?.ideal_cycle_time || 1.0; 
+        if (avgTakt > ideal * 1.2) {
+            taktEl.style.color = 'var(--glow-red)';
+            statusEl.textContent = "Slower than Target";
+        } else {
+            taktEl.style.color = 'var(--glow-green)';
+            statusEl.textContent = "On Target Pace";
+        }
+    }
+}
+
             function setupRealtimeChannel() {
-                if (scanChannel) {
-                    supabaseClient.removeChannel(scanChannel);
-                    scanChannel = null;
-                    console.log("Removed existing realtime channel.");
-                }
-                console.log("Setting up realtime channel...");
-                scanChannel = supabaseClient
-                    .channel('sfc-dashboard-channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'scans' }, payload => {
-                        console.log('Realtime change detected:', payload);
-                        clearTimeout(updateTimeout); // Use clearTimeout for interval set elsewhere
-                        updateDashboardData(); // Update immediately
-                        // Reset polling as a fallback (use longer interval)
-                        updateTimeout = setInterval(updateDashboardData, 30000);
-                    })
-                    .subscribe((status, err) => {
-                        if (status === 'SUBSCRIBED') {
-                            console.log('Realtime channel subscribed successfully');
-                        } else if (status === 'CHANNEL_ERROR') {
-                            console.error('Realtime channel error:', err);
-                            showMessage('Realtime updates error. Check console.');
-                        } else if (status === 'TIMED_OUT') {
-                            console.warn('Realtime channel subscription timed out.');
-                            showMessage('Realtime connection timed out. Using polling.');
-                        } else if (err) {
-                            console.error('Realtime channel subscription failed:', err);
-                            showMessage('Realtime updates failed, using fallback polling');
-                        }
-                    });
+    if (scanChannel) {
+        supabaseClient.removeChannel(scanChannel);
+    }
+
+    console.log("Initializing Realtime listeners...");
+
+    scanChannel = supabaseClient
+        .channel('sfc-live-updates')
+        .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tasks' 
+        }, (payload) => {
+            console.log('Realtime Task Update:', payload);
+            
+            // 1. Refresh the Task Board table
+            loadTasks(); 
+
+            // 2. If a task was completed, we might want to refresh points displayed in header
+            if (payload.eventType === 'UPDATE' && payload.new.status === 'Completed') {
+                // Optional: Call a function to refresh your points display here
+                console.log("Points awarded to assigner.");
             }
+            
+            // 3. Update the notification dot based on the specific event
+            if (payload.eventType === 'INSERT' && payload.new.assigned_to === currentUser.empId) {
+                const dot = document.getElementById('notif-dot');
+                if (dot) dot.classList.add('active');
+            }
+        })
+        .on('postgres_changes', { 
+            event: '*', 
+            schema: 'public', 
+            table: 'scans' 
+        }, () => {
+            updateDashboardData();
+        })
+        .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') console.log('✅ Realtime is LIVE');
+            if (status === 'CLOSED') setTimeout(setupRealtimeChannel, 3000);
+        });
+}
 
             /**
              * Fetches all rows from a table by looping through pages.
@@ -4681,7 +5050,7 @@ allScansOverall.length = 0;
 const countedPasses = new Set(); 
 const countedFails = new Set(); 
 
-// --- MAIN DATA PROCESSING LOOP ---
+// --- MAIN DATA PROCESSING LOOP (Fixed for Scan Details) ---
 for (const scan of (scansRes.data || [])) {
     if (!scan.stages || scan.stages.length === 0) continue;
     
@@ -4692,11 +5061,15 @@ for (const scan of (scansRes.data || [])) {
     for (const stage of scan.stages) {
         const stageName = stage.stage;
         const stageStatus = stage.status;
-        const stageTimestamp = new Date(stage.timestamp);
-        const stageTimeMs = stageTimestamp.getTime();
-        const uniqueScanKey = `${scan.serial_number}-${stageName}`;
+        const actualTimeMs = new Date(stage.timestamp).getTime();
+        
+        // 1. CALCULATE SHIFTED TIME (7.5 Hour Offset)
+        // This is the "Magic Number" that aligns the Night Shift
+        const shiftOffset = 7.5 * 60 * 60 * 1000; 
+        const shiftedTimeMs = actualTimeMs - shiftOffset;
+        const shiftedDate = new Date(shiftedTimeMs);
 
-        // Live feed (shows all activity)
+        // 2. LIVE FEED: Keep actual time for history logs
         allScansOverall.push({
             timestamp: stage.timestamp,
             serial: scan.serial_number,
@@ -4705,40 +5078,43 @@ for (const scan of (scansRes.data || [])) {
             status: stageStatus
         });
 
-        // DASHBOARD & POPUP FILTER: Only process AOI stages
-        if (stageTimeMs >= startTimeMs && stageTimeMs <= endTimeMs) {
+        // 3. FILTERING: Use shiftedTimeMs to decide if it belongs in the Dashboard
+        if (shiftedTimeMs >= startTimeMs && shiftedTimeMs <= endTimeMs) {
             
-            // This condition is the key to fixing your "5" count
             if (stageName === 'AOI-TOP' || stageName === 'AOI-BOT') {
 
+                // Initialize stats for this product if they don't exist
                 if (!chartProductStats[product]) {
                     chartProductStats[product] = { pass: 0, fail: 0 };
                 }
 
-                // Re-calculating binKey manually
-                const y_s = stageTimestamp.getFullYear();
-                const m_s = String(stageTimestamp.getMonth() + 1).padStart(2, '0');
-                const d_s = isYearView ? '01' : String(stageTimestamp.getDate()).padStart(2, '0');
+                // 4. BIN KEY: Generate based on the shifted date
+                const y_s = shiftedDate.getFullYear();
+                const m_s = String(shiftedDate.getMonth() + 1).padStart(2, '0');
+                const d_s = isYearView ? '01' : String(shiftedDate.getDate()).padStart(2, '0');
                 let binKey = `${y_s}-${m_s}-${d_s}`;
 
                 if (bins[binKey]) {
+                    const uniqueScanKey = `${scan.serial_number}-${stageName}`;
                     const existingScanTime = dailyChartScans.get(uniqueScanKey);
                     
-                    if (!existingScanTime || stageTimeMs > existingScanTime) {
-                        dailyChartScans.set(uniqueScanKey, stageTimeMs);
+                    if (!existingScanTime || actualTimeMs > existingScanTime) {
+                        dailyChartScans.set(uniqueScanKey, actualTimeMs);
                         const dedupeKey = `${scan.serial_number}-${stageName}`;
 
                         if (stageStatus === 'FAIL' && !countedFails.has(dedupeKey)) {
                             countedFails.add(dedupeKey);
                             bins[binKey]['FAIL']++;
                             failCount++;
-                            chartProductStats[product].fail++;
+                            // Update failure count for details
+                            chartProductStats[product].fail++; 
                         } 
                         else if (stageStatus === 'PASS' && !countedPasses.has(dedupeKey)) {
-                            // Deduplication ensures unique count
                             countedPasses.add(dedupeKey);
                             
-                            // This is the specific line that controls your popup table count
+                            // --- CRITICAL FIX ---
+                            // This line now increments based on the Shifted window
+                            // This ensures your popup "Pass Count" matches the Chart Bar
                             chartProductStats[product].pass++; 
 
                             if (bins[binKey].firstProduct === null) bins[binKey].firstProduct = product;
@@ -5388,6 +5764,247 @@ for (const scan of (scansRes.data || [])) {
                 }
             }
 
+            /**
+ * TASK MANAGEMENT LOGIC
+ */
+
+// 1. Populate the dropdown with staff IDs (Admin only)
+// 1. Populate the dropdown with ONLY subordinates (if not Main Admin)
+async function loadTaskAssignees() {
+    const select = document.getElementById('task-assignee-select');
+    if (!select) return;
+
+    const isPowerAdmin = (currentUser.role === 'admin');
+    let query = supabaseClient.from('profiles').select('emp_id, designation');
+
+    // Hierarchy Fix: If not Main Admin, only show people who report to YOU
+    if (!isPowerAdmin) {
+        query = query.eq('reporting_to', currentUser.empId);
+    }
+
+    const { data, error } = await query.order('emp_id');
+
+    if (error) {
+        select.innerHTML = '<option value="">Error loading staff</option>';
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        select.innerHTML = '<option value="">No subordinates found</option>';
+        return;
+    }
+
+    select.innerHTML = '<option value="">Select Staff Member...</option>' + 
+        data.map(e => `<option value="${e.emp_id}">${e.emp_id} (${e.designation || 'Operator'})</option>`).join('');
+}
+
+// 2. Load and Render Tasks (Optimized for Hierarchy)
+async function loadTasks() {
+    const tbody = document.getElementById('task-table-body');
+    const dispatchForm = document.getElementById('admin-task-dispatch-form');
+    
+    if (!tbody) return;
+
+    const isPowerAdmin = (currentUser.role === 'admin'); 
+    const isLeadership = ['Manager', 'Assistant Manager', 'Engineer', 'Supervisor'].includes(currentUser.designation);
+
+    if (dispatchForm) {
+        dispatchForm.style.display = (isPowerAdmin || isLeadership) ? 'grid' : 'none';
+    }
+
+    tbody.innerHTML = `<tr><td colspan="7" class="loading-cell">Syncing task data...</td></tr>`;
+
+    let query = supabaseClient.from('tasks').select('*');
+
+    if (isPowerAdmin) {
+        query = query.order('created_at', { ascending: false });
+    } else if (isLeadership) {
+        // Fetch subordinates first
+        const { data: subs } = await supabaseClient.from('profiles').select('emp_id').eq('reporting_to', currentUser.empId);
+        const subIds = (subs || []).map(s => s.emp_id);
+        subIds.push(currentUser.empId); 
+        query = query.in('assigned_to', subIds).order('created_at', { ascending: false });
+    } else {
+        query = query.eq('assigned_to', currentUser.empId).neq('status', 'Completed');
+    }
+
+    const { data: tasks, error } = await query;
+    
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-cell" style="color:var(--glow-red)">Error: ${error.message}</td></tr>`;
+        return;
+    }
+
+    if (!tasks || tasks.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-cell">No active tasks found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = tasks.map(t => {
+    // 1. IMPROVED SEARCH: Look into the global allEmployees array
+    // We check both 'window.allEmployees' and just 'allEmployees' to be safe
+    const employeesList = window.allEmployees || allEmployees || [];
+    const staff = employeesList.find(e => e.emp_id === t.assigned_to);
+
+    // Check if current user has any pending tasks
+function refreshNotificationUI(tasks) {
+    const dot = document.getElementById('notif-dot');
+    if (!dot || !currentUser || !currentUser.empId) return;
+
+    // Check if any task is assigned to the current user and is still Pending
+    const hasPending = tasks.some(t => 
+        t.assigned_to === currentUser.empId && 
+        t.status === 'Pending'
+    );
+
+    if (hasPending) {
+        dot.classList.add('active');
+    } else {
+        dot.classList.remove('active');
+    }
+}
+
+    // 2. DATA EXTRACTION: If staff exists, get designation; otherwise default to 'Staff'
+    const photo = staff?.photo_url || `https://ui-avatars.com/api/?name=${t.assigned_to}&background=random`;
+    const rank = staff?.designation || 'Staff';
+
+    // --- Time & Duration Logic ---
+    let durationText = "---";
+    if (t.started_at && t.completed_at) {
+        const diffMs = new Date(t.completed_at) - new Date(t.started_at);
+        const mins = Math.floor(diffMs / 60000);
+        const secs = Math.floor((diffMs % 60000) / 1000);
+        durationText = `${mins}m ${secs}s`;
+    } else if (t.started_at) {
+        durationText = "In Progress";
+    }
+
+    const assignedTime = formatReadableTime(t.created_at);
+    const startTime = formatReadableTime(t.started_at);
+    const priorityColor = t.priority && t.priority.includes('Critical') ? 'var(--glow-red)' : 'inherit';
+
+    // Inside loadTasks() -> tasks.map(t => { ... })
+return `
+    <tr>
+        <td>
+            <span style="color: var(--primary-blue); font-weight: 600;">${t.assigned_by}</span>
+            <br><small style="font-size: 10px; color: var(--text-secondary);">${assignedTime}</small>
+        </td>
+        
+        <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${photo}" 
+                     style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); cursor: pointer;" 
+                     onclick="window.viewFullImage('${photo}')"
+                     title="Click to enlarge">
+                <div>
+                    <div style="font-weight: 600; color: #fff;">${t.assigned_to}</div>
+                    <div style="font-size: 9px; color: var(--text-secondary); text-transform: uppercase;">${rank}</div>
+                </div>
+            </div>
+        </td>
+
+        <td style="max-width: 250px;">
+            <b style="color:${priorityColor}">[${t.priority}]</b> ${t.task_description}
+        </td>
+        <td><span class="badge" style="background: ${t.status === 'Completed' ? 'var(--success-bg-subtle)' : 'var(--bg-dark)'}">${t.status}</span></td>
+        <td style="font-family: var(--font-mono); color: var(--primary-blue)">${durationText}</td>
+        <td style="font-size: 11px; color: var(--text-secondary)">
+            ${t.remarks ? (t.remarks.length > 25 ? t.remarks.substring(0, 25) + '...' : t.remarks) : '---'}
+        </td>
+        <td>
+            ${t.status === 'Pending' ? `<button onclick="window.updateTask(${t.id}, 'In-Progress')" class="btn btn-primary" style="width:auto; padding:5px 10px;">Start</button>` : ''}
+            ${t.status === 'In-Progress' ? `<button onclick="window.completeTaskPrompt(${t.id})" class="btn btn-success" style="width:auto; padding:5px 10px;">Complete</button>` : ''}
+            ${t.status === 'Completed' ? '✅' : ''}
+        </td>
+    </tr>
+`;
+}).join('');
+}
+
+// 3. Admin: Dispatch Task
+async function assignTask() {
+    const assignee = document.getElementById('task-assignee-select').value;
+    const priority = document.getElementById('task-priority-select').value;
+    const desc = document.getElementById('task-desc-input').value.trim();
+
+    if (!assignee || !desc) {
+        showMessage("Please select staff and enter task details.");
+        return;
+    }
+
+    // CRITICAL: Ensure currentUser.empId is the ADMIN'S ID
+    const { error } = await supabaseClient.from('tasks').insert([{
+        assigned_to: assignee,
+        assigned_by: currentUser.empId, // This captures the Admin ID
+        task_description: desc,
+        priority: priority,
+        status: 'Pending',
+        created_at: new Date().toISOString()
+    }]);
+
+    if (error) {
+        showMessage("Error: " + error.message);
+    } else {
+        showMessage("Task Dispatched!", "success");
+        document.getElementById('task-desc-input').value = ''; 
+        loadTasks();
+    }
+}
+
+// 4. Staff: Update status (Start Task)
+window.updateTask = async (id, newStatus) => {
+    const { error } = await supabaseClient
+        .from('tasks')
+        .update({ status: newStatus, started_at: new Date().toISOString() })
+        .eq('id', id);
+
+    if (error) showMessage(error.message);
+    else loadTasks();
+};
+
+// 5. Staff: Complete Task with Remarks
+window.completeTaskPrompt = async (id) => {
+    const remarks = prompt("Enter completion remarks:");
+    if (remarks === null) return;
+
+    // 1. Get task details to identify who assigned it
+    const { data: taskData } = await supabaseClient
+        .from('tasks')
+        .select('assigned_by')
+        .eq('id', id)
+        .single();
+
+    // 2. Mark task as Completed
+    const { error: updateErr } = await supabaseClient
+        .from('tasks')
+        .update({ 
+            status: 'Completed', 
+            remarks: remarks, 
+            completed_at: new Date().toISOString() 
+        })
+        .eq('id', id);
+
+    if (updateErr) return showMessage(updateErr.message);
+
+    // 3. Award points to the Assigner (e.g., 10 points)
+    if (taskData?.assigned_by) {
+        const { error: pointsErr } = await supabaseClient.rpc('increment_points', { 
+            target_emp_id: taskData.assigned_by, 
+            point_amount: 10 
+        });
+        
+        if (!pointsErr) {
+            showMessage("Task complete! 10 points awarded to assigner.", "success");
+        }
+    }
+    
+    loadTasks();
+};
+
+// Ensure button listener is connected
+const assignBtn = document.getElementById('assign-task-btn');
+if (assignBtn) assignBtn.onclick = assignTask;
             // NEW function: loadDowntimeAnalyticsChart
             async function loadDowntimeAnalyticsChart() {
                 const chartEl = document.getElementById('downtimeParetoChart');
