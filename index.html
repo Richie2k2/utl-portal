@@ -1034,7 +1034,20 @@
 .image-viewer-modal.active {
     display: flex;
 }    
-        /* --- AI CHATBOT STYLES --- */
+
+#master-model-section.active {
+    display: block !important;
+}
+
+.ref-des-cell {
+    max-width: 300px;
+    overflow-x: auto;
+    white-space: nowrap;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    color: #8b949e;
+}
+/* --- AI CHATBOT STYLES --- */
         #quality-bot {
             display: none;
             position: fixed;
@@ -1708,6 +1721,51 @@
                 </div>
             </div>
 
+            <div id="master-model-section" class="main-section section-content" style="display:none; padding: 20px;">
+    <div style="background: #1a1d21; padding: 20px; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <h2 style="color: #fff; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+            <span>🗂️</span> Master Model Feeder Setup
+        </h2>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="color: #8b949e; display: block; margin-bottom: 8px; font-size: 14px;">Product Model Name</label>
+            <input type="text" id="master-model-name" placeholder="e.g., MEGMEET FP50PG" 
+                   style="width: 100%; padding: 12px; background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; border-radius: 6px; outline: none;">
+        </div>
+
+        <div style="border: 2px dashed #30363d; padding: 40px; text-align: center; border-radius: 8px; margin-bottom: 20px; background: #0d1117;">
+            <input type="file" id="feeder-csv-input" accept=".csv" style="display: none;" onchange="window.handleFileSelect(this)">
+            <button onclick="document.getElementById('feeder-csv-input').click()" 
+                    style="background: #238636; color: white; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                📁 Select FeederSetup CSV
+            </button>
+            <p id="file-name-info" style="color: #8b949e; margin-top: 15px; font-size: 13px;">No file selected</p>
+        </div>
+
+        <button id="master-save-btn" 
+        style="background: #1f6feb; color: white; border: none; padding: 14px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; font-size: 16px;">
+    🚀 Extract & Save to Master Database
+</button>
+    </div>
+
+    <div id="preview-card" style="margin-top: 25px; background: #1a1d21; padding: 20px; border-radius: 8px; border: 1px solid #333; display: none;">
+        <h3 style="color: #fff; margin-bottom: 15px;">Imported Data Preview</h3>
+        <div style="overflow-x: auto; max-height: 500px;">
+            <table style="width: 100%; border-collapse: collapse; color: #c9d1d9; font-size: 12px;">
+                <thead style="background: #161b22; position: sticky; top: 0;">
+                    <tr>
+                        <th style="padding: 12px; border: 1px solid #30363d;">Slot</th>
+                        <th style="padding: 12px; border: 1px solid #30363d;">Part Number</th>
+                        <th style="padding: 12px; border: 1px solid #30363d;">AVL Parts</th>
+                        <th style="padding: 12px; border: 1px solid #30363d;">Ref Designators</th>
+                    </tr>
+                </thead>
+                <tbody id="master-preview-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+            
             <div id="wo-management-section" class="main-section">
                 <div class="content-card">
                     <h4>Create New Work Order</h4>
@@ -3066,6 +3124,7 @@ window.exportTaskAnalytics = async () => {
             <button onclick="window.showSection('employee-management-section')">${icons.employee} Employee Management</button>
             <button onclick="window.showSection('admin-section')">${icons.admin} Admin Tools</button>
             <button onclick="window.showSection('car-management-section')">${icons.car} Quality CARs</button>
+            <button onclick="window.showSection('master-model-section')">🗂️ Master Model Setup</button> 
         ` : ''}
 
         <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
@@ -6934,6 +6993,168 @@ if (assignBtn) assignBtn.onclick = assignTask;
             // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
         console.log("Script block finished execution."); // <-- Basic check 4
+        
+        // --- MASTER MODEL SETUP GLOBAL LOGIC ---
+
+// 1. Helper to show filename
+// --- MASTER MODEL SETUP GLOBAL LOGIC ---
+
+// 1. Helper to show filename in green when selected
+window.handleFileSelect = function(input) {
+    const display = document.getElementById('file-name-info');
+
+    if (input && input.files && input.files.length > 0) {
+        display.innerText = "📄 Selected: " + input.files[0].name; // ✅ FIXED
+        display.style.color = "#3fb950";
+    } else {
+        display.innerText = "No file selected";
+        display.style.color = "#8b949e";
+    }
+};
+
+
+// 2. CSV Line Parser (Handles commas inside quotes)
+function parseCSVLine(line) {
+    const result = [];
+    let curVal = "";
+    let inQuotes = false;
+
+    for (let char of line) {
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } 
+        else if (char === ',' && !inQuotes) {
+            result.push(curVal.trim());
+            curVal = "";
+        } 
+        else {
+            curVal += char;
+        }
+    }
+
+    result.push(curVal.trim());
+    return result;
+}
+
+
+// 3. Bulletproof Click Handler
+document.addEventListener('click', async function(event) {
+
+    if (event.target && event.target.id === 'master-save-btn') {
+
+        const modelNameInput = document.getElementById('master-model-name');
+        const fileInput = document.getElementById('feeder-csv-input');
+        const tableBody = document.getElementById('master-preview-body');
+        const previewCard = document.getElementById('preview-card');
+
+        const modelName = modelNameInput?.value.trim();
+
+        if (!modelName) {
+            return alert("Please enter a Product Model Name.");
+        }
+
+        // ✅ FILE VALIDATION
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            return alert("No file selected. Please select the CSV first.");
+        }
+
+        const file = fileInput.files[0]; // ✅ CRITICAL FIX
+
+        if (!(file instanceof Blob)) {
+            return alert("Invalid file. Please reselect.");
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = async function(e) {
+
+            try {
+                const text = e.target.result;
+
+                if (!text) {
+                    throw new Error("File is empty.");
+                }
+
+                const lines = text.split(/\r?\n/);
+                const finalData = [];
+
+                // Skip header (start from index 1)
+                for (let i = 1; i < lines.length; i++) {
+
+                    const line = lines[i].trim();
+                    if (!line) continue;
+
+                    const cols = parseCSVLine(line);
+
+                    if (cols.length < 8) {
+                        console.warn("Skipped line:", line);
+                        continue;
+                    }
+
+                    finalData.push({
+                        model_name: modelName,
+                        mach_name: cols[0], // ✅ FIXED (was wrong earlier)
+                        module_number: cols[1],
+                        slot_number: cols[2].replace(/'/g, ''),
+                        primary_part: cols[3],
+                        avl_parts: cols[4]
+                            ? cols[4].split(',').map(p => p.trim()).filter(p => p)
+                            : [],
+                        comment: cols[5],
+                        quantity: parseInt(cols[6]) || 0,
+                        ref_designators: cols[7]
+                    });
+                }
+
+                if (finalData.length === 0) {
+                    return alert("No valid rows found. Check CSV format.");
+                }
+
+                // ✅ SUPABASE INSERT
+                const { error } = await supabaseClient
+                    .from('master_model_feeders')
+                    .insert(finalData);
+
+                if (error) throw error;
+
+                alert(`✅ Success! ${finalData.length} slots saved for ${modelName}.`);
+
+                // ✅ PREVIEW TABLE
+                if (previewCard) previewCard.style.display = 'block';
+
+                if (tableBody) {
+                    tableBody.innerHTML = finalData.slice(0, 50).map(r => `
+                        <tr style="border-bottom: 1px solid #333;">
+                            <td style="padding:10px;">
+                                M${r.module_number}-${r.slot_number}
+                            </td>
+                            <td style="padding:10px; color:var(--primary-blue); font-weight:bold;">
+                                ${r.primary_part}
+                            </td>
+                            <td style="padding:10px;">
+                                ${r.avl_parts.join(', ') || '---'}
+                            </td>
+                            <td class="ref-des-cell" style="padding:10px; font-size:10px; color:#8b949e;">
+                                ${r.ref_designators}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Import Error: " + err.message);
+            }
+        };
+
+        reader.onerror = function() {
+            alert("File reading failed.");
+        };
+
+        // ✅ FINAL EXECUTION
+        reader.readAsText(file);
+    }
+});
     </script>
 </body>
 </html>
