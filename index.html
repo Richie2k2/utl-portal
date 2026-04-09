@@ -2241,56 +2241,82 @@
                 <img id="full-res-image" src="" alt="Enlarged Profile">
                    </div>
 
-                <div id="traceability-section" class="main-section" style="display: none;">
-                            <div class="header-box">
-                                <h2>Component Traceability History</h2>
-                            </div>
+               <div id="traceability-section" class="main-section" style="display: none;">
+    
+    <!-- 🔹 Header -->
+    <div class="header-box">
+        <h2>Component Traceability History</h2>
+    </div>
 
-                            <div class="content-card">
-                                <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
-                                    <div>
-                                        <label>Start Date</label>
-                                        <input type="date" id="report-start-date" class="form-control">
-                                    </div>
-                                    <div>
-                                        <label>End Date</label>
-                                        <input type="date" id="report-end-date" class="form-control">
-                                    </div>
-                                    <div>
-                                        <label>Search Filter</label>
-                                        <input type="text" id="report-search-term" class="form-control" placeholder="WO / Part / User">
-                                    </div>
-                                    <div style="display: flex; align-items: flex-end;">
-                                        <button onclick="generateTraceabilityReport()" class="btn btn-primary" style="width: 100%;">Search Logs</button>
-                                    </div>
-                                </div>
+    <div class="content-card">
 
-                                <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
-                                    <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                                        <thead style="background: #161b22;">
-                                            <tr style="text-align: left; color: var(--text-secondary);">
-                                                <th style="padding: 12px;">Timestamp</th>
-                                                <th style="padding: 12px;">Side</th>
-                                                <th style="padding: 12px;">WO Number</th>
-                                                <th style="padding: 12px;">Model</th>
-                                                <th style="padding: 12px;">Machine / Slot</th>
-                                                <th style="padding: 12px;">Part Number</th>
-                                                <th style="padding: 12px;">Description</th>
-                                                <th style="padding: 12px;">Qty</th>
-                                                <th style="padding: 12px;">User (Emp ID)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="report-table-body">
-                                            <tr><td colspan="8" style="padding: 20px; text-align: center;">Select dates to view history.</td></tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+        <!-- 🔹 Filters -->
+        <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px;">
+            
+            <div>
+                <label>Start Date</label>
+                <input type="date" id="report-start-date" class="form-control">
+            </div>
 
-                                <div style="margin-top: 15px; text-align: right;">
-                                    <button onclick="exportReportToCSV()" class="btn btn-light">⬇️ Export to CSV</button>
-                                </div>
-                            </div>
-                        </div>
+            <div>
+                <label>End Date</label>
+                <input type="date" id="report-end-date" class="form-control">
+            </div>
+
+            <div>
+                <label>Search Filter</label>
+                <input type="text" id="report-search-term" class="form-control" placeholder="Machine / Part / User">
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+                <button onclick="generateTraceabilityReport()" class="btn btn-primary" style="width: 100%;">
+                    Search Logs
+                </button>
+            </div>
+        </div>
+
+        <!-- 🔹 Table -->
+        <div style="overflow-x: auto; border: 1px solid var(--border-color); border-radius: 6px;">
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+
+                <!-- HEADER -->
+                <thead style="background: #161b22;">
+                    <tr style="text-align: left; color: var(--text-secondary);">
+                        <th style="padding: 12px;">Timestamp</th>
+                        <th style="padding: 12px;">Machine</th>
+                        <th style="padding: 12px;">Slot</th>
+                        <th style="padding: 12px;">Part Number</th>
+                        <th style="padding: 12px;">Comment</th>
+                        <th style="padding: 12px;">Date Code</th>
+                        <th style="padding: 12px;">Qty</th>
+                        <th style="padding: 12px;">Status</th>
+                        <th style="padding: 12px;">Verified By</th>
+                    </tr>
+                </thead>
+
+                <!-- BODY -->
+                <tbody id="report-table-body">
+                    <tr>
+                        <td colspan="9" style="padding: 20px; text-align: center; color: #888;">
+                            Select dates to view scan history.
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 🔹 Export -->
+        <div style="margin-top: 15px; text-align: right;">
+            <button onclick="exportReportToCSV()" class="btn btn-light">
+                ⬇️ Export to CSV
+            </button>
+        </div>
+
+    </div>
+</div>
 
                         <div id="employee-management-section" class="main-section content-card">
     <h4>Staff & Hierarchy Management</h4>
@@ -7301,123 +7327,172 @@ if (assignBtn) assignBtn.onclick = assignTask;
             // --- ADMIN TRACEABILITY REPORT FUNCTIONS ---
             let reportDataExport = [];
 
-            window.generateTraceabilityReport = async function () {
-                const start = document.getElementById('report-start-date').value;
-                const end = document.getElementById('report-end-date').value;
-                const filter = document.getElementById('report-search-term').value.toLowerCase();
-                const tbody = document.getElementById('report-table-body');
+window.generateTraceabilityReport = async function () {
 
-                if (!start || !end) return showMessage("Select Start and End dates.", "error");
+    const start = document.getElementById('report-start-date').value;
+    const end = document.getElementById('report-end-date').value;
+    const filter = document.getElementById('report-search-term').value.toLowerCase();
+    const tbody = document.getElementById('report-table-body');
 
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading...</td></tr>';
+    // ❌ Validation
+    if (!start || !end) {
+        return showMessage("Select Start and End dates.", "error");
+    }
 
-                const { data, error } = await supabaseClient
-                    .from('component_logs')
-                    .select(`*, work_orders(wo_number, product_name)`)
-                    .gte('created_at', start + 'T00:00:00')
-                    .lte('created_at', end + 'T23:59:59')
-                    .order('created_at', { ascending: false });
+    // ⏳ Loading
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">Loading...</td></tr>';
 
-                if (error) {
-                    showMessage("Fetch Error: " + error.message, "error");
-                    return;
-                }
+    // 🔥 Fetch from current_scan_log
+    const { data, error } = await supabaseClient
+        .from('current_scan_log')
+        .select('*')
+        .gte('created_at', start + 'T00:00:00')
+        .lte('created_at', end + 'T23:59:59')
+        .order('created_at', { ascending: false });
 
-                reportDataExport = data; // Store for CSV
-                tbody.innerHTML = '';
+    if (error) {
+        showMessage("Fetch Error: " + error.message, "error");
+        return;
+    }
 
-                const filtered = data.filter(row => {
-                    const text = JSON.stringify(row).toLowerCase();
-                    return !filter || text.includes(filter);
-                });
+    reportDataExport = data;
+    tbody.innerHTML = '';
 
-                if (filtered.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found.</td></tr>';
-                    return;
-                }
+    // 🔍 Filter
+    const filtered = data.filter(row => {
+        const text = JSON.stringify(row).toLowerCase();
+        return !filter || text.includes(filter);
+    });
 
-                filtered.forEach(row => {
-                    const sideBadge = row.process_side === 'BOT'
-                        ? '<span style="color:#ff7b72; border:1px solid #ff7b72; padding:2px 4px; border-radius:3px;">BOT</span>'
-                        : '<span style="color:#79c0ff; border:1px solid #79c0ff; padding:2px 4px; border-radius:3px;">TOP</span>';
+    // ❌ No data
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>';
+        return;
+    }
 
-                    const tr = `
-                <tr style="border-bottom: 1px solid #333;">
-                    <td style="padding:10px;">${new Date(row.created_at).toLocaleString()}</td>
-                    <td style="padding:10px;">${sideBadge}</td>
-                    <td style="padding:10px; font-weight:bold;">${row.work_orders?.wo_number}</td>
-                    <td style="padding:10px;">${row.work_orders?.product_name}</td>
-                    <td style="padding:10px; color: var(--glow-green);">${row.machine_id} <small>(${row.target_slot})</small></td>
-                    <td style="padding:10px;">${row.part_number}</td>
-                    <td style="padding:10px;">${row.description || 'N/A'}</td>
-                    <td style="padding:10px;">${row.reel_qty}</td>
-                    <td style="padding:10px; color:#888;">${row.emp_id}</td>
-                </tr>
-            `;
-                    tbody.insertAdjacentHTML('beforeend', tr);
-                });
-            };
+    // 🔁 Render rows
+    filtered.forEach(row => {
 
-            window.exportReportToCSV = function () {
-                if (!reportDataExport || !reportDataExport.length) return showMessage("No data to export", "error");
+        // ✅ Status Badge
+        const statusBadge = row.status === 'OK'
+            ? '<span style="color:#2ecc71; border:1px solid #2ecc71; padding:2px 4px; border-radius:3px;">OK</span>'
+            : '<span style="color:#ff4d4f; border:1px solid #ff4d4f; padding:2px 4px; border-radius:3px;">NG</span>';
 
-                // 1. Add "Description" to the header row
-                let csv = "Timestamp,Side,WO,Model,Machine,Slot,Part,Description,Qty,User\n";
+        const tr = `
+        <tr style="border-bottom: 1px solid #333;">
 
-                reportDataExport.forEach(r => {
-                    let formattedDate = "";
+            <!-- Timestamp -->
+            <td style="padding:10px;">
+                ${new Date(row.created_at).toLocaleString()}
+            </td>
 
-                    if (r.created_at) {
-                        const d = new Date(r.created_at);
+            <!-- Machine -->
+            <td style="padding:10px; color: var(--glow-green);">
+                ${row.mach_name || '-'}
+            </td>
 
-                        // --- FIX: AM/PM Conversion Logic ---
-                        let hours = d.getHours();
-                        const ampm = hours >= 12 ? 'PM' : 'AM';
-                        hours = hours % 12;
-                        hours = hours ? hours : 12; // the hour '0' should be '12'
+            <!-- Slot -->
+            <td style="padding:10px;">
+                ${row.slot_number || '-'}
+            </td>
 
-                        // Format: YYYY-MM-DD hh:mm:ss AM
-                        formattedDate = d.getFullYear() + "-" +
-                            String(d.getMonth() + 1).padStart(2, '0') + "-" +
-                            String(d.getDate()).padStart(2, '0') + " " +
-                            String(hours).padStart(2, '0') + ":" +
-                            String(d.getMinutes()).padStart(2, '0') + ":" +
-                            String(d.getSeconds()).padStart(2, '0') + " " +
-                            ampm;
-                    }
+            <!-- Part -->
+            <td style="padding:10px; font-weight:bold;">
+                ${row.scanned_part || row.mpn_data || '-'}
+            </td>
 
-                    // Clean description to remove commas
-                    const cleanDesc = (r.description || '').replace(/,/g, ' ');
+            <!-- Comment -->
+            <td style="padding:10px;">
+                ${row.comment || '-'}
+            </td>
 
-                    csv += `${formattedDate},${r.process_side},${r.work_orders?.wo_number || ''},${r.work_orders?.product_name || ''},${r.machine_id},${r.target_slot},${r.part_number},${cleanDesc},${r.reel_qty},${r.emp_id}\n`;
-                });
+            <!-- Date Code -->
+            <td style="padding:10px;">
+                ${row.date_code || '-'}
+            </td>
 
-                const link = document.createElement("a");
-                link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-                link.download = `Traceability_Report_${new Date().toISOString().slice(0, 10)}.csv`;
-                link.click();
-            };
+            <!-- Qty -->
+            <td style="padding:10px;">
+                ${row.reel_qty || '-'}
+            </td>
 
-            // --- FIX STARTS HERE: Removed the "document.addEventListener" wrapper ---
+            <!-- Status -->
+            <td style="padding:10px;">
+                ${statusBadge}
+            </td>
 
-            // 1. Get today's date in YYYY-MM-DD format
-            const today = new Date().toISOString().split('T')[0];
+            <!-- User -->
+            <td style="padding:10px; color:#888;">
+                ${row.verified_by || '-'}
+            </td>
 
-            // 2. Find the date inputs
-            const startDate = document.getElementById("report-start-date");
-            const endDate = document.getElementById("report-end-date");
+        </tr>
+        `;
 
-            // 3. Set them to today and run the report
-            if (startDate && endDate) {
-                startDate.value = today;
-                endDate.value = today;
+        tbody.insertAdjacentHTML('beforeend', tr);
+    });
+};
 
-                // Automatically fetch data for today
-                if (typeof generateTraceabilityReport === "function") {
-                    generateTraceabilityReport();
-                }
-            }
 
+window.exportReportToCSV = function () {
+
+    if (!reportDataExport || !reportDataExport.length) {
+        return showMessage("No data to export", "error");
+    }
+
+    // ✅ Header
+    let csv = "Timestamp,Machine,Slot,Part,Comment,DateCode,Qty,Status,User\n";
+
+    reportDataExport.forEach(r => {
+
+        let formattedDate = "";
+
+        if (r.created_at) {
+            const d = new Date(r.created_at);
+
+            let hours = d.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+
+            formattedDate =
+                d.getFullYear() + "-" +
+                String(d.getMonth() + 1).padStart(2, '0') + "-" +
+                String(d.getDate()).padStart(2, '0') + " " +
+                String(hours).padStart(2, '0') + ":" +
+                String(d.getMinutes()).padStart(2, '0') + ":" +
+                String(d.getSeconds()).padStart(2, '0') + " " +
+                ampm;
+        }
+
+        // ✅ Clean commas (VERY IMPORTANT for CSV)
+        const cleanComment = (r.comment || '').replace(/,/g, ' ');
+        const cleanDateCode = (r.date_code || '').replace(/,/g, ' ');
+
+        // ✅ SINGLE LINE (FIXED)
+        csv += `${formattedDate},${r.mach_name || ''},${r.slot_number || ''},${r.scanned_part || r.mpn_data || ''},${cleanComment},${cleanDateCode},${r.reel_qty || ''},${r.status || ''},${r.verified_by || ''}\n`;
+    });
+
+    // ✅ Download
+    const link = document.createElement("a");
+    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    link.download = `Scan_Report_${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+};
+
+// 🔹 Auto load today
+const today = new Date().toISOString().split('T')[0];
+
+const startDate = document.getElementById("report-start-date");
+const endDate = document.getElementById("report-end-date");
+
+if (startDate && endDate) {
+    startDate.value = today;
+    endDate.value = today;
+
+    if (typeof generateTraceabilityReport === "function") {
+        generateTraceabilityReport();
+    }
+}
             // --- END FIX ---
             // --- END: OEE Analytics Page Functions ---
         }); // End of DOMContentLoaded
