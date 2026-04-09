@@ -73,10 +73,10 @@
             min-height: 100vh;
         }
             .main-container:not(.logged-in) {
-                display: none !important; /* Forces dashboard to hide completely until login */
+                display: none !important; /*
             }
 
-        /* --- NEW LOGIN SCREEN STYLES (Split Screen) --- */
+        
         .login-wrapper {
             position: fixed;
             top: 0;
@@ -86,7 +86,7 @@
             z-index: 10000;
             background: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex; /* !important REMOVED so JavaScript can hide it */
+            display: flex; /* 
             padding: 0;
         }
 
@@ -96,11 +96,11 @@
             height: 100%;
         }
 
-        /* Container for the video header */
+        
 .header-video-container {
     width: 320px; /* Adjust this width to match your video's content */
     margin-bottom: 20px;
-    border-radius: 8px; /* Optional: adds a slight curve to the video corners */
+    border-radius: 8px; /* 
     overflow: hidden;
     /* This ensures it aligns with your left padding of 50px */
     display: block; 
@@ -115,11 +115,11 @@
     filter: drop-shadow(0 0 10px rgba(162, 240, 18, 0.3));
 }
 
-/* Ensure the Welcome text doesn't move too far up */
+
 .left-content h1 {
     margin-top: 10px;
 }
-        /* Left Panel: Green Gradient + Animation */
+        
         .left-panel {
             position: relative;
             width: 70%;
@@ -200,14 +200,14 @@
                     display: block;
                 }
 
-        /* Right Panel: Login Form */
+        
         .right-panel {
             width: 30%;
             background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-left: -5%; /* Overlap due to clip-path */
+            margin-left: -5%; 
             padding-left: 5%;
             z-index: 0;
         }
@@ -245,7 +245,7 @@
             margin-bottom: 30px;
         }
 
-        /* Specific Login Input Styles (Overrides Global Dark Theme) */
+        
         .login-wrapper .input-group {
             margin-bottom: 20px;
         }
@@ -371,10 +371,10 @@
             top: 0;
             left: 0;
             padding: 20px 0;
-            display: none; /* Hidden by default until login */
+            display: none; 
             z-index: 1000;
             border-right: 1px solid var(--border-color);
-            overflow-y: auto; /* Allow sidebar scrolling if needed */
+            overflow-y: auto; 
         }
 
             .sidebar.active {
@@ -524,16 +524,16 @@
         }
 
         .content-area {
-            /* FIX: Changed width from 100% to calc(100% - 250px) to prevent overflow */
+            
             width: calc(100% - 250px);
             margin-left: 250px;
-            /* FIX: Full height minus padding/headers if needed, but 100vh is safer here */
+            
             height: 100vh;
             padding: 20px;
             display: none;
             box-sizing: border-box;
-            overflow-y: auto; /* Internal scrolling for content */
-            overflow-x: hidden; /* Prevent horizontal scrollbars */
+            overflow-y: auto; 
+            overflow-x: hidden; 
         }
 
             .content-area.active {
@@ -547,7 +547,7 @@
     align-items: center;
 }
 
-/* 2. Remove ONLY the duplicate Dashboard H4 */
+
 #dashboard-section > h4 {
     display: none !important;
 }
@@ -571,7 +571,7 @@
     gap: 20px;
 }
 
-/* 5. Keep all Card Titles visible */
+
 .content-card h4 {
     display: block !important;
     margin: 0 0 15px 0;
@@ -597,7 +597,7 @@
     display: none; /* Hidden by default */
 }
 
-/* Optional: Make it pulse if there are critical tasks */
+
 .notif-dot.active {
     display: block;
     box-shadow: 0 0 8px var(--glow-red);
@@ -3182,11 +3182,11 @@
                 }
             }
 
-            // Attach the listener to both inputs
+            
             if (oeeStartDateInput) oeeStartDateInput.addEventListener('change', handleOeeDateChange);
             if (oeeEndDateInput) oeeEndDateInput.addEventListener('change', handleOeeDateChange);
 
-            // Listener for OEE Analytics refresh button
+            
             const refreshOeeBtn = document.getElementById('load-oee-analytics-btn');
             if (refreshOeeBtn) {
                 refreshOeeBtn.addEventListener('click', loadOeeAnalytics);
@@ -3198,7 +3198,7 @@
                 submitComponentLotBtn.addEventListener('click', submitComponentLot);
             }
 
-            // Listener for Operator Performance refresh button
+            
             const refreshOperatorBtn = document.getElementById('refresh-operator-performance');
             if (refreshOperatorBtn) {
                 refreshOperatorBtn.addEventListener('click', loadOperatorPerformance);
@@ -3218,12 +3218,12 @@
             let globalScans = [];
             let downtimeParetoChart = null; // You should already have this
 
-            // --- ADD THESE NEW LINES ---
+            
             let oeeAvailabilityChart = null;
             let oeePerformanceChart = null;
             let oeeQualityChart = null;
 
-            // Pagination State Variables
+            
             const ROWS_PER_PAGE = 25;
             const WO_DETAILS_PAGE_SIZE = 100; // Show 100 serials at a time
             let historyCurrentPage = 0;
@@ -3307,14 +3307,14 @@
                 const now = new Date();
                 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-                // We create a string buffer to append new options
+                
                 let optionsHtml = '';
 
-                // --- 1. Add "This Year" Option ---
+                
                 const currentYear = now.getFullYear();
                 optionsHtml += `<option value="YEAR-${currentYear}">This Year (${currentYear})</option>`;
 
-                // --- 2. Add Last 12 Months (Loop) ---
+                
                 for (let i = 0; i < 12; i++) {
                     // Create date for 1st of month, going back 'i' months
                     let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -3325,7 +3325,7 @@
                     let value = `${y}-${String(m + 1).padStart(2, '0')}`;
                     let label = `${months[m]} ${y}`;
 
-                    // Friendly labels for current/past months
+                    
                     if (i === 0) label = `This Month (${months[m]})`;
                     else if (i === 1) label = `Last Month (${months[m]})`;
 
@@ -3410,19 +3410,19 @@
         'machine-monitoring-section': 'Machine Monitoring — NXTR1'
     };
 
-    // Update the main header title
+    
     const headerTitle = document.getElementById('current-section-title');
     if (headerTitle) {
         headerTitle.textContent = titleMap[id] || 'System Control';
     }
 
-    // 2. UI: Toggle visibility
+
     document.querySelectorAll('.main-section').forEach(section => section.classList.remove('active'));
     const section = document.getElementById(id);
     if (section) {
         section.classList.add('active');
         
-        // FIX: Hide any hardcoded <h4> or <h2> inside the section if it duplicates the header
+        
         const internalTitle = section.querySelector('h4, h2');
         if (internalTitle && internalTitle.id !== 'current-section-title') {
             internalTitle.style.display = 'none'; 
@@ -3432,7 +3432,7 @@
         return;
     }
 
-    // 3. Data Loading
+    
     try {
         if (id === 'dashboard-section') {
             initializeDashboard();
@@ -3544,13 +3544,13 @@ window.exportTaskAnalytics = async () => {
                 downtimeModal.classList.add('active');
             }
 
-            // REPLACE your old setupSidebar function with this one
+            
             function setupSidebar(isAdmin) {
-    // 1. IMPROVED PERMISSIONS
-    // Power Admin (sees Employee Mgmt) = user has role 'admin' in database
+    
+    
     const isPowerAdmin = (currentUser.role === 'admin'); 
     
-    // Leadership (sees Dispatcher) = user has specific designation
+    
     const leadershipRoles = ['Manager', 'Assistant Manager', 'Engineer', 'Supervisor'];
     const canDispatch = leadershipRoles.includes(currentUser.designation) || isPowerAdmin;
 
@@ -3666,10 +3666,10 @@ window.exportTaskAnalytics = async () => {
             return;
         }
 
-        // 2. Check Permissions
+        
         const isAdminRole = matchingEmployee.role === 'admin';
         
-        // Non-admins MUST select a valid authorized stage
+        
         if (!isAdminRole) {
             if (!stage) {
                 showMessage('Please select your current Stage.');
@@ -3690,26 +3690,26 @@ window.exportTaskAnalytics = async () => {
             stage: isAdminRole ? 'Management' : stage
         };
         
-        // Update UI Classes
+        
         document.body.classList.add('logged-in');
         if (mainContainer) mainContainer.classList.add('logged-in');
 
-        // 4. Initialize Sidebar with the Admin Status
+        
         setupSidebar(isAdminRole); 
 
-        // Inside your login success block:
+        
 if (welcome) welcome.textContent = `Welcome, ${empId}`;
 
-// 1. Set the Designation
+
 const desigEl = document.getElementById('designation-display');
 if (desigEl) desigEl.textContent = matchingEmployee.designation || 'Staff';
 
-// 2. Set the Stage
+
 if (stageDisplay) {
     stageDisplay.textContent = isAdminRole ? 'System Management' : `Stage: ${stage}`;
 }
 
-// 3. Reveal and Set the Photo
+
 const profileImgEl = document.getElementById('user-profile-img');
 if (profileImgEl) {
     const fallbackAvatar = `https://ui-avatars.com/api/?name=${empId}&background=random&color=fff`;
@@ -3717,7 +3717,7 @@ if (profileImgEl) {
     profileImgEl.style.display = 'block'; // CRITICAL: Makes the photo appear
 }
 
-        // 5. Smooth Transition
+        
         if (loginWrapper) {
             loginWrapper.style.opacity = '0';
             loginWrapper.style.transition = 'opacity 0.5s ease';
@@ -3779,7 +3779,7 @@ if (profileImgEl) {
     // 4. Hard reload to clear all global JS variables/states
     window.location.reload();
 }
-            // --- Work Order Management ---
+            
             function initLoginAnimation() {
                 const canvas = document.getElementById('networkCanvas');
                 if (!canvas) return;
@@ -3964,8 +3964,6 @@ if (profileImgEl) {
                     renderWorkOrders(allWOs);
                 }
 
-                // Refresh admin dropdown separately if needed (e.g., if on admin page)
-                // This logic is slightly adjusted to refresh only if needed after potential auto-complete
                 // if (document.getElementById('admin-section')?.classList.contains('active') && updatePromises.length === 0) {
                 //      loadActiveWOsForAdmin();
                 // }
@@ -4054,19 +4052,19 @@ if (profileImgEl) {
                                                                                                     `;
                     }).join('');
 
-                    // Add event listener to the table body for delegation
+                    // wo
                     woTableBody.querySelectorAll('.wo-row').forEach(row => {
                         row.addEventListener('click', () => {
                             const woId = row.getAttribute('data-wo-id');
                             if (woId) {
-                                showWoDetails(parseInt(woId)); // Ensure ID is a number if needed
+                                showWoDetails(parseInt(woId));
                             }
                         });
                     });
 
                 }
 
-                // Update pagination controls
+                
                 const totalPages = Math.ceil(woTotalRows / ROWS_PER_PAGE);
                 if (woPageInfo) woPageInfo.textContent = `Page ${woCurrentPage + 1} of ${totalPages || 1}`;
                 if (woPrevBtn) woPrevBtn.disabled = woCurrentPage === 0;
@@ -4128,7 +4126,7 @@ if (profileImgEl) {
                 woDetailsCurrentWOId = woId;
                 woDetailsCurrentPage = 0;
                 woDetailsTableBody.innerHTML = `<tr><td colspan="5" class="loading-cell">Loading serial details...</td></tr>`;
-                woDetailsModal.classList.add('active');
+                woDetailsModal.classList.('active');
 
                 // 2. Fetch the Work Order's main details (NOT serials)
                 const { data: woData, error } = await supabaseClient
@@ -4231,13 +4229,13 @@ if (profileImgEl) {
                 if (woDetailsNextBtn) woDetailsNextBtn.disabled = (woDetailsCurrentPage + 1) * WO_DETAILS_PAGE_SIZE >= woDetailsTotalRows;
             }
 
-            // VVV ADD THESE EVENT LISTENERS VVV
+            
             // Find a good place for this, maybe after the historyPrevBtn/historyNextBtn listeners (around line 2040)
             if (woDetailsPrevBtn) woDetailsPrevBtn.onclick = () => { if (woDetailsCurrentPage > 0) loadWoDetailsPage(woDetailsCurrentPage - 1); };
             if (woDetailsNextBtn) woDetailsNextBtn.onclick = () => { if ((woDetailsCurrentPage + 1) * WO_DETAILS_PAGE_SIZE < woDetailsTotalRows) loadWoDetailsPage(woDetailsCurrentPage + 1); };
             if (woDetailsCloseBtn) { woDetailsCloseBtn.addEventListener('click', closeWoDetailsModal); }
 
-            // --- Employee Management ---
+            
 
 async function loadEmployees() {
     if (!employeeTableBody) { console.error("Employee table body not found!"); return; }
@@ -7232,17 +7230,13 @@ if (assignBtn) assignBtn.onclick = assignTask;
                 return div;
             }
 
-            // ----------------------------------------------
-            // --- 2. PASTE THIS NEW JAVASCRIPT BLOCK ---
-
-            // --- Add 'Enter' key listener ---
+            
             if (botInput) {
                 botInput.addEventListener('keypress', e => {
                     if (e.key === 'Enter' && !botInput.disabled) window.sendBotMessage();
                 });
             }
-            // --- END OF AI CHATBOT CODE ---
-            // --- DRAGGABLE CHATBOT LOGIC ---
+            
             makeDraggable(document.getElementById("quality-bot"), document.getElementById("bot-header"));
 
             function makeDraggable(element, dragHandle) {
@@ -7252,7 +7246,7 @@ if (assignBtn) assignBtn.onclick = assignTask;
                 let xOffset = 0;
                 let yOffset = 0;
 
-                // 2. Add Event Listeners
+                
                 if (dragHandle) {
                     dragHandle.addEventListener("mousedown", dragStart);
                     document.addEventListener("mouseup", dragEnd);
@@ -7661,7 +7655,7 @@ document.addEventListener('click', async function(event) {
 });
     </script>
 
-<!-- ═══ MACHINE MONITOR JS — must be last so window.showSection exists ═══ -->
+//mcm
 <script>
 (function () {
   'use strict';
@@ -7889,7 +7883,7 @@ document.addEventListener('click', async function(event) {
     }
   }
 
-  /* ─── Public: start / stop ─── */
+  
   window.startMachineMonitor = function(){
     renderModules();
     if(!mm_clockId){ mm_clockId = setInterval(mmTick, 1000); }
@@ -7903,7 +7897,7 @@ document.addEventListener('click', async function(event) {
     if(mm_intervalId){ clearInterval(mm_intervalId); mm_intervalId = null; }
   };
 
-  /* ─── Patch showSection AFTER DOMContentLoaded so the real one exists ─── */
+  
   window.addEventListener('load', function(){
     var _orig = window.showSection;
     if(typeof _orig === 'function'){
@@ -7918,15 +7912,15 @@ document.addEventListener('click', async function(event) {
 </script>
 
 <script>
-  /* ─── Source Code Protection ─── */
+  
   (function () {
-    // Disable right-click context menu
+    
     document.addEventListener('contextmenu', function (e) {
       e.preventDefault();
       return false;
     });
 
-    // Block common DevTools keyboard shortcuts
+    
     document.addEventListener('keydown', function (e) {
       // F12
       if (e.key === 'F12') { e.preventDefault(); return false; }
@@ -7942,7 +7936,7 @@ document.addEventListener('click', async function(event) {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
     });
 
-    // Disable text selection on double-click (optional extra hardening)
+    
     document.addEventListener('selectstart', function (e) {
       if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
