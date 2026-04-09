@@ -1574,6 +1574,306 @@
             }
         }
     </style>
+
+    <!-- ═══ MACHINE MONITOR SCOPED STYLES ═══ -->
+    <style>
+      #machine-monitoring-section {
+        --mm-bg:         #080c10;
+        --mm-panel:      #0d1318;
+        --mm-card:       #111820;
+        --mm-card-deep:  #0a0f14;
+        --mm-border:     #1e2d3d;
+        --mm-border-hi:  #2a4060;
+        --mm-cyan:       #00c8ff;
+        --mm-cyan-dim:   rgba(0,200,255,0.12);
+        --mm-cyan-glow:  rgba(0,200,255,0.35);
+        --mm-green:      #1eff8e;
+        --mm-green-dim:  rgba(30,255,142,0.12);
+        --mm-green-glow: rgba(30,255,142,0.4);
+        --mm-yellow:     #ffc837;
+        --mm-yellow-dim: rgba(255,200,55,0.12);
+        --mm-red:        #ff3b5c;
+        --mm-red-dim:    rgba(255,59,92,0.12);
+        --mm-orange:     #ff7c2a;
+        --mm-orange-dim: rgba(255,124,42,0.12);
+        --mm-txt-hi:     #e8f4ff;
+        --mm-txt-mid:    #7a9bb5;
+        --mm-txt-lo:     #3d5a70;
+        background: var(--mm-bg);
+        color: var(--mm-txt-hi);
+        font-family: 'Roboto Mono', monospace;
+        /* override the global .main-section { display:none !important } */
+        display: none;
+        flex-direction: column;
+        position: relative;
+        padding: 0 !important;
+        overflow: hidden !important;
+        height: calc(100vh - 60px) !important;
+        box-sizing: border-box;
+      }
+      /* Override global .main-section.active { display:block !important } */
+      #machine-monitoring-section.active {
+        display: flex !important;
+      }
+      #machine-monitoring-section::before {
+        content: '';
+        position: absolute; inset: 0;
+        background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.07) 3px,rgba(0,0,0,.07) 4px);
+        pointer-events: none; z-index: 10;
+      }
+      #mm-grid-bg {
+        position: absolute; inset: 0;
+        background-image:
+          linear-gradient(rgba(0,200,255,.014) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0,200,255,.014) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none; z-index: 0;
+      }
+      #mm-topstrip {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 18px; height: 42px;
+        background: var(--mm-panel);
+        border-bottom: 1px solid var(--mm-border);
+        position: relative; z-index: 5; flex-shrink: 0;
+      }
+      #mm-topstrip::after {
+        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--mm-cyan), transparent);
+        opacity: .45;
+      }
+      .mm-brand { display: flex; align-items: center; gap: 10px; }
+      .mm-brand-icon {
+        width: 26px; height: 26px;
+        border: 1.5px solid var(--mm-cyan); border-radius: 4px;
+        display: grid; place-items: center;
+        box-shadow: 0 0 8px var(--mm-cyan-glow);
+      }
+      .mm-brand-icon svg { width: 13px; height: 13px; fill: var(--mm-cyan); }
+      .mm-brand-name {
+        font-size: 13px; font-weight: 700;
+        letter-spacing: 2px; text-transform: uppercase; color: var(--mm-txt-hi);
+      }
+      .mm-brand-name span { color: var(--mm-cyan); }
+      .mm-strip-center { font-size: 10px; color: var(--mm-txt-mid); letter-spacing: 1px; }
+      .mm-strip-right { display: flex; align-items: center; gap: 14px; }
+      .mm-clk { font-size: 12px; color: var(--mm-cyan); letter-spacing: 1px; }
+      .mm-conn-dot {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--mm-green); box-shadow: 0 0 7px var(--mm-green-glow);
+        animation: mm-pulse 2s infinite;
+      }
+      .mm-conn-lbl { font-size: 9px; color: var(--mm-green); letter-spacing: 1px; }
+      @keyframes mm-pulse {
+        0%,100%{ opacity:1; box-shadow: 0 0 7px var(--mm-green-glow); }
+        50%    { opacity:.4; box-shadow: 0 0 3px var(--mm-green-glow); }
+      }
+      .mm-ring {
+        width: 12px; height: 12px;
+        border: 2px solid var(--mm-border); border-top-color: var(--mm-cyan);
+        border-radius: 50%; display: none;
+      }
+      .mm-ring.spinning { display: block; animation: mm-spin .6s linear infinite; }
+      @keyframes mm-spin { to { transform: rotate(360deg); } }
+
+      #mm-main {
+        flex: 1; display: grid;
+        grid-template-columns: 1fr 300px;
+        grid-template-rows: auto auto 1fr;
+        gap: 12px; padding: 12px;
+        overflow: hidden; position: relative; z-index: 1; min-height: 0;
+      }
+      #mm-hero {
+        grid-column: 1; grid-row: 1;
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 10px; padding: 18px 22px;
+        display: grid; grid-template-columns: auto 1fr auto;
+        gap: 22px; align-items: center;
+        position: relative; overflow: hidden; min-height: 120px;
+        transition: --mm-sc .4s;
+      }
+      #mm-hero::before {
+        content: ''; position: absolute; top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: var(--mm-sc, var(--mm-green));
+        box-shadow: 0 0 18px var(--mm-sg, var(--mm-green-glow));
+        transition: background .4s, box-shadow .4s;
+      }
+      #mm-hero::after {
+        content: ''; position: absolute; top: 0; right: 0;
+        width: 180px; height: 100%;
+        background: radial-gradient(ellipse at right, var(--mm-sg, var(--mm-green-glow)) 0%, transparent 70%);
+        opacity: .35; pointer-events: none; transition: background .4s;
+      }
+      .mm-mach-lbl { font-size: 9px; color: var(--mm-txt-lo); letter-spacing: 2px; text-transform: uppercase; }
+      .mm-mach-name { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: 3px; color: var(--mm-txt-hi); }
+      .mm-meta { display: flex; gap: 24px; align-items: flex-start; }
+      .mm-mi { display: flex; flex-direction: column; gap: 3px; }
+      .mm-mi-lbl { font-size: 9px; color: var(--mm-txt-lo); letter-spacing: 2px; text-transform: uppercase; }
+      .mm-mi-val { font-size: 20px; font-weight: 700; color: var(--mm-txt-hi); letter-spacing: 1px; line-height: 1.1; }
+      .mm-mi-val.mm-cyan { color: var(--mm-cyan); }
+      .mm-mi-val.mm-count { font-size: 30px; color: var(--mm-green); font-weight: 800; letter-spacing: 2px; }
+      .mm-status-blk { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .mm-badge {
+        display: flex; align-items: center; gap: 7px;
+        padding: 7px 16px; border-radius: 40px;
+        border: 1.5px solid var(--mm-green);
+        background: var(--mm-green-dim);
+        box-shadow: 0 0 14px var(--mm-green-glow);
+        transition: all .4s;
+      }
+      .mm-badge-dot {
+        width: 9px; height: 9px; border-radius: 50%;
+        background: var(--mm-green); box-shadow: 0 0 9px var(--mm-green-glow);
+        animation: mm-blink 1.4s infinite;
+      }
+      @keyframes mm-blink { 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+      .mm-badge-txt {
+        font-size: 14px; font-weight: 700; letter-spacing: 2px;
+        color: var(--mm-green); text-transform: uppercase;
+      }
+      .mm-upd { font-size: 9px; color: var(--mm-txt-lo); letter-spacing: 1px; }
+
+      #mm-modules {
+        grid-column: 1; grid-row: 2;
+        display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+      }
+      .mm-mod {
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 6px; padding: 12px 10px;
+        display: flex; flex-direction: column; gap: 6px;
+        position: relative; overflow: hidden; transition: border-color .3s, box-shadow .3s;
+      }
+      .mm-mod:hover { border-color: var(--mm-border-hi); box-shadow: 0 4px 18px rgba(0,200,255,.07); }
+      .mm-mod.mm-final {
+        border-color: var(--mm-cyan);
+        background: linear-gradient(135deg, var(--mm-card) 60%, rgba(0,200,255,.05));
+        box-shadow: 0 0 18px rgba(0,200,255,.09);
+      }
+      .mm-mod.mm-final::after {
+        content: 'FINAL'; position: absolute; top: 7px; right: 7px;
+        font-size: 7px; color: var(--mm-cyan); letter-spacing: 1.5px;
+        background: var(--mm-cyan-dim); padding: 2px 5px;
+        border-radius: 3px; border: 1px solid rgba(0,200,255,.3);
+      }
+      .mm-mod-num  { font-size: 9px;  color: var(--mm-txt-lo);  letter-spacing: 1px; }
+      .mm-mod-title{ font-size: 20px; font-weight: 700; color: var(--mm-txt-hi); line-height: 1; }
+      .mm-mod-stage{ font-size: 8px;  color: var(--mm-txt-mid); letter-spacing: 1.5px; text-transform: uppercase; }
+      .mm-bar { height: 3px; border-radius: 2px; background: var(--mm-border); overflow: hidden; margin-top: 2px; }
+      .mm-bar-fill { height: 100%; border-radius: 2px; background: var(--mm-green); width: 100%; animation: mm-breathe 3s infinite; }
+      .mm-mod.mm-final .mm-bar-fill { background: var(--mm-cyan); animation: mm-breathe-c 3s infinite; }
+      @keyframes mm-breathe  { 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+      @keyframes mm-breathe-c{ 0%,100%{ opacity:1; box-shadow: 0 0 5px var(--mm-cyan-glow); } 50%{ opacity:.45; box-shadow: none; } }
+
+      #mm-logs {
+        grid-column: 1; grid-row: 3;
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 10px; display: flex; flex-direction: column;
+        overflow: hidden; min-height: 0;
+      }
+      .mm-ph {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 9px 14px; border-bottom: 1px solid var(--mm-border);
+        background: var(--mm-card-deep); flex-shrink: 0;
+      }
+      .mm-ptitle {
+        font-size: 12px; font-weight: 700; letter-spacing: 2px;
+        text-transform: uppercase; color: var(--mm-txt-mid);
+      }
+      .mm-pbadge {
+        font-size: 9px; padding: 2px 7px; border-radius: 3px;
+        background: var(--mm-cyan-dim); color: var(--mm-cyan);
+        border: 1px solid rgba(0,200,255,.2); letter-spacing: 1px;
+      }
+      .mm-tw { overflow-y: auto; flex: 1; min-height: 0; }
+      .mm-tw::-webkit-scrollbar { width: 4px; }
+      .mm-tw::-webkit-scrollbar-track { background: transparent; }
+      .mm-tw::-webkit-scrollbar-thumb { background: var(--mm-border); border-radius: 3px; }
+      #mm-logs table { width: 100%; border-collapse: collapse; }
+      #mm-logs thead th {
+        font-size: 8px; color: var(--mm-txt-lo); letter-spacing: 2px;
+        text-transform: uppercase; padding: 7px 12px; text-align: left;
+        border-bottom: 1px solid var(--mm-border);
+        position: sticky; top: 0; background: var(--mm-card-deep); z-index: 2;
+      }
+      #mm-logs tbody tr { border-bottom: 1px solid rgba(30,45,61,.5); transition: background .15s; }
+      #mm-logs tbody tr:hover { background: rgba(0,200,255,.025); }
+      #mm-logs tbody td { padding: 6px 12px; font-size: 11px; color: var(--mm-txt-mid); vertical-align: middle; }
+      #mm-logs tbody td:first-child { font-size: 9px; color: var(--mm-txt-lo); white-space: nowrap; width: 120px; }
+      .mm-type {
+        font-size: 8px; padding: 2px 6px; border-radius: 3px;
+        letter-spacing: 1px; white-space: nowrap; display: inline-block;
+      }
+      .mm-type.mm-operatorlog { background: rgba(255,200,55,.15); color: var(--mm-yellow); border: 1px solid rgba(255,200,55,.3); }
+      .mm-type.mm-error,
+      .mm-type.mm-alarm  { background: rgba(255,59,92,.15);  color: var(--mm-red);    border: 1px solid rgba(255,59,92,.3); }
+      .mm-type.mm-info,
+      .mm-type.mm-system { background: rgba(0,200,255,.1);   color: var(--mm-cyan);   border: 1px solid rgba(0,200,255,.2); }
+      .mm-type.mm-default { background: var(--mm-card-deep); color: var(--mm-txt-lo); border: 1px solid var(--mm-border); }
+      td.mm-msg            { color: var(--mm-txt-mid); line-height: 1.4; font-size: 11px; }
+      td.mm-msg.mm-op      { color: var(--mm-yellow); }
+      td.mm-msg.mm-err     { color: var(--mm-red); }
+      #mm-logs .mm-empty td {
+        text-align: center; padding: 24px; color: var(--mm-txt-lo); font-size: 10px; letter-spacing: 1px;
+      }
+
+      #mm-sidebar { grid-column: 2; grid-row: 1/4; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+      .mm-prod-card {
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; flex-shrink: 0;
+      }
+      .mm-big-lbl  { font-size: 8px; color: var(--mm-txt-lo); letter-spacing: 2px; text-transform: uppercase; }
+      .mm-big-count {
+        font-size: 58px; font-weight: 800; color: var(--mm-green); line-height: 1;
+        letter-spacing: 2px; text-shadow: 0 0 28px var(--mm-green-glow);
+        animation: mm-cglow 3s infinite;
+      }
+      @keyframes mm-cglow {
+        0%,100%{ text-shadow: 0 0 28px var(--mm-green-glow); }
+        50%    { text-shadow: 0 0 8px  var(--mm-green-glow); }
+      }
+      .mm-big-unit { font-size: 9px; color: var(--mm-green); opacity: .6; letter-spacing: 2px; margin-top: -4px; }
+      .mm-job-val  {
+        font-size: 16px; font-weight: 600; color: var(--mm-cyan);
+        letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .mm-progress-track { height: 4px; background: var(--mm-border); border-radius: 2px; overflow: hidden; }
+      .mm-progress-fill  {
+        height: 100%; background: linear-gradient(90deg, var(--mm-cyan), var(--mm-green));
+        border-radius: 2px; width: 0%; transition: width 1s ease;
+        box-shadow: 0 0 7px var(--mm-cyan-glow);
+      }
+      .mm-stats {
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 10px; padding: 14px 16px; flex-shrink: 0;
+      }
+      .mm-stat-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 5px 0; border-bottom: 1px solid rgba(30,45,61,.5);
+      }
+      .mm-stat-row:last-child { border-bottom: none; }
+      .mm-stat-lbl { font-size: 9px; color: var(--mm-txt-lo); letter-spacing: 1px; text-transform: uppercase; }
+      .mm-stat-val { font-size: 14px; font-weight: 700; color: var(--mm-txt-hi); }
+      .mm-mini-log {
+        background: var(--mm-card); border: 1px solid var(--mm-border);
+        border-radius: 10px; flex: 1; display: flex; flex-direction: column;
+        overflow: hidden; min-height: 0;
+      }
+      .mm-mini-body { overflow-y: auto; flex: 1; padding: 8px; display: flex; flex-direction: column; gap: 5px; }
+      .mm-mini-body::-webkit-scrollbar { width: 3px; }
+      .mm-mini-body::-webkit-scrollbar-thumb { background: var(--mm-border); }
+      .mm-mini-entry {
+        display: flex; gap: 7px; align-items: flex-start;
+        padding: 5px 7px; border-radius: 4px;
+        background: var(--mm-card-deep); border-left: 2px solid var(--mm-border);
+      }
+      .mm-mini-entry.mm-op  { border-left-color: var(--mm-yellow); }
+      .mm-mini-entry.mm-err { border-left-color: var(--mm-red); }
+      .mm-mini-entry.mm-inf { border-left-color: var(--mm-cyan); }
+      .mm-mini-time { font-size: 8px; color: var(--mm-txt-lo); white-space: nowrap; flex-shrink: 0; padding-top: 1px; }
+      .mm-mini-msg  { font-size: 10px; color: var(--mm-txt-mid); line-height: 1.35; }
+      .mm-mini-entry.mm-op  .mm-mini-msg { color: var(--mm-yellow); }
+      .mm-mini-entry.mm-err .mm-mini-msg { color: var(--mm-red); }
+    </style>
 </head>
 <body>
     <div id="toast-container"></div>
@@ -1639,6 +1939,9 @@
 
                         <div class="footer-links">
                             <a href="#">Need help? Contact IT Support</a>
+                        </div>
+                        <div style="margin-top: 18px; text-align: center; font-size: 12px; color: #aaa;">
+                            &copy; 2026 SFC System. All rights reserved.
                         </div>
                     </div>
                 </div>
@@ -2137,6 +2440,125 @@
                                 <button id="history-next" class="btn btn-light">Next</button>
                             </div>
                         </div>
+
+                        <!-- ═══ MACHINE MONITORING SECTION ═══ -->
+<div id="machine-monitoring-section" class="main-section">
+
+  <div id="mm-grid-bg"></div>
+
+  <div id="mm-topstrip">
+    <div class="mm-brand">
+      <div class="mm-brand-icon">
+        <svg viewBox="0 0 16 16"><path d="M1 2h14v2H1zm0 5h14v2H1zm0 5h14v2H1z"/></svg>
+      </div>
+      <div class="mm-brand-name">MES &nbsp;<span>/</span>&nbsp; Machine Monitor</div>
+    </div>
+    <div class="mm-strip-center">NXTR1 &nbsp;·&nbsp; SMT LINE &nbsp;·&nbsp; LIVE FEED</div>
+    <div class="mm-strip-right">
+      <div class="mm-ring" id="mm-ring"></div>
+      <div class="mm-clk" id="mm-clk">--:--:--</div>
+      <div class="mm-conn-dot"></div>
+      <div class="mm-conn-lbl">LIVE</div>
+    </div>
+  </div>
+
+  <div id="mm-main">
+
+    <!-- HERO CARD -->
+    <div id="mm-hero">
+      <div>
+        <div class="mm-mach-lbl">Machine ID</div>
+        <div class="mm-mach-name">NXTR1</div>
+      </div>
+      <div class="mm-meta">
+        <div class="mm-mi">
+          <div class="mm-mi-lbl">Current Job</div>
+          <div class="mm-mi-val mm-cyan" id="mm-job">—</div>
+        </div>
+        <div class="mm-mi">
+          <div class="mm-mi-lbl">Production Count</div>
+          <div class="mm-mi-val mm-count" id="mm-prod">—</div>
+        </div>
+        <div class="mm-mi">
+          <div class="mm-mi-lbl">Last Updated</div>
+          <div class="mm-mi-val" style="font-size:12px;color:var(--mm-txt-mid)" id="mm-updated">—</div>
+        </div>
+      </div>
+      <div class="mm-status-blk">
+        <div class="mm-badge" id="mm-badge">
+          <div class="mm-badge-dot" id="mm-dot"></div>
+          <div class="mm-badge-txt" id="mm-status-txt">LOADING</div>
+        </div>
+        <div class="mm-upd" id="mm-upd-time">Fetching…</div>
+      </div>
+    </div>
+
+    <!-- MODULES -->
+    <div id="mm-modules"></div>
+
+    <!-- LOGS -->
+    <div id="mm-logs">
+      <div class="mm-ph">
+        <div class="mm-ptitle">Operator Log Feed</div>
+        <div class="mm-pbadge" id="mm-log-count">— ENTRIES</div>
+      </div>
+      <div class="mm-tw">
+        <table>
+          <thead><tr><th>Timestamp</th><th>Type</th><th>Message</th></tr></thead>
+          <tbody id="mm-log-body">
+            <tr class="mm-empty"><td colspan="3">Connecting…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div id="mm-sidebar">
+
+      <div class="mm-prod-card">
+        <div class="mm-ph" style="padding:0 0 10px;background:none;border-bottom:1px solid var(--mm-border);">
+          <div class="mm-ptitle">Production</div>
+          <div class="mm-pbadge">SHIFT TOTAL</div>
+        </div>
+        <div style="border-bottom:1px solid var(--mm-border);padding-bottom:12px;">
+          <div class="mm-big-lbl">Total Count</div>
+          <div class="mm-big-count" id="mm-side-count">—</div>
+          <div class="mm-big-unit">PANELS</div>
+        </div>
+        <div>
+          <div class="mm-big-lbl">Active Job</div>
+          <div class="mm-job-val" id="mm-side-job">—</div>
+        </div>
+        <div>
+          <div class="mm-big-lbl" style="margin-bottom:5px;">Progress</div>
+          <div class="mm-progress-track">
+            <div class="mm-progress-fill" id="mm-prog"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mm-stats">
+        <div class="mm-ph" style="padding:0 0 8px;background:none;border-bottom:1px solid var(--mm-border);margin-bottom:2px;">
+          <div class="mm-ptitle">Line Status</div>
+        </div>
+        <div class="mm-stat-row"><span class="mm-stat-lbl">Machine</span><span class="mm-stat-val">NXTR1</span></div>
+        <div class="mm-stat-row"><span class="mm-stat-lbl">Modules</span><span class="mm-stat-val" style="color:var(--mm-green)">5 / 5</span></div>
+        <div class="mm-stat-row"><span class="mm-stat-lbl">Final Stage</span><span class="mm-stat-val" style="color:var(--mm-cyan)">MODULE 5</span></div>
+        <div class="mm-stat-row"><span class="mm-stat-lbl">Source</span><span class="mm-stat-val" style="font-size:11px;color:var(--mm-txt-mid)">SUPABASE</span></div>
+        <div class="mm-stat-row"><span class="mm-stat-lbl">Refresh</span><span class="mm-stat-val" style="font-size:11px;color:var(--mm-txt-mid)">2s</span></div>
+      </div>
+
+      <div class="mm-mini-log">
+        <div class="mm-ph">
+          <div class="mm-ptitle">Recent Activity</div>
+          <div class="mm-pbadge">LIVE</div>
+        </div>
+        <div class="mm-mini-body" id="mm-mini-log"></div>
+      </div>
+
+    </div><!-- /mm-sidebar -->
+  </div><!-- /mm-main -->
+</div><!-- /machine-monitoring-section -->
 
                         <div id="rework-section" class="main-section content-card">
                             <h4>Rework Queue</h4>
@@ -2958,7 +3380,8 @@
         'analytics-section': 'Intelligence Reports',
         'history-section': 'Archives & History',
         'reload-section': 'Component Reload',
-        'car-management-section': 'Quality CAR Reports'
+        'car-management-section': 'Quality CAR Reports',
+        'machine-monitoring-section': 'Machine Monitoring — NXTR1'
     };
 
     // Update the main header title
@@ -3019,6 +3442,11 @@
         }
         else if (id === 'admin-section') {
             loadActiveWOsForAdmin();
+        }
+        else if (id === 'machine-monitoring-section') {
+            if (typeof window.startMachineMonitor === 'function') {
+                window.startMachineMonitor();
+            }
         }
     } catch (err) {
         console.error(`Error loading data for section ${id}:`, err);
@@ -3129,6 +3557,7 @@ window.exportTaskAnalytics = async () => {
 
         <button onclick="window.showSection('traceability-section'); resetTraceabilityTab();">${icons.traceability} Reload History</button>
         <button onclick="window.showSection('history-section')">${icons.history} History</button>
+        <button onclick="window.showSection('machine-monitoring-section')">🖥️ Machine Monitoring</button>
         <button class="logout-btn" onclick="window.logout()">${icons.logout} Logout</button>
     `;
 }
@@ -7156,5 +7585,295 @@ document.addEventListener('click', async function(event) {
     }
 });
     </script>
+
+<!-- ═══ MACHINE MONITOR JS — must be last so window.showSection exists ═══ -->
+<script>
+(function () {
+  'use strict';
+
+  var MM_MACHINE   = 'NXTR1';
+  var MM_LOG_LIMIT = 20;
+  var MM_REFRESH   = 2000;
+  var MM_SB_URL    = 'https://mjdgoqnvkmmutenruqxc.supabase.co';
+  var MM_SB_KEY    = 'sb_publishable_cg0jIId-3c9yXJWv_lT32w_VueBdJr5';
+
+  var mm_machineData  = null;
+  var mm_logsData     = [];
+  var mm_intervalId   = null;
+  var mm_clockId      = null;
+  var mm_modulesBuilt = false;
+
+  /* ─── REST helper ─── */
+  async function mmFetch(table, params) {
+    var url = new URL(MM_SB_URL + '/rest/v1/' + table);
+    if (params) Object.entries(params).forEach(function(kv){ url.searchParams.set(kv[0], kv[1]); });
+    var res = await fetch(url.toString(), {
+      headers: { 'apikey': MM_SB_KEY, 'Authorization': 'Bearer ' + MM_SB_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  /* ─── fetchMachine ─── */
+  async function fetchMachine() {
+    try {
+      var rows = await mmFetch('equip_job', { select:'*', machine: 'eq.'+MM_MACHINE, order: 'time.desc', limit:'1' });
+      mm_machineData = (rows && rows.length) ? rows[0] : null;
+    } catch(e) {
+      try {
+        var rows2 = await mmFetch('equip_job', { select:'*', order: 'time.desc', limit:'1' });
+        mm_machineData = (rows2 && rows2.length) ? rows2[0] : null;
+      } catch(e2) { mm_machineData = null; }
+    }
+  }
+
+  /* ─── fetchLogs ─── */
+  async function fetchLogs() {
+    try {
+      var rows = await mmFetch('production_log', { select:'*', machine: 'eq.'+MM_MACHINE, order: 'time.desc', limit:String(MM_LOG_LIMIT) });
+      mm_logsData = rows || [];
+    } catch(e) {
+      try {
+        var rows2 = await mmFetch('production_log', { select:'*', order: 'time.desc', limit:String(MM_LOG_LIMIT) });
+        mm_logsData = rows2 || [];
+      } catch(e2) { mm_logsData = []; }
+    }
+  }
+
+  /* ─── helpers ─── */
+  function mmStatusCfg(status) {
+    var s = (status || '').toUpperCase();
+    if (s.indexOf('RUN')  !== -1) return { c:'var(--mm-green)',  g:'var(--mm-green-glow)',  d:'var(--mm-green-dim)',  lbl:'RUNNING'  };
+    if (s.indexOf('IDLE') !== -1) return { c:'var(--mm-yellow)', g:'rgba(255,200,55,.4)',   d:'var(--mm-yellow-dim)', lbl:'IDLE'     };
+    if (s.indexOf('ALARM')!== -1) return { c:'var(--mm-red)',    g:'rgba(255,59,92,.4)',    d:'var(--mm-red-dim)',    lbl:'ALARM'    };
+    if (s.indexOf('STOP') !== -1) return { c:'var(--mm-orange)', g:'rgba(255,124,42,.4)',   d:'var(--mm-orange-dim)', lbl:'STOPPED'  };
+    return { c:'var(--mm-txt-lo)', g:'rgba(120,155,181,.2)', d:'rgba(120,155,181,.06)', lbl:s||'UNKNOWN' };
+  }
+
+  function mmFmtTime(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleTimeString('en-US',{hour12:false}); } catch(e){ return '—'; }
+  }
+
+  function mmFmtDT(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleString('en-US',{hour12:false,month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}); } catch(e){ return '—'; }
+  }
+
+  function mmClean(t) {
+    if (!t) return '—';
+    var s = String(t).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+    return s || '—';
+  }
+
+  function mmClassify(type) {
+    var t = (type || '').toUpperCase();
+    if (t.indexOf('OPERATOR')!== -1) return 'mm-operatorlog';
+    if (t.indexOf('ERROR')   !== -1) return 'mm-error';
+    if (t.indexOf('ALARM')   !== -1) return 'mm-alarm';
+    if (t.indexOf('INFO')    !== -1) return 'mm-info';
+    if (t.indexOf('SYSTEM')  !== -1) return 'mm-system';
+    return 'mm-default';
+  }
+
+  function el(id){ return document.getElementById(id); }
+
+  /* ─── renderMachine ─── */
+  function renderMachine() {
+    var now = new Date().toLocaleTimeString('en-US',{hour12:false});
+    if (!mm_machineData) {
+      if(el('mm-job'))        el('mm-job').textContent        = 'No data';
+      if(el('mm-prod'))       el('mm-prod').textContent       = '—';
+      if(el('mm-updated'))    el('mm-updated').textContent    = now;
+      if(el('mm-status-txt')) el('mm-status-txt').textContent = 'OFFLINE';
+      if(el('mm-side-count')) el('mm-side-count').textContent = '—';
+      if(el('mm-side-job'))   el('mm-side-job').textContent   = '—';
+      return;
+    }
+    var d     = mm_machineData;
+    var job   = d.job_name||d.job_id||d.wo_number||d.jobname||'—';
+    var count = d.production_count ?? '—';
+    var status= d.status||d.machine_status||d.mach_status||'RUNNING';
+    var cfg   = mmStatusCfg(status);
+
+    if(el('mm-job'))        el('mm-job').textContent        = job;
+    if(el('mm-prod'))       el('mm-prod').textContent       = count;
+    if(el('mm-updated'))    el('mm-updated').textContent    = mmFmtDT(d.updated_at||d.created_at);
+    if(el('mm-status-txt')) el('mm-status-txt').textContent = cfg.lbl;
+    if(el('mm-upd-time'))   el('mm-upd-time').textContent   = 'Updated: '+now;
+
+    var hero = el('mm-hero');
+    if(hero){ hero.style.setProperty('--mm-sc',cfg.c); hero.style.setProperty('--mm-sg',cfg.g); hero.style.setProperty('--mm-sd',cfg.d); }
+
+    var badge = el('mm-badge');
+    if(badge){ badge.style.borderColor=cfg.c; badge.style.background=cfg.d; badge.style.boxShadow='0 0 14px '+cfg.g; }
+
+    var dot = el('mm-dot');
+    if(dot){ dot.style.background=cfg.c; dot.style.boxShadow='0 0 9px '+cfg.g; }
+
+    var stxt = el('mm-status-txt');
+    if(stxt) stxt.style.color=cfg.c;
+
+    if(el('mm-side-count')) el('mm-side-count').textContent = count;
+    if(el('mm-side-job'))   el('mm-side-job').textContent   = job;
+
+    var num = parseInt(count);
+    var pct = (!isNaN(num) && num > 0) ? Math.min(100,(num/5000)*100) : 0;
+    if(el('mm-prog')) el('mm-prog').style.width = pct+'%';
+  }
+
+  /* ─── renderModules (once) ─── */
+  function renderModules() {
+    if (mm_modulesBuilt) return;
+    var stages = ['FEEDER','PLACEMENT','INSPECTION','REFLOW','FINAL STAGE'];
+    var row = el('mm-modules');
+    if (!row) return;
+    row.innerHTML = '';
+    for (var i = 1; i <= 5; i++) {
+      var isFinal = (i === 5);
+      var b = document.createElement('div');
+      b.className = 'mm-mod'+(isFinal?' mm-final':'');
+      b.innerHTML =
+        '<div class="mm-mod-num">MODULE</div>'+
+        '<div class="mm-mod-title">'+(i<10?'0'+i:i)+'</div>'+
+        '<div class="mm-mod-stage">'+stages[i-1]+'</div>'+
+        '<div class="mm-bar"><div class="mm-bar-fill" style="animation-delay:'+((i-1)*0.4)+'s"></div></div>';
+      row.appendChild(b);
+    }
+    mm_modulesBuilt = true;
+  }
+
+  /* ─── renderLogs ─── */
+  function renderLogs() {
+    var tbody = el('mm-log-body');
+    var lc    = el('mm-log-count');
+    if(lc) lc.textContent = mm_logsData.length+' ENTRIES';
+    if(!tbody) return;
+    if(!mm_logsData.length){
+      tbody.innerHTML = '<tr class="mm-empty"><td colspan="3">No log entries found</td></tr>';
+      renderMiniLog([]);
+      return;
+    }
+    var html = '';
+    for(var i=0;i<mm_logsData.length;i++){
+      var row     = mm_logsData[i];
+      var rawType = row.message_type||row.msg_type||row.type||'INFO';
+      var tk      = mmClassify(rawType);
+      var txt     = mmClean(row.datatext||row.message||row.msg||'');
+      var ts      = mmFmtTime(row.created_at||row.timestamp);
+      var isOp    = (tk==='mm-operatorlog');
+      var isErr   = (tk==='mm-error'||tk==='mm-alarm');
+      html += '<tr>'+
+        '<td>'+ts+'</td>'+
+        '<td><span class="mm-type '+tk+'">'+rawType.toUpperCase().slice(0,16)+'</span></td>'+
+        '<td class="mm-msg'+(isOp?' mm-op':'')+(isErr?' mm-err':'')+'">'+txt+'</td>'+
+        '</tr>';
+    }
+    tbody.innerHTML = html;
+    renderMiniLog(mm_logsData.slice(0,8));
+  }
+
+  function renderMiniLog(entries) {
+    var c = el('mm-mini-log');
+    if(!c) return;
+    if(!entries.length){
+      c.innerHTML='<div style="color:var(--mm-txt-lo);font-size:9px;padding:8px;letter-spacing:1px;">NO ENTRIES</div>';
+      return;
+    }
+    var html='';
+    for(var i=0;i<entries.length;i++){
+      var row     = entries[i];
+      var rawType = row.message_type||row.msg_type||row.type||'INFO';
+      var tk      = mmClassify(rawType);
+      var txt     = mmClean(row.datatext||row.message||row.msg||'').slice(0,70);
+      var ts      = mmFmtTime(row.time || row.timestamp);
+      var cls     = (tk==='mm-operatorlog')?'mm-op':((tk==='mm-error'||tk==='mm-alarm')?'mm-err':'mm-inf');
+      html += '<div class="mm-mini-entry '+cls+'">'+
+        '<div class="mm-mini-time">'+ts+'</div>'+
+        '<div class="mm-mini-msg">'+txt+'</div>'+
+        '</div>';
+    }
+    c.innerHTML = html;
+  }
+
+  /* ─── clock ─── */
+  function mmTick(){
+    var e = el('mm-clk');
+    if(e) e.textContent = new Date().toLocaleTimeString('en-US',{hour12:false});
+  }
+
+  /* ─── refresh ─── */
+  async function mmRefresh(){
+    var ring = el('mm-ring');
+    if(ring) ring.classList.add('spinning');
+    try { await Promise.allSettled([fetchMachine(), fetchLogs()]); }
+    finally {
+      renderMachine();
+      renderLogs();
+      if(ring) ring.classList.remove('spinning');
+    }
+  }
+
+  /* ─── Public: start / stop ─── */
+  window.startMachineMonitor = function(){
+    renderModules();
+    if(!mm_clockId){ mm_clockId = setInterval(mmTick, 1000); }
+    mmTick();
+    if(mm_intervalId){ clearInterval(mm_intervalId); mm_intervalId = null; }
+    mmRefresh(); // first fetch immediately
+    mm_intervalId = setInterval(mmRefresh, MM_REFRESH);
+  };
+
+  window.stopMachineMonitor = function(){
+    if(mm_intervalId){ clearInterval(mm_intervalId); mm_intervalId = null; }
+  };
+
+  /* ─── Patch showSection AFTER DOMContentLoaded so the real one exists ─── */
+  window.addEventListener('load', function(){
+    var _orig = window.showSection;
+    if(typeof _orig === 'function'){
+      window.showSection = async function(id){
+        if(id !== 'machine-monitoring-section'){ window.stopMachineMonitor(); }
+        return _orig(id);
+      };
+    }
+  });
+
+})();
+</script>
+
+<script>
+  /* ─── Source Code Protection ─── */
+  (function () {
+    // Disable right-click context menu
+    document.addEventListener('contextmenu', function (e) {
+      e.preventDefault();
+      return false;
+    });
+
+    // Block common DevTools keyboard shortcuts
+    document.addEventListener('keydown', function (e) {
+      // F12
+      if (e.key === 'F12') { e.preventDefault(); return false; }
+      // Ctrl+Shift+I / Cmd+Opt+I  (DevTools)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) { e.preventDefault(); return false; }
+      // Ctrl+Shift+J / Cmd+Opt+J  (Console)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) { e.preventDefault(); return false; }
+      // Ctrl+Shift+C / Cmd+Opt+C  (Inspector)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) { e.preventDefault(); return false; }
+      // Ctrl+U / Cmd+U  (View Source)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return false; }
+      // Ctrl+S / Cmd+S  (Save Page)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's')) { e.preventDefault(); return false; }
+    });
+
+    // Disable text selection on double-click (optional extra hardening)
+    document.addEventListener('selectstart', function (e) {
+      if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    });
+  })();
+</script>
 </body>
 </html>
